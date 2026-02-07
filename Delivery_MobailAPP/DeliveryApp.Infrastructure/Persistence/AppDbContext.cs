@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace DeliveryApp.Infrastructure.Persistence
 {
-    public class DeliveryDbContext :DbContext
+    public class AppDbContext : DbContext
     {
-        public DeliveryDbContext(DbContextOptions<DeliveryDbContext> options) : base(options) { }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     }
 }

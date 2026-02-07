@@ -428,3 +428,9 @@ FodyWeavers.xsd
 !.vscode/*.code-snippets
 .history/
 
+# Local app settings / secrets
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# ASP.NET Core user secrets (local)
+**/secrets.json
