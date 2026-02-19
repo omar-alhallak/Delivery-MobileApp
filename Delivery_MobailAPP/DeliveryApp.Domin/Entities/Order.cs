@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DeliveryApp.Domain.Entities
 {
-    internal class Customer
+    internal class Order
     {
     }
 }

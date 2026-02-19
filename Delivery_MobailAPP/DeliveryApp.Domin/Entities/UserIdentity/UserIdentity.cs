@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.Entities
+namespace DeliveryApp.Domain.Entities.UserIdentity
 {
-    public class Driver
+    internal class UserIdentity
     {
-        public int id { set; get; }
+
     }
 }
