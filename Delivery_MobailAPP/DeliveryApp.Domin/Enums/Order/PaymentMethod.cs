@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.Entities
+namespace DeliveryApp.Domain.Enums.Order
 {
-    internal class Customer
+    public enum PaymentMethod : byte
     {
+        Cash = 1
     }
 }
