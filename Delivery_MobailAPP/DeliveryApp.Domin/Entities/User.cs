@@ -1,10 +1,11 @@
 ﻿using System;
+using DeliveryApp.Domain.Enums;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.Entities.User
+namespace DeliveryApp.Domain.Entities
 {
     public class User
     {

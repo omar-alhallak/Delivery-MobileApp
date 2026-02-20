@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.Entities.UserIdentity
+namespace DeliveryApp.Domain.Enums.Order
 {
-    internal class UserIdentity
+    public enum PaymentMethod : byte
     {
-
+        Cash = 1
     }
 }

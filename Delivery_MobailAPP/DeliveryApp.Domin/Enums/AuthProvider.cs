@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.Entities.Order
+namespace DeliveryApp.Domain.Enums
 {
-    public enum PaymentStatus : byte
+    public enum AuthProvider : byte
     {
-        UnPaid = 0,
-        Paid = 1,
+        Local = 1,
+        Google = 2,
     }
 }

@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.Entities.Order
+namespace DeliveryApp.Domain.Enums
 {
-    public enum PaymentMethod : byte
+    public enum AccountStatus
     {
-        Cash = 1
+        Active = 1,
+        Suspended = 2,
+        Banned = 3,
     }
 }

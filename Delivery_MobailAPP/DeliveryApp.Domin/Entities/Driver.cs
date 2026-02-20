@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.Entities.Driver
+namespace DeliveryApp.Domain.Entities
 {
     public class Driver
     {
