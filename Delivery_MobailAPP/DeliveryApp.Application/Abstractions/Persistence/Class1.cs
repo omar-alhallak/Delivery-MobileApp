@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.Entities
+namespace DeliveryApp.Application.Abstractions.Persistence
 {
-    public class TotoSfha
+    public interface Class1
     {
-        public TotoSfha() { }
-        public TotoSfha(string name) { }
 
     }
 }
