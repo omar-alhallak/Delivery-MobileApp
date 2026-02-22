@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DeliveryApp.Domain.Entities
 {
-    public class UserIdentity
+    public class UserIdentityTest
     {
         public Guid UserIdentityID { get; private set; }
         public Guid UserID { get; private set; }
@@ -20,9 +20,9 @@ namespace DeliveryApp.Domain.Entities
 
         public DateTimeOffset CreatedAt { get; private set; }
 
-        private UserIdentity() { }
+        private UserIdentityTest() { }
 
-        private UserIdentity(Guid UserIdentityId, Guid UserId, AuthProvider provider, string? ProviderUserId, string? passwordHash, DateTimeOffset CreatedAtUtc)
+        private UserIdentityTest(Guid UserIdentityId, Guid UserId, AuthProvider provider, string? ProviderUserId, string? passwordHash, DateTimeOffset CreatedAtUtc)
         {
             if (UserIdentityId == Guid.Empty) throw new ArgumentException("UserIdentityId cannot be empty.");
             if (UserId == Guid.Empty) throw new ArgumentException("UserId cannot be empty.");
@@ -40,21 +40,21 @@ namespace DeliveryApp.Domain.Entities
         }
 
         // إنشاء Local
-        public static UserIdentity CreateLocal(Guid UserIdentityId, Guid UserId, string passwordHash, DateTimeOffset CreatedAtUtc)
+        public static UserIdentityTest CreateLocal(Guid UserIdentityId, Guid UserId, string passwordHash, DateTimeOffset CreatedAtUtc)
         {
             if (string.IsNullOrWhiteSpace(passwordHash))
                 throw new ArgumentException("PasswordHash is required for Local.");
 
-            return new UserIdentity(UserIdentityId, UserId, AuthProvider.Local, ProviderUserId: null, passwordHash: passwordHash, CreatedAtUtc);
+            return new UserIdentityTest(UserIdentityId, UserId, AuthProvider.Local, ProviderUserId: null, passwordHash: passwordHash, CreatedAtUtc);
         }
 
         // إنشاء Google
-        public static UserIdentity CreateGoogle(Guid UserIdentityId, Guid UserId, string GoogleSub, DateTimeOffset CreatedAtUtc)
+        public static UserIdentityTest CreateGoogle(Guid UserIdentityId, Guid UserId, string GoogleSub, DateTimeOffset CreatedAtUtc)
         {
             if (string.IsNullOrWhiteSpace(GoogleSub))
                 throw new ArgumentException("ProviderUserId (Google sub) is required.");
 
-            return new UserIdentity(UserIdentityId, UserId, AuthProvider.Google, ProviderUserId: GoogleSub, passwordHash: null, CreatedAtUtc);
+            return new UserIdentityTest(UserIdentityId, UserId, AuthProvider.Google, ProviderUserId: GoogleSub, passwordHash: null, CreatedAtUtc);
         }
 
         private void Validate()

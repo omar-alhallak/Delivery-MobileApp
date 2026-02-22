@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DeliveryApp.Domain.Entities
 {
-    public class User
+    public class UserTest
     {
         public Guid UserID { get; private set; }
         public string? PublicUserID { get; private set; }
@@ -27,9 +27,9 @@ namespace DeliveryApp.Domain.Entities
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? LastLoginAt { get; private set; }
 
-        private User() { }
+        private UserTest() { }
 
-        public User(Guid UserId, UserRole Role, DateTimeOffset CreatedAtUtc)
+        public UserTest(Guid UserId, UserRole Role, DateTimeOffset CreatedAtUtc)
         {
             if (UserId == Guid.Empty)
                 throw new ArgumentException("UserID cannot be empty.");

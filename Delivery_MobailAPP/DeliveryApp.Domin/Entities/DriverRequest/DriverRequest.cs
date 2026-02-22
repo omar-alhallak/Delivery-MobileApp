@@ -193,8 +193,7 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
                 return v;
             }
 
-            private static string? Normalize(string? s)
-                => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+            private static string? Normalize(string? s)=> string.IsNullOrWhiteSpace(s) ? null : s.Trim();
         }
     }
 
