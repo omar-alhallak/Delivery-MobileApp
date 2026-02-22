@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DeliveryApp.Domain.Entities
 {
-    public class Driver
+    public class DriverTest
     {
         // PK + FK -> Users
         public Guid UserID { get; private set; }
@@ -29,9 +29,9 @@ namespace DeliveryApp.Domain.Entities
         public DateTimeOffset? ApprovedAt { get; private set; }
         public DateTimeOffset CreatedAt { get; private set; }
 
-        private Driver() { }
+        private DriverTest() { }
 
-        public Driver(Guid UserId, Guid VehicleTypeId, DateTimeOffset CreatedAtUtc)
+        public DriverTest(Guid UserId, Guid VehicleTypeId, DateTimeOffset CreatedAtUtc)
         {
             if (UserId == Guid.Empty) throw new ArgumentException("UserId cannot be empty.");
             if (VehicleTypeId == Guid.Empty) throw new ArgumentException("VehicleTypeId cannot be empty.");
