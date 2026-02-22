@@ -271,4 +271,4 @@ namespace DeliveryApp.Domain.Entities
 
             private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim(); // تنظيف النص قبل التخزين
         }
-    }
+    
