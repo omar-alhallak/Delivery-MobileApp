@@ -7,9 +7,8 @@ using DeliveryApp.Domain.Entities;
 
 namespace DeliveryApp.Application.Abstractions.Persistence
 {
-    public interface IDriverRepository
+    public interface Class1
     {
-        Task<Driver?> GetByIDAsync(Guid id, CancellationToken ct = default);
-        Task AddAsync(Driver driver, CancellationToken ct = default);
+
     }
 }
