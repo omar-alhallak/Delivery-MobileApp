@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.EntitiesTemp
+namespace DeliveryApp.Domain.Entities.Drivers
 {
     public class VehicleType
     {

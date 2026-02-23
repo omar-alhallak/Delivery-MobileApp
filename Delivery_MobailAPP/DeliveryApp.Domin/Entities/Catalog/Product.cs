@@ -1,26 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.XPath;
 
-namespace DeliveryApp.Domain.EntitiesTemp
+namespace DeliveryApp.Domain.Entities.Catalog
 {
-    public class Category
+    public class Product
     {
         [Key]
-        public Guid CategorieID { get; set; }
+        public Guid ProductID { get; set; }
 
         [Required]
-        [MaxLength(100)]
-        public string MerchantType { get; set; } = string.Empty;
+        public Guid MerchantID { get; set; }
+
+        [Required]
+        public Guid CategoryID { get; set; }
 
         [Required]
         [MaxLength(200)]
-        public string CategoriesName { get; set; } = string.Empty;
+        public string ProductName { get; set; } = string.Empty;
 
         [MaxLength(1000)]
         public string? Description { get; set; }
@@ -28,15 +29,13 @@ namespace DeliveryApp.Domain.EntitiesTemp
         [MaxLength(500)]
         public string? ImageURL { get; set; }
 
-        public int SortOrder { get; set; }
-
         public bool IsActive { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
 
-        public Category()
+        public Product()
         {
-            CategorieID = Guid.NewGuid();
+            ProductID = Guid.NewGuid();
             CreatedAt = DateTimeOffset.UtcNow;
             IsActive = true;
         }
