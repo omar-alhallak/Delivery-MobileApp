@@ -13,7 +13,7 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
         Product = 3
     }
 
-    public class Rating
+    public class RatingTest
     {
         public Guid RatingID { get; private set; }
         public Guid OrderID { get; private set; }
@@ -26,9 +26,9 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
         public string? Comment { get; private set; }
         public DateTimeOffset CreatedAt { get; private set; }
 
-        private Rating() { } // للـ EF Core
+        private RatingTest() { } // للـ EF Core
 
-        public Rating(
+        public RatingTest(
             Guid orderId,
             Guid raterUserId,
             Guid ratedEntityId,

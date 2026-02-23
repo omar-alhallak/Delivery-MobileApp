@@ -20,7 +20,7 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
         Customer = 3
     }
 
-    public class Complaint
+    public class ComplaintTest
     {
         public Guid ComplaintID { get; private set; }
         public Guid CreatedByUserID { get; private set; }
@@ -42,9 +42,9 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? ResolvedAt { get; private set; }
 
-        private Complaint() { } // للـ EF Core
+        private ComplaintTest() { } // للـ EF Core
 
-        public Complaint(
+        public ComplaintTest(
             Guid createdByUserId,
             Guid orderId,
             Guid targetId,

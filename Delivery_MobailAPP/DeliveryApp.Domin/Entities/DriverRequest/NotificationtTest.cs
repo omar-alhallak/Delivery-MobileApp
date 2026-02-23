@@ -15,7 +15,7 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
         SystemAlert = 5       // تنبيهات تقنية
     }
 
-    public class Notification
+    public class NotificationtTest
     {
         public Guid NotificationID { get; private set; }
         public Guid UserId { get; private set; }
@@ -29,9 +29,9 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
         public bool IsRead { get; private set; }
         public DateTimeOffset CreatedAt { get; private set; }
 
-        private Notification() { } // للـ EF Core
+        private NotificationtTest() { } // للـ EF Core
 
-        public Notification(
+        public NotificationtTest(
             Guid userId,
             string title,
             string body,
