@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DeliveryApp.Domain.Entities
 {
-    public class MerchantUser
+    public class MerchantUserTest
     {
         public Guid MerchantID { get; private set; }
         public Guid UserID { get; private set; }
@@ -18,9 +18,9 @@ namespace DeliveryApp.Domain.Entities
 
         public DateTimeOffset CreatedAt { get; private set; }
 
-        private MerchantUser() { }
+        private MerchantUserTest() { }
 
-        public MerchantUser(Guid MerchantId, Guid UserId, MerchantUserRole role)
+        public MerchantUserTest(Guid MerchantId, Guid UserId, MerchantUserRole role)
         {
             if (MerchantId == Guid.Empty)
                 throw new ArgumentException("MerchantId cannot be empty.");

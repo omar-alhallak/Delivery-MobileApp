@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DeliveryApp.Domain.Entities
 {
-    public class Order
+    public class OrderTest
     {
         public Guid OrderID { get; private set; }
 
@@ -46,9 +46,9 @@ namespace DeliveryApp.Domain.Entities
         public DateTimeOffset? ConfirmedAt { get; private set; }
         public DateTimeOffset? DeliveredAt { get; private set; }
 
-        private Order() { }
+        private OrderTest() { }
 
-        private Order(Guid OrderId, OrderType OrderType, Guid CustomerId, Guid? MerchantId, decimal pickupLat,
+        private OrderTest(Guid OrderId, OrderType OrderType, Guid CustomerId, Guid? MerchantId, decimal pickupLat,
             decimal pickupLng, decimal dropoffLat, decimal dropoffLng, decimal distanceKmSnapshot, decimal itemsTotalSnapshot,
             decimal deliveryFeeSnapshot, decimal tipAmountSnapshot, PaymentMethod paymentMethod, int requiredDriversCount, DateTimeOffset CreatedAtUtc)
         {
@@ -98,20 +98,20 @@ namespace DeliveryApp.Domain.Entities
             CreatedAt = CreatedAtUtc;
         }
 
-        public static Order CreateSuperMarketOrder(Guid OrderId, Guid CustomerId, Guid MerchantId, decimal pickupLat, decimal pickupLng,
+        public static OrderTest CreateSuperMarketOrder(Guid OrderId, Guid CustomerId, Guid MerchantId, decimal pickupLat, decimal pickupLng,
             decimal dropoffLat, decimal dropoffLng, decimal distanceKmSnapshot, decimal itemsTotalSnapshot, decimal deliveryFeeSnapshot,
             decimal tipAmountSnapshot, int requiredDriversCount, DateTimeOffset createdAtUtc)
         {
-            return new Order(OrderId, OrderType.SuperMarket, CustomerId, MerchantId, pickupLat, pickupLng, dropoffLat, dropoffLng,
+            return new OrderTest(OrderId, OrderType.SuperMarket, CustomerId, MerchantId, pickupLat, pickupLng, dropoffLat, dropoffLng,
                 distanceKmSnapshot, itemsTotalSnapshot, deliveryFeeSnapshot, tipAmountSnapshot, PaymentMethod.Cash,
                 requiredDriversCount, createdAtUtc);
         }
 
-        public static Order CreateRestaurantOrder(Guid OrderId, Guid CustomerId, decimal pickupLat, decimal pickupLng, decimal dropoffLat,
+        public static OrderTest CreateRestaurantOrder(Guid OrderId, Guid CustomerId, decimal pickupLat, decimal pickupLng, decimal dropoffLat,
             decimal dropoffLng, decimal distanceKmSnapshot, decimal deliveryFeeSnapshot, decimal tipAmountSnapshot,
             int requiredDriversCount, DateTimeOffset CreatedAtUtc)
         {
-            return new Order(OrderId, OrderType.Restaurant, CustomerId, MerchantId: null, pickupLat, pickupLng,
+            return new OrderTest(OrderId, OrderType.Restaurant, CustomerId, MerchantId: null, pickupLat, pickupLng,
                 dropoffLat, dropoffLng, distanceKmSnapshot, itemsTotalSnapshot: 0m, deliveryFeeSnapshot, tipAmountSnapshot,
                 PaymentMethod.Cash, requiredDriversCount, CreatedAtUtc);
         }
