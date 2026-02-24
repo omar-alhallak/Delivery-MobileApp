@@ -8,7 +8,7 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
 {
     namespace DeliveryApp.Domain.Entities.Vehicles
     {
-        public class VehicleType
+        public class VehicleTypeTest
         {
             // -------------------------
             // Properties (Private Setters)
@@ -31,9 +31,9 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
             // -------------------------
             // Constructors
             // -------------------------
-            private VehicleType() { } // للـ EF Core
+            private VehicleTypeTest() { } // للـ EF Core
 
-            public VehicleType(
+            public VehicleTypeTest(
                 string name,
                 double maxDistance,
                 double maxMergeExtra,

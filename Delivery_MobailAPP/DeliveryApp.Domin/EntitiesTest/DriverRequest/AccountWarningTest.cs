@@ -21,7 +21,7 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
         Critical = 4  // حظر فوري
     }
 
-    public class AccountWarning
+    public class AccountWarningTest
     {
         public Guid WarningID { get; private set; }
 
@@ -45,9 +45,9 @@ namespace DeliveryApp.Domain.Entities.DriverRequest
         public DateTimeOffset? ExpiresAt { get; private set; } // متى ينتهي مفعول التحذير أو الحظر
         public DateTimeOffset? DecidedAt { get; private set; }
 
-        private AccountWarning() { } // للـ EF Core
+        private AccountWarningTest() { } // للـ EF Core
 
-        public AccountWarning(
+        public AccountWarningTest(
             Guid entityId,
             WarningEntityType entityType,
             Guid adminId,
