@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Domain.Entities.Order
+namespace DeliveryApp.Domain.Entities.Customers.Order
 {
 
     public class OrderDriver

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.XPath;
 
-namespace DeliveryApp.Domain.Entities.Catalog
+namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
     public class Category
     {
