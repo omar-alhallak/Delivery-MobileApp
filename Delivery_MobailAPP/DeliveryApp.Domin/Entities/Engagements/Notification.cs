@@ -4,40 +4,81 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeliveryApp.Domain.Entities.Identity;
 
 namespace DeliveryApp.Domain.Entities.Feedback
 {
     public class Notification
     {
-        [Key]
-        public Guid NotificationID { get; set; }
 
-        [Required]
-        public Guid UserId { get; set; }
+        public Guid NotificationID { get; private set; }
 
-        [Required, MaxLength(200)]
-        public string Title { get; set; } = string.Empty;
+        public Guid UserId { get; private set; }
+        public User? User { get; private set; }
 
-        [Required, MaxLength(1000)]
-        public string Body { get; set; } = string.Empty;
 
-        [Required]
-        public int Type { get; set; }
+        public string Title { get; private set; } = string.Empty;
 
-        public int? RelatedEntityType { get; set; }
 
-        public Guid? RelatedEntityID { get; set; }
+        public string Body { get; private set; } = string.Empty;
 
-        [Required]
-        public bool IsRead { get; set; }
 
-        public DateTimeOffset CreatedAt { get; set; }
+        public int Type { get; private set; }
 
-        public Notification()
+        public int? RelatedEntityType { get; private set; }
+
+        public Guid? RelatedEntityID { get; private set; }
+        public User? RelatedEntity { get; private set; }
+
+
+        public bool IsRead { get; private set; }
+
+        public DateTimeOffset CreatedAt { get; private set; }
+
+        private Notification() { }
+        public Notification(Guid userId, string title, string body, int type, int? relatedEntityType = null, Guid? relatedEntityId = null)
         {
             NotificationID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
+            UserId = userId;
+            Title = title;
+            Body = body;
+            Type = type;
+            RelatedEntityType = relatedEntityType;
+            RelatedEntityID = relatedEntityId;
             IsRead = false;
+            CreatedAt = DateTimeOffset.UtcNow;
+        }
+        public void MarkAsRead()
+        {
+            IsRead = true;
+        }
+
+        public void UpdateContent(string newTitle, string newBody)
+        {
+            var normalizedTitle = newTitle;
+            if (string.IsNullOrEmpty(normalizedTitle) || normalizedTitle.Length < 3)
+                throw new ArgumentException("Notification title must be at least 3 characters.");
+            if (normalizedTitle.Length > 150)
+                throw new ArgumentException("Title is too long (Max 150 characters).");
+            var normalizedBody = newBody;
+            if (string.IsNullOrEmpty(normalizedBody))
+                throw new ArgumentException("Notification body cannot be empty.");
+            if (normalizedBody.Length > 1000)
+                throw new ArgumentException("Body is too long (Max 1000 characters).");
+            Title = newTitle;
+            Body = newBody;
+        }
+        public void UpdateRelatedEntity(int? newRelatedEntityType, Guid? newRelatedEntityId)
+        {
+            if (newRelatedEntityType.HasValue && (!newRelatedEntityId.HasValue))
+                throw new ArgumentException("RelatedEntityID is required when RelatedEntityType is specified.");
+        }
+        public void UpdateType(int newType)
+        {
+            if (newType <= 0)
+                throw new ArgumentException("Notification type must be a positive integer.");
+            Type = newType;
         }
     }
+        
 }
