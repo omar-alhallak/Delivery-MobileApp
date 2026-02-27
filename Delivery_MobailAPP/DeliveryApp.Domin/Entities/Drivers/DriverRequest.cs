@@ -10,60 +10,189 @@ namespace DeliveryApp.Domain.Entities.Drivers
 {
     public class DriverRequest
     {
-        [Key]
-        public Guid DriverRequestID { get; set; }
+        public Guid Id { get; private set; }
+        // صاحب الطلب
+        public Guid UserId { get; private set; }
 
-        [Required]
-        public Guid UserID { get; set; }
+        // بيانات حساسة
+        public string FullName { get; private set; } = null!;
+        public string FatherName { get; private set; } = null!;
+        public string NationalIdNumber { get; private set; } = null!;
 
-        [Required]
-        [MaxLength(150)]
-        public string FullName { get; set; } = string.Empty;
+        // صور
+        public string PersonalPhotoUrl { get; private set; } = null!;
+        public string NationalIdPhotoUrl { get; private set; } = null!;
 
-        [Required]
-        [MaxLength(150)]
-        public string FatherName { get; set; } = string.Empty;
+        // نوع المركبة
+        public Guid VehicleTypeId { get; private set; }
 
-        [Required]
-        [MaxLength(50)]
-        public string NationalIdNumber { get; set; } = string.Empty;
+        // للمتور فقط
+        public string? DrivingLicensePhotoUrl { get; private set; }
+        public string? DrivingLicenseNumber { get; private set; }
+        public string? VehiclePlateNumber { get; private set; }
 
-        [Required]
-        [MaxLength(500)]
-        public string PersonalPhotoUrl { get; set; } = string.Empty;
+        public DriverApplicationStatus Status { get; private set; } = DriverApplicationStatus.Pending;
 
-        [Required]
-        [MaxLength(500)]
-        public string NationalIdPhotoUrl { get; set; } = string.Empty;
+        // مراجعة المشرف
+        public Guid? ReviewedByAdminId { get; private set; }
+        public DateTimeOffset? ReviewedAt { get; private set; }
 
-        [Required]
-        public int VehicleTypeID { get; set; }
+        public DateTimeOffset CreatedAt { get; private set; }
 
-        [Required]
-        [MaxLength(500)]
-        public string DrivingLicensePhotoUrl { get; set; } = string.Empty;
+        private DriverRequest() { }
 
-        [Required]
-        [MaxLength(100)]
-        public string DrivingLicenseNumber { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(50)]
-        public string VehiclePlateNumber { get; set; } = string.Empty;
-
-        [Required]
-        public int Status { get; set; }  
-
-        public Guid? ReviewedByAdminId { get; set; }
-
-        public DateTimeOffset? ReviewedAt { get; set; }
-
-        public DateTimeOffset CreatedAt { get; set; }
-
-        public DriverRequest()
+        public DriverRequest(
+            Guid id,
+            Guid userId,
+            string fullName,
+            string fatherName,
+            string nationalIdNumber,
+            string personalPhotoUrl,
+            string nationalIdPhotoUrl,
+            Guid vehicleTypeId,
+            DateTimeOffset createdAtUtc,
+            bool isMotorcycle, // نمررها من الـ Application لأن VehicleType اسم/نوع غالباً برا الدومين هون
+            string? drivingLicensePhotoUrl = null,
+            string? drivingLicenseNumber = null,
+            string? vehiclePlateNumber = null
+        )
         {
-            DriverRequestID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
+            if (id == Guid.Empty) throw new ArgumentException("Id cannot be empty.");
+            if (userId == Guid.Empty) throw new ArgumentException("UserId cannot be empty.");
+            if (vehicleTypeId == Guid.Empty) throw new ArgumentException("VehicleTypeId cannot be empty.");
+
+            Id = id;
+            UserId = userId;
+            CreatedAt = createdAtUtc;
+
+            SetIdentity(fullName, fatherName, nationalIdNumber);
+            SetPhotos(personalPhotoUrl, nationalIdPhotoUrl);
+
+            VehicleTypeId = vehicleTypeId;
+
+            SetMotorcycleDetails(
+                isMotorcycle,
+                drivingLicensePhotoUrl,
+                drivingLicenseNumber,
+                vehiclePlateNumber
+            );
+
+            Status = DriverApplicationStatus.Pending;
         }
+
+        // -------------------------
+        // Updates before review
+        // -------------------------
+
+        public void UpdateIdentity(string fullName, string fatherName, string nationalIdNumber)
+        {
+            EnsurePending();
+            SetIdentity(fullName, fatherName, nationalIdNumber);
+        }
+
+        public void UpdatePhotos(string personalPhotoUrl, string nationalIdPhotoUrl)
+        {
+            EnsurePending();
+            SetPhotos(personalPhotoUrl, nationalIdPhotoUrl);
+        }
+
+        public void ChangeVehicleType(
+            Guid vehicleTypeId,
+            bool isMotorcycle,
+            string? drivingLicensePhotoUrl = null,
+            string? drivingLicenseNumber = null,
+            string? vehiclePlateNumber = null
+        )
+        {
+            EnsurePending();
+
+            if (vehicleTypeId == Guid.Empty) throw new ArgumentException("VehicleTypeId cannot be empty.");
+            VehicleTypeId = vehicleTypeId;
+
+            SetMotorcycleDetails(isMotorcycle, drivingLicensePhotoUrl, drivingLicenseNumber, vehiclePlateNumber);
+        }
+
+        // -------------------------
+        // Review actions
+        // -------------------------
+
+        public void Approve(Guid adminId, DateTimeOffset reviewedAtUtc)
+        {
+            EnsurePending();
+
+            if (adminId == Guid.Empty) throw new ArgumentException("AdminId cannot be empty.");
+
+            Status = DriverApplicationStatus.Approved;
+            ReviewedByAdminId = adminId;
+            ReviewedAt = reviewedAtUtc;
+        }
+
+        public void Reject(Guid adminId, DateTimeOffset reviewedAtUtc)
+        {
+            EnsurePending();
+
+            if (adminId == Guid.Empty) throw new ArgumentException("AdminId cannot be empty.");
+
+            Status = DriverApplicationStatus.Rejected;
+            ReviewedByAdminId = adminId;
+            ReviewedAt = reviewedAtUtc;
+        }
+
+        // -------------------------
+        // Private helpers
+        // -------------------------
+
+        private void SetIdentity(string fullName, string fatherName, string nationalIdNumber)
+        {
+            FullName = NormalizeRequired(fullName, 150, "FullName");
+            FatherName = NormalizeRequired(fatherName, 150, "FatherName");
+
+            // الرقم الوطني: بما أنه Unique وعادة يكون رقم/نص ثابت
+            NationalIdNumber = NormalizeRequired(nationalIdNumber, 50, "NationalIdNumber");
+        }
+
+        private void SetPhotos(string personalPhotoUrl, string nationalIdPhotoUrl)
+        {
+            PersonalPhotoUrl = NormalizeRequired(personalPhotoUrl, 500, "PersonalPhotoUrl");
+            NationalIdPhotoUrl = NormalizeRequired(nationalIdPhotoUrl, 500, "NationalIdPhotoUrl");
+        }
+
+        private void SetMotorcycleDetails(
+            bool isMotorcycle,
+            string? drivingLicensePhotoUrl,
+            string? drivingLicenseNumber,
+            string? vehiclePlateNumber
+        )
+        {
+            if (isMotorcycle)
+            {
+                DrivingLicensePhotoUrl = NormalizeRequired(drivingLicensePhotoUrl, 500, "DrivingLicensePhotoUrl");
+                DrivingLicenseNumber = NormalizeRequired(drivingLicenseNumber, 100, "DrivingLicenseNumber");
+                VehiclePlateNumber = NormalizeRequired(vehiclePlateNumber, 50, "VehiclePlateNumber");
+            }
+            else
+            {
+                // ممنوع يكونوا معبّيين إذا مو متور
+                DrivingLicensePhotoUrl = null;
+                DrivingLicenseNumber = null;
+                VehiclePlateNumber = null;
+            }
+        }
+
+        private void EnsurePending()
+        {
+            if (Status != DriverApplicationStatus.Pending)
+                throw new InvalidOperationException("Only pending applications can be modified or reviewed.");
+        }
+
+        private static string NormalizeRequired(string? value, int maxLen, string fieldName)
+        {
+            var v = Normalize(value);
+            if (v is null) throw new ArgumentException($"{fieldName} is required.");
+            if (v.Length > maxLen) throw new ArgumentException($"{fieldName} is too long.");
+            return v;
+        }
+
+        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
     }
 }
