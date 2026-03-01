@@ -9,17 +9,14 @@ using System.Threading.Tasks;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
-    // ملاحظة: هنا استخدمنا الـ Tags اللي أنت عرفتها بملف الـ StrongID
-    using DriverId = StrongID<UserTag>;
-    using VehicleTypeId = StrongID<VehicleTypeTag>;
 
     public class Driver
     {
         // 1. المعرفات (الأعمدة الأساسية)
-        public DriverId ID { get; private set; } // PK + FK بنفس الوقت
+        public DriverID ID { get; private set; } // PK + FK بنفس الوقت
         public PublicCode? PublicDriverID { get; private set; } // الكود الجميل (DRV-000001)
 
-        public VehicleTypeId VehicleTypeID { get; private set; } // نوع المركبة (StrongID)
+        public VehicleTypeID VehicleTypeID { get; private set; } // نوع المركبة (StrongID)
 
         // 2. حالات السائق
         public bool IsApproved { get; private set; }
@@ -41,7 +38,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
         private Driver() { }
 
         // المشيد الأساسي (Constructor)
-        public Driver(DriverId userId, VehicleTypeId vehicleTypeId, DateTimeOffset createdAtUtc)
+        public Driver(DriverID userId, VehicleTypeID vehicleTypeId, DateTimeOffset createdAtUtc)
         {
             // هنا نستخدم خاصية IsEmpty الموجودة داخل الـ StrongID تبعك
             if (userId.IsEmpty) throw new ArgumentException("UserId cannot be empty.");
@@ -101,7 +98,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
             IsAvailable = available;
         }
 
-        public void ChangeVehicle(VehicleTypeId newVehicleTypeId)
+        public void ChangeVehicle(VehicleTypeID newVehicleTypeId)
         {
             if (newVehicleTypeId.IsEmpty) throw new ArgumentException("New vehicle type is required.");
             VehicleTypeID = newVehicleTypeId;

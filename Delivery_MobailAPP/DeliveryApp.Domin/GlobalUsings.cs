@@ -4,3 +4,5 @@ global using OrderID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Doma
 global using VehicleTypeID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.VehicleTypeTag>;
 global using DriverRequestID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.DriverRequestTag>;
 global using ZoneID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.ZoneTag>;
+global using DriverID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.DriverTag>;
+global using DriverLocationID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.DriverLocationTag>;
