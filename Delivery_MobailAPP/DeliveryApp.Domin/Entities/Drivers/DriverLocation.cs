@@ -9,7 +9,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
 {
     public class DriverLocation
     {
-        // استخدام الـ Aliases الجديدة مباشرة
+        //
         public DriverLocationID ID { get; private set; }
         public DriverID DriverId { get; private set; }
 
