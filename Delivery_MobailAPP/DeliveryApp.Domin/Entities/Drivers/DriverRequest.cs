@@ -1,4 +1,5 @@
 ﻿using DeliveryApp.Domain.Entities.DriverRequest;
+using DeliveryApp.Domain.Enums.DriverEnums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,60 +11,104 @@ namespace DeliveryApp.Domain.Entities.Drivers
 {
     public class DriverRequest
     {
-        [Key]
-        public Guid DriverRequestID { get; set; }
+        
+        public DriverRequestID ID { get; private set; } // PK
+        public UserID UserId { get; private set; }      // FK 
+        public VehicleTypeID VehicleTypeID { get; private set; } 
+        public string FullName { get; private set; } = string.Empty;
+        public string FatherName { get; private set; } = string.Empty;
+        public string NationalIdNumber { get; private set; } = string.Empty;
+        public string PersonalPhotoUrl { get; private set; } = string.Empty;
+        public string NationalIdPhotoUrl { get; private set; } = string.Empty;
+        public string? DrivingLicensePhotoUrl { get; private set; }
+        public string? DrivingLicenseNumber { get; private set; }
+        public string? VehiclePlateNumber { get; private set; }
 
-        [Required]
-        public Guid UserID { get; set; }
+        public DriverRequestStatus Status { get; private set; }
+        public UserID? ReviewedByAdminId { get; private set; } 
+        public DateTimeOffset? ReviewedAt { get; private set; }
+        public DateTimeOffset CreatedAt { get; private set; }
 
-        [Required]
-        [MaxLength(150)]
-        public string FullName { get; set; } = string.Empty;
+        private DriverRequest() { } 
 
-        [Required]
-        [MaxLength(150)]
-        public string FatherName { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(50)]
-        public string NationalIdNumber { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(500)]
-        public string PersonalPhotoUrl { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(500)]
-        public string NationalIdPhotoUrl { get; set; } = string.Empty;
-
-        [Required]
-        public int VehicleTypeID { get; set; }
-
-        [Required]
-        [MaxLength(500)]
-        public string DrivingLicensePhotoUrl { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(100)]
-        public string DrivingLicenseNumber { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(50)]
-        public string VehiclePlateNumber { get; set; } = string.Empty;
-
-        [Required]
-        public int Status { get; set; }  
-
-        public Guid? ReviewedByAdminId { get; set; }
-
-        public DateTimeOffset? ReviewedAt { get; set; }
-
-        public DateTimeOffset CreatedAt { get; set; }
-
-        public DriverRequest()
+        public DriverRequest(
+            DriverRequestID id,
+            UserID userId,
+            VehicleTypeID vehicleTypeId,
+            string fullName,
+            string fatherName,
+            string nationalIdNumber,
+            string personalPhotoUrl,
+            string nationalIdPhotoUrl,
+            DateTimeOffset createdAtUtc)
         {
-            DriverRequestID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
+            ID = id;
+            UserId = userId;
+            VehicleTypeID = vehicleTypeId;
+            CreatedAt = createdAtUtc;
+            Status = DriverRequestStatus.Pending;
+
+            // التحقق  للبيانات الأساسية
+            UpdatePersonalInfo(fullName, fatherName, nationalIdNumber);
+            UpdateBasePhotos(personalPhotoUrl, nationalIdPhotoUrl);
+        }
+
+         //للدراجة النارية او السيارة 
+        public void SetVehicleDetails(
+            string licensePhoto,
+            string licenseNumber,
+            string plateNumber)
+        {
+            // التحقق من البيانات
+            if (string.IsNullOrWhiteSpace(licensePhoto)) throw new ArgumentException("License photo is required for this vehicle type.");
+            if (string.IsNullOrWhiteSpace(licenseNumber)) throw new ArgumentException("License number is required.");
+            if (string.IsNullOrWhiteSpace(plateNumber)) throw new ArgumentException("Plate number is required.");
+
+            DrivingLicensePhotoUrl = licensePhoto.Trim();
+            DrivingLicenseNumber = licenseNumber.Trim();
+            VehiclePlateNumber = plateNumber.Trim();
+        }
+
+        // للدراجة الهوائية والكهربائية
+        public void SetAsSimpleVehicle()
+        {
+            DrivingLicensePhotoUrl = null;
+            DrivingLicenseNumber = null;
+            VehiclePlateNumber = null;
+        }
+
+        // عمليات المراجعة 
+      
+        public void Approve(UserID adminId, DateTimeOffset reviewedAtUtc)
+        {
+            Status = DriverRequestStatus.Approved;
+            ReviewedByAdminId = adminId;
+            ReviewedAt = reviewedAtUtc;
+        }
+
+        public void Reject(UserID adminId, DateTimeOffset reviewedAtUtc)
+        {
+            Status = DriverRequestStatus.Rejected;
+            ReviewedByAdminId = adminId;
+            ReviewedAt = reviewedAtUtc;
+        }
+
+        //  للتحقق
+      
+        private void UpdatePersonalInfo(string fullName, string fatherName, string nationalId)
+        {
+            if (string.IsNullOrWhiteSpace(fullName)) throw new ArgumentException("Full name is required.");
+            if (fullName.Length > 150) throw new ArgumentException("Full name is too long.");
+
+            FullName = fullName.Trim();
+            FatherName = fatherName.Trim();
+            NationalIdNumber = nationalId.Trim();
+        }
+
+        private void UpdateBasePhotos(string personalUrl, string nationalIdUrl)
+        {
+            PersonalPhotoUrl = personalUrl.Trim();
+            NationalIdPhotoUrl = nationalIdUrl.Trim();
         }
     }
 }
