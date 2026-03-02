@@ -8,6 +8,7 @@ namespace DeliveryApp.Domain.Enums
 {
     public enum MerchantUserRole : byte
     {
+        None = 0,
         Owner = 1,
         Staff = 2,
     }
