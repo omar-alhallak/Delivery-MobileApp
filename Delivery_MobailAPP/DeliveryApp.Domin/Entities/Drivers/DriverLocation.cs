@@ -9,25 +9,33 @@ namespace DeliveryApp.Domain.Entities.Drivers
 {
     public class DriverLocation
     {
-        [Key]
-        public Guid ID { get; set; }
+        //
+        public DriverLocationID ID { get; private set; }
+        public DriverID DriverId { get; private set; }
 
-        [Required]
-        public Guid DriverID { get; set; }
+        public decimal Latitude { get; private set; }
+        public decimal Longitude { get; private set; }
+        public DateTimeOffset RecordedAt { get; private set; }
 
-        [Required]
-        public double Latitude { get; set; }
+        private DriverLocation() { }
 
-        [Required]
-        public double Longitude { get; set; }
-
-        [Required]
-        public DateTimeOffset RecordedAt { get; set; }
-
-        public DriverLocation()
+        public DriverLocation(
+            DriverID driverId,
+            decimal lat,
+            decimal lng,
+            DateTimeOffset recordedAtUtc)
         {
-            ID = Guid.NewGuid();
-            RecordedAt = DateTimeOffset.UtcNow;
+            if (driverId.IsEmpty)
+                throw new ArgumentException("DriverId is required.");
+
+            if (lat < -90 || lat > 90) throw new ArgumentOutOfRangeException(nameof(lat));
+            if (lng < -180 || lng > 180) throw new ArgumentOutOfRangeException(nameof(lng));
+
+            ID = DriverLocationID.New(); // توليد معرف جديد للسجل
+            DriverId = driverId;
+            Latitude = lat;
+            Longitude = lng;
+            RecordedAt = recordedAtUtc;
         }
     }
 }
