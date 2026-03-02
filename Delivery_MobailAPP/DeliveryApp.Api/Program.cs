@@ -24,7 +24,6 @@ namespace DeliveryApp.API
 
             app.UseHttpsRedirection();
 
-
             app.UseAuthorization();
 
             app.MapControllers();

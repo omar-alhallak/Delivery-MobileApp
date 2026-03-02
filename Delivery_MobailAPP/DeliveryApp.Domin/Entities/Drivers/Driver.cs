@@ -1,110 +1,161 @@
-﻿using DeliveryApp.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
-
     public class Driver
     {
-        // 1. المعرفات (الأعمدة الأساسية)
-        public DriverID ID { get; private set; } // PK + FK بنفس الوقت
-        public PublicCode? PublicDriverID { get; private set; } // الكود الجميل (DRV-000001)
+        public UserID ID { get; private set; }
+        public VehicleTypeID VehicleTypeID { get; private set; }
 
-        public VehicleTypeID VehicleTypeID { get; private set; } // نوع المركبة (StrongID)
+        public bool IsEnabled { get; private set; } = true;
+        public UserID? DisabledByAdminID { get; private set; }
+        public DateTimeOffset? DisabledAt { get; private set; }
 
-        // 2. حالات السائق
-        public bool IsApproved { get; private set; }
         public bool IsAvailable { get; private set; }
+        public int ActiveOrdersCount { get; private set; }
+
         public DateTimeOffset? LastSeenAt { get; private set; }
 
-        // 3. الموقع الجغرافي (استخدام decimal كما طلبت)
         public decimal? CurrentLat { get; private set; }
         public decimal? CurrentLng { get; private set; }
         public DateTimeOffset? LastLocationAt { get; private set; }
 
-        // 4. العمليات الحالية والإحصائيات
-        public int ActiveOrdersCount { get; private set; }
-        public Guid? ApprovedByAdminId { get; private set; }
-        public DateTimeOffset? ApprovedAt { get; private set; }
+        public UserID ApprovedByAdminID { get; private set; }
+        public DateTimeOffset ApprovedAt { get; private set; }
         public DateTimeOffset CreatedAt { get; private set; }
 
-        // المشيد الخاص بالـ EF Core
         private Driver() { }
 
-        // المشيد الأساسي (Constructor)
-        public Driver(DriverID userId, VehicleTypeID vehicleTypeId, DateTimeOffset createdAtUtc)
+        public Driver(UserID UserId, VehicleTypeID VehicleTypeId, UserID ApprovedByAdminId, DateTimeOffset ApprovedAtUtc)
         {
-            // هنا نستخدم خاصية IsEmpty الموجودة داخل الـ StrongID تبعك
-            if (userId.IsEmpty) throw new ArgumentException("UserId cannot be empty.");
-            if (vehicleTypeId.IsEmpty) throw new ArgumentException("VehicleTypeId cannot be empty.");
+            if (UserId.IsEmpty) throw new ArgumentException("UserId cannot be empty.", nameof(UserId));
+            if (VehicleTypeId.IsEmpty) throw new ArgumentException("VehicleTypeId cannot be empty.", nameof(VehicleTypeId));
+            if (ApprovedByAdminId.IsEmpty) throw new ArgumentException("ApprovedByAdminId cannot be empty.", nameof(ApprovedByAdminId));
 
-            ID = userId;
-            VehicleTypeID = vehicleTypeId;
+            ID = UserId;
+            VehicleTypeID = VehicleTypeId;
 
-            IsApproved = false;
+            ApprovedByAdminID = ApprovedByAdminId;
+            ApprovedAt = ApprovedAtUtc;
+            CreatedAt = ApprovedAtUtc;
+
             IsAvailable = false;
             ActiveOrdersCount = 0;
-            CreatedAt = createdAtUtc;
+            IsEnabled = true;
         }
 
-        // -----------------------------------------
-        // العمليات (Methods)
-        // -----------------------------------------
-
-        // تعيين الكود العام (PublicCode)
-        public void SetPublicId(PublicCode code)
+        // -------------------------------
+        //      disable/enable driver
+        // -------------------------------
+        public void Disable(UserID AdminId, DateTimeOffset UtcNow)
         {
-            // بما أن النوع PublicCode، فنحن ضامنون أنه محقق (Validated) سلفاً
-            PublicDriverID = code;
+            if (AdminId.IsEmpty) throw new ArgumentException("AdminId cannot be empty.", nameof(AdminId));
+            if (!IsEnabled) return;
+
+            IsEnabled = false;
+            IsAvailable = false;
+
+            DisabledByAdminID = AdminId;
+            DisabledAt = UtcNow;
         }
 
-        public void Approve(Guid adminId, DateTimeOffset utcNow)
+        public void Enable(UserID AdminId, DateTimeOffset UtcNow)
         {
-            if (adminId == Guid.Empty) throw new ArgumentException("AdminId cannot be empty.");
+            if (AdminId.IsEmpty) throw new ArgumentException("AdminId cannot be empty.", nameof(AdminId));
+            if (IsEnabled) return;
 
-            IsApproved = true;
-            ApprovedByAdminId = adminId;
-            ApprovedAt = utcNow;
+            IsEnabled = true;
+            DisabledByAdminID = null;
+            DisabledAt = null;
         }
 
-        public void UpdateLocation(decimal lat, decimal lng, DateTimeOffset utcNow)
+        private void IsNotDisable()
         {
-            // التحقق من صحة الإحداثيات منطقياً
-            if (lat < -90 || lat > 90) throw new ArgumentOutOfRangeException(nameof(lat));
-            if (lng < -180 || lng > 180) throw new ArgumentOutOfRangeException(nameof(lng));
+            if (!IsEnabled)
+                throw new InvalidOperationException("Driver app access is disabled.");
+        }
+
+        // ---------- Online ----------
+        public bool IsOnline(DateTimeOffset UtcNow, TimeSpan threshold)
+        {
+            if (threshold <= TimeSpan.Zero)
+                throw new ArgumentException("Threshold must be positive.", nameof(threshold));
+
+            return LastSeenAt.HasValue && (UtcNow - LastSeenAt.Value) <= threshold;
+        }
+
+        // -------------------------
+        //   Activity -- Location
+        // -------------------------
+        public void Touch(DateTimeOffset UtcNow)
+        {
+            IsNotDisable();
+            LastSeenAt = UtcNow;
+        }
+
+        public void UpdateLocation(decimal lat, decimal lng, DateTimeOffset UtcNow)
+        {
+            IsNotDisable();
+            ValidateLocation(lat, lng);
 
             CurrentLat = lat;
             CurrentLng = lng;
-            LastLocationAt = utcNow;
-            LastSeenAt = utcNow; // السائق أرسل موقعه، إذن هو "نشط"
+            LastLocationAt = UtcNow;
+            LastSeenAt = UtcNow;
         }
 
-        public void SetAvailable(bool available, DateTimeOffset utcNow)
+        // ---------- Availability ----------
+        public void SetAvailable(bool available, DateTimeOffset UtcNow, TimeSpan onlineThreshold)
         {
-            if (available)
-            {
-                if (!IsApproved) throw new InvalidOperationException("Driver not approved.");
+            IsNotDisable();
 
-                // التأكد أنه "أونلاين" (آخر ظهور أقل من 5 دقائق مثلاً)
-                var isOnline = LastSeenAt.HasValue && (utcNow - LastSeenAt.Value).TotalMinutes <= 5;
-                if (!isOnline) throw new InvalidOperationException("Driver is offline.");
-            }
+            if (available)
+                if (!IsOnline(UtcNow, onlineThreshold))
+                {
+                    throw new InvalidOperationException("Driver is offline.");
+                }
+                else
+                {
+                    if (ActiveOrdersCount > 0)
+                        throw new InvalidOperationException("Cannot go unavailable while having active orders.");
+                }
+
             IsAvailable = available;
         }
 
-        public void ChangeVehicle(VehicleTypeID newVehicleTypeId)
+        // --------- Vehicle ---------
+        public void ChangeVehicle(VehicleTypeID NewVehicleTypeId)
         {
-            if (newVehicleTypeId.IsEmpty) throw new ArgumentException("New vehicle type is required.");
-            VehicleTypeID = newVehicleTypeId;
+            IsNotDisable();
+
+            if (NewVehicleTypeId.IsEmpty)
+                throw new ArgumentException("New vehicle type is required.", nameof(NewVehicleTypeId));
+
+            VehicleTypeID = NewVehicleTypeId;
         }
 
-        public void IncrementOrders() => ActiveOrdersCount++;
-        public void DecrementOrders() => ActiveOrdersCount = Math.Max(0, ActiveOrdersCount - 1);
+        // -------------------------
+        //      Orders counter
+        // -------------------------
+        public void AssignOrders()
+        {
+            IsNotDisable();
+            ActiveOrdersCount++;
+        }
+
+        public void CompletOrders()
+        {
+            IsNotDisable();
+            if (ActiveOrdersCount <= 0) return;
+            ActiveOrdersCount--;
+        }
+
+        private static void ValidateLocation(decimal lat, decimal lng)
+        {
+            if (lat < -90 || lat > 90)
+                throw new ArgumentOutOfRangeException(nameof(lat), "Latitude must be between -90 and 90.");
+            if (lng < -180 || lng > 180)
+                throw new ArgumentOutOfRangeException(nameof(lng), "Longitude must be between -180 and 180.");
+        }
     }
 }
