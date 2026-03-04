@@ -1,9 +1,11 @@
 ﻿using System;
 using DeliveryApp.Domain.Enums;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {
-
     public class UserIdentity
     {
         public UserIdentityID ID { get; private set; }
@@ -21,6 +23,15 @@ namespace DeliveryApp.Domain.Entities.Identity
         private UserIdentity(UserIdentityID id, UserID UserId, AuthProvider provider, string? providerUserId,
             string? passwordHash, DateTimeOffset CreatedAtUtc)
         {
+            if (id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(id));
+
+            if (UserId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(UserId));
+
+            if (CreatedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(CreatedAtUtc));
+
             ID = id;
             UserID = UserId;
             Provider = provider;
@@ -39,8 +50,8 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public static UserIdentity CreateLocal(UserIdentityID id, UserID UserId, string passwordHash, DateTimeOffset CreatedAtUtc)
         {
-            if (string.IsNullOrWhiteSpace(passwordHash))
-                throw new ArgumentException("PasswordHash is required for Local.", nameof(passwordHash));
+            if (string.IsNullOrWhiteSpace(passwordHash)) throw new DomainValidationException
+                    (UserIdentityErrors.PasswordRequiredForLocalCode, UserIdentityErrors.PasswordRequiredForLocalMessage, field: nameof(passwordHash));
 
             return new UserIdentity(id: id, UserId: UserId, provider: AuthProvider.Local, providerUserId: null,
                 passwordHash: passwordHash, CreatedAtUtc: CreatedAtUtc);
@@ -48,8 +59,8 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public static UserIdentity CreateGoogle(UserIdentityID id, UserID UserId, string googleSub, DateTimeOffset CreatedAtUtc)
         {
-            if (string.IsNullOrWhiteSpace(googleSub))
-                throw new ArgumentException("GoogleSub (ProviderUserId) is required.", nameof(googleSub));
+            if (string.IsNullOrWhiteSpace(googleSub)) throw new DomainValidationException
+                    (UserIdentityErrors.GoogleSubRequiredCode, UserIdentityErrors.GoogleSubRequiredMessage, field: nameof(googleSub));
 
             return new UserIdentity(id: id, UserId: UserId, provider: AuthProvider.Google, providerUserId: googleSub,
                 passwordHash: null, CreatedAtUtc: CreatedAtUtc);
@@ -57,11 +68,11 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public void ChangeLocalPasswordHash(string NewPasswordHash)
         {
-            if (Provider != AuthProvider.Local)
-                throw new InvalidOperationException("Password hash can be changed only for Local provider.");
+            if (Provider != AuthProvider.Local) throw new DomainRuleViolationException
+                    (UserIdentityErrors.PasswordChangeOnlyForLocalCode, UserIdentityErrors.PasswordChangeOnlyForLocalMessage);
 
-            if (string.IsNullOrWhiteSpace(NewPasswordHash))
-                throw new ArgumentException("PasswordHash cannot be empty.", nameof(NewPasswordHash));
+            if (string.IsNullOrWhiteSpace(NewPasswordHash)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(NewPasswordHash));
 
             PasswordHash = Normalize(NewPasswordHash);
 
@@ -75,31 +86,40 @@ namespace DeliveryApp.Domain.Entities.Identity
         private void ValidateInvariants()
         {
             if (ProviderUserId is not null && ProviderUserId.Length > 128)
-                throw new InvalidOperationException("ProviderUserId is too long.");
+                throw new DomainValidationException
+                   (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ProviderUserId));
 
             if (PasswordHash is not null && PasswordHash.Length > 300)
-                throw new InvalidOperationException("PasswordHash is too long.");
+                throw new DomainValidationException
+                   (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(PasswordHash));
 
             switch (Provider)
             {
                 case AuthProvider.Local:
                     if (string.IsNullOrWhiteSpace(PasswordHash))
-                        throw new InvalidOperationException("Local identity requires PasswordHash.");
+                        throw new DomainRuleViolationException
+                            (UserIdentityErrors.PasswordRequiredForLocalCode, UserIdentityErrors.PasswordRequiredForLocalMessage);
 
                     if (!string.IsNullOrWhiteSpace(ProviderUserId))
-                        throw new InvalidOperationException("Local identity must not have ProviderUserId.");
+                        throw new DomainRuleViolationException
+                            (UserIdentityErrors.LocalCantBeHaveProviderUserIDCode, UserIdentityErrors.LocalCantBeHaveProviderUserIDMessage);
+
                     break;
 
                 case AuthProvider.Google:
                     if (string.IsNullOrWhiteSpace(ProviderUserId))
-                        throw new InvalidOperationException("Google identity requires ProviderUserId.");
+                        throw new DomainRuleViolationException
+                            (UserIdentityErrors.GoogleSubRequiredCode, UserIdentityErrors.GoogleSubRequiredMessage);
+
 
                     if (!string.IsNullOrWhiteSpace(PasswordHash))
-                        throw new InvalidOperationException("Google identity must not have PasswordHash.");
+                        throw new DomainRuleViolationException
+                            (UserIdentityErrors.GoogleCantBeHavePasswordHashCode, UserIdentityErrors.GoogleCantBeHavePasswordHashMessage);
                     break;
 
                 default:
-                    throw new InvalidOperationException($"Unsupported provider: {Provider}");
+                    throw new DomainValidationException
+                            (UserIdentityErrors.UnsupportedProviderCode, UserIdentityErrors.UnsupportedProviderMessage, field: nameof(Provider));
             }
         }
 
