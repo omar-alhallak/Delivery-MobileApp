@@ -18,14 +18,12 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         public DriverLocation(UserID DriverId, decimal latitude, decimal longitude, DateTimeOffset RecordedAtUtc)
         {
-            if (DriverId.IsEmpty)
-                throw new DomainValidationException
+            if (DriverId.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(DriverId));
 
             ValidateLocation(latitude, longitude);
 
-            if (RecordedAtUtc == default)
-                throw new DomainValidationException
+            if (RecordedAtUtc == default) throw new DomainValidationException
                      (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(RecordedAtUtc));
 
             ID = Guid.NewGuid();
@@ -37,12 +35,10 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         private static void ValidateLocation(decimal lat, decimal lng)
         {
-            if (lat < -90 || lat > 90)
-                throw new DomainValidationException
+            if (lat < -90 || lat > 90) throw new DomainValidationException
                     (ValidationErrors.InvalidLatCode, ValidationErrors.InvalidLatMessage, field: nameof(lat));
 
-            if (lng < -180 || lng > 180)
-                throw new DomainValidationException
+            if (lng < -180 || lng > 180) throw new DomainValidationException
                     (ValidationErrors.InvalidLngCode, ValidationErrors.InvalidLngMessage, field: nameof(lng));
         }
     }

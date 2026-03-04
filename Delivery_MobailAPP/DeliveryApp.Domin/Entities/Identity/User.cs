@@ -30,12 +30,10 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public User(UserID id, UserRole Roles, DateTimeOffset CreatedAtUtc)
         {
-            if (id.IsEmpty)
-                throw new DomainValidationException
+            if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(id));
 
-            if (CreatedAtUtc == default)
-                throw new DomainValidationException
+            if (CreatedAtUtc == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(CreatedAtUtc));
 
             ID = id;
@@ -53,8 +51,7 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public void AssignPublicID(PublicCode publicId) 
         {
-            if (PublicID is not null)
-                throw new DomainConflictException
+            if (PublicID is not null) throw new DomainConflictException
                     (UserErrors.PublicIdAlreadyAssignedCode, UserErrors.PublicIdAlreadyAssignedMessage);
 
             PublicID = publicId;
@@ -71,8 +68,7 @@ namespace DeliveryApp.Domain.Entities.Identity
 
             FieldLimits();
 
-            if (IsProfileComplete && !ProfileCompletionRules())
-                throw new DomainRuleViolationException
+            if (IsProfileComplete && !ProfileCompletionRules()) throw new DomainRuleViolationException
                     (UserErrors.CantRemoveRequiredFieldCode, UserErrors.CantRemoveRequiredFieldMessage);
         }
 
@@ -80,8 +76,7 @@ namespace DeliveryApp.Domain.Entities.Identity
         {
             PreventModificationIfBanned();
 
-            if (!ProfileCompletionRules())
-                throw new DomainRuleViolationException
+            if (!ProfileCompletionRules()) throw new DomainRuleViolationException
                     (UserErrors.ProfileFieldNotCompleteCode, UserErrors.ProfileFieldNotCompleteMessage);
 
             IsProfileComplete = true;
@@ -97,20 +92,16 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         private void FieldLimits()
         {
-            if (Email is not null && Email.Length > 255)
-                throw new DomainValidationException
+            if (Email is not null && Email.Length > 255) throw new DomainValidationException
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Email));
 
-            if (Phone is not null && Phone.Length > 16)
-                throw new DomainValidationException
+            if (Phone is not null && Phone.Length > 16) throw new DomainValidationException
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Phone));
 
-            if (FullName is not null && FullName.Length > 150)
-                throw new DomainValidationException
+            if (FullName is not null && FullName.Length > 150) throw new DomainValidationException
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(FullName));
 
-            if (PhotoUrl is not null && PhotoUrl.Length > 500)
-                throw new DomainValidationException
+            if (PhotoUrl is not null && PhotoUrl.Length > 500) throw new DomainValidationException
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(PhotoUrl));
         }
 
@@ -211,8 +202,7 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         private void PreventModificationIfBanned()
         {
-            if (AccountStatus == AccountStatus.Banned)
-                throw new DomainRuleViolationException
+            if (AccountStatus == AccountStatus.Banned) throw new DomainRuleViolationException
                     (UserErrors.BannedCannotBeModifiedCode, UserErrors.BannedCannotBeModifiedMessage);
         }
 

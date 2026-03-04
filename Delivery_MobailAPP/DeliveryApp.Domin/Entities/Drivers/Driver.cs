@@ -1,4 +1,7 @@
 ﻿using System;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.DomainErrors.DriverErrors;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
@@ -28,9 +31,14 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         public Driver(UserID UserId, VehicleTypeID VehicleTypeId, UserID ApprovedByAdminId, DateTimeOffset ApprovedAtUtc)
         {
-            if (UserId.IsEmpty) throw new ArgumentException("UserId cannot be empty.", nameof(UserId));
-            if (VehicleTypeId.IsEmpty) throw new ArgumentException("VehicleTypeId cannot be empty.", nameof(VehicleTypeId));
-            if (ApprovedByAdminId.IsEmpty) throw new ArgumentException("ApprovedByAdminId cannot be empty.", nameof(ApprovedByAdminId));
+            if (UserId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(UserId));
+            if (VehicleTypeId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(VehicleTypeId));
+            if (ApprovedByAdminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(ApprovedByAdminId));
+            if (ApprovedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(ApprovedAtUtc));
 
             ID = UserId;
             VehicleTypeID = VehicleTypeId;
@@ -49,7 +57,9 @@ namespace DeliveryApp.Domain.Entities.Drivers
         // -------------------------------
         public void Disable(UserID AdminId, DateTimeOffset UtcNow)
         {
-            if (AdminId.IsEmpty) throw new ArgumentException("AdminId cannot be empty.", nameof(AdminId));
+            if (AdminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(AdminId));
+
             if (!IsEnabled) return;
 
             IsEnabled = false;
@@ -61,7 +71,9 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         public void Enable(UserID AdminId, DateTimeOffset UtcNow)
         {
-            if (AdminId.IsEmpty) throw new ArgumentException("AdminId cannot be empty.", nameof(AdminId));
+            if (AdminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(AdminId));
+
             if (IsEnabled) return;
 
             IsEnabled = true;
@@ -71,15 +83,14 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         private void IsNotDisable()
         {
-            if (!IsEnabled)
-                throw new InvalidOperationException("Driver app access is disabled.");
+            if (!IsEnabled) throw new DomainRuleViolationException(DriverErrors.DisabledCode, DriverErrors.DisabledMessage);
         }
 
         // ---------- Online ----------
         public bool IsOnline(DateTimeOffset UtcNow, TimeSpan threshold)
         {
             if (threshold <= TimeSpan.Zero)
-                throw new ArgumentException("Threshold must be positive.", nameof(threshold));
+                throw new DomainValidationException(ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(threshold));
 
             return LastSeenAt.HasValue && (UtcNow - LastSeenAt.Value) <= threshold;
         }
@@ -110,15 +121,15 @@ namespace DeliveryApp.Domain.Entities.Drivers
             IsNotDisable();
 
             if (available)
-                if (!IsOnline(UtcNow, onlineThreshold))
-                {
-                    throw new InvalidOperationException("Driver is offline.");
-                }
-                else
-                {
-                    if (ActiveOrdersCount > 0)
-                        throw new InvalidOperationException("Cannot go unavailable while having active orders.");
-                }
+            {
+                if (!IsOnline(UtcNow, onlineThreshold)) throw new DomainRuleViolationException
+                        (DriverErrors.OfflineCode, DriverErrors.OfflineMessage);
+            }
+            else
+            {
+                if (ActiveOrdersCount > 0) throw new DomainRuleViolationException
+                        (DriverErrors.CantbeUnavailableWithActiveOrdersCode, DriverErrors.CantbeUnavailableWithActiveOrdersMessage);
+            }
 
             IsAvailable = available;
         }
@@ -128,8 +139,8 @@ namespace DeliveryApp.Domain.Entities.Drivers
         {
             IsNotDisable();
 
-            if (NewVehicleTypeId.IsEmpty)
-                throw new ArgumentException("New vehicle type is required.", nameof(NewVehicleTypeId));
+            if (NewVehicleTypeId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(NewVehicleTypeId));
 
             VehicleTypeID = NewVehicleTypeId;
         }
@@ -152,10 +163,11 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         private static void ValidateLocation(decimal lat, decimal lng)
         {
-            if (lat < -90 || lat > 90)
-                throw new ArgumentOutOfRangeException(nameof(lat), "Latitude must be between -90 and 90.");
-            if (lng < -180 || lng > 180)
-                throw new ArgumentOutOfRangeException(nameof(lng), "Longitude must be between -180 and 180.");
+            if (lat < -90 || lat > 90) throw new DomainValidationException
+                    (ValidationErrors.InvalidLatCode, ValidationErrors.InvalidLatMessage, field: nameof(lat));
+
+            if (lng < -180 || lng > 180) throw new DomainValidationException
+                    (ValidationErrors.InvalidLngCode, ValidationErrors.InvalidLngMessage, field: nameof(lng));
         }
     }
 }

@@ -8,8 +8,7 @@ namespace DeliveryApp.Domain.DomainExceptions
 
         protected DomainException(string code, string message) : base(message)
         {
-            if (string.IsNullOrWhiteSpace(code))
-                throw new ArgumentException("Error code is required.", nameof(code));
+            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("Error code is required.", nameof(code));
 
             Code = code;
         }
