@@ -12,14 +12,14 @@ namespace DeliveryApp.Domain.Entities.Drivers
     public class DriverRequest
     {
         
-        public DriverRequestID ID { get; private set; } // PK
-        public UserID UserId { get; private set; }      // FK 
-        public VehicleTypeID VehicleTypeID { get; private set; } 
-        public string FullName { get; private set; } = string.Empty;
-        public string FatherName { get; private set; } = string.Empty;
-        public string NationalIdNumber { get; private set; } = string.Empty;
-        public string PersonalPhotoUrl { get; private set; } = string.Empty;
-        public string NationalIdPhotoUrl { get; private set; } = string.Empty;
+        public DriverRequestID ID { get; private set; } 
+        public UserID UserId { get; private set; }     
+        public VehicleTypeID VehicleTypeID { get; private set; }
+        public string FullName { get; private set; } = null!;
+        public string FatherName { get; private set; } = null!;
+        public string NationalIdNumber { get; private set; } = null!;
+        public string PersonalPhotoUrl { get; private set; } = null!;
+        public string NationalIdPhotoUrl { get; private set; } = null!;
         public string? DrivingLicensePhotoUrl { get; private set; }
         public string? DrivingLicenseNumber { get; private set; }
         public string? VehiclePlateNumber { get; private set; }
@@ -52,8 +52,9 @@ namespace DeliveryApp.Domain.Entities.Drivers
             UpdatePersonalInfo(fullName, fatherName, nationalIdNumber);
             UpdateBasePhotos(personalPhotoUrl, nationalIdPhotoUrl);
         }
+       
 
-         //للدراجة النارية او السيارة 
+        //للدراجة النارية او السيارة 
         public void SetVehicleDetails(
             string licensePhoto,
             string licenseNumber,
@@ -78,9 +79,13 @@ namespace DeliveryApp.Domain.Entities.Drivers
         }
 
         // عمليات المراجعة 
-      
+
         public void Approve(UserID adminId, DateTimeOffset reviewedAtUtc)
         {
+            //لازم يكون الطلب معلق لينقبل
+            if (Status != DriverRequestStatus.Pending)
+                throw new InvalidOperationException("Only pending applications can be approved.");
+
             Status = DriverRequestStatus.Approved;
             ReviewedByAdminId = adminId;
             ReviewedAt = reviewedAtUtc;
@@ -88,13 +93,16 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         public void Reject(UserID adminId, DateTimeOffset reviewedAtUtc)
         {
+            if (Status != DriverRequestStatus.Pending)
+                throw new InvalidOperationException("Only pending requests can be rejected.");
             Status = DriverRequestStatus.Rejected;
             ReviewedByAdminId = adminId;
             ReviewedAt = reviewedAtUtc;
+            //مستقبلا ممكن نضيف حقل لسبب الرفض 
         }
 
         //  للتحقق
-      
+
         private void UpdatePersonalInfo(string fullName, string fatherName, string nationalId)
         {
             if (string.IsNullOrWhiteSpace(fullName)) throw new ArgumentException("Full name is required.");

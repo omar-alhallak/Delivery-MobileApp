@@ -9,31 +9,34 @@ namespace DeliveryApp.Domain.Entities.Drivers
 {
     public class VehicleType
     {
-        [Key]
-        public int VehicleID { get; set; }
+        public VehicleTypeID VehicleID { get; private set; }
+        public string VehicleName { get; private set; } 
 
-        [Required]
-        [MaxLength(100)]
-        public string VehicleName { get; set; } = string.Empty;
+        public double MaxDistanceKm { get; private set; }
 
-        [Required]
-        [Range(0, 1000)]
-        public double MaxDistanceKm { get; set; }
+        public double MaxMergeExtraKm { get; private set; }
 
-        [Required]
-        [Range(0, 1000)]
-        public double MaxMergeExtraKm { get; set; }
+        public int MaxOrdersToBatch { get; private set; }
 
-        [Required]
-        [Range(0, 100)]
-        public decimal CommissionPercent { get; set; }
+        public int CommissionPercent { get; private set; }
 
-        [Required]
-        public bool IsActive { get; set; }
+        public bool IsActive { get; private set; }
 
-        public VehicleType()
+        public VehicleType(VehicleTypeID id, string name, double maxDist, double maxExtra, int maxBatch, int commission)
         {
+            VehicleID = id;
+            VehicleName = name;
+            MaxDistanceKm = maxDist;
+            MaxMergeExtraKm = maxExtra;
+            MaxOrdersToBatch = maxBatch;
+            CommissionPercent = commission;
             IsActive = true;
         }
+
+        public bool CanAcceptMoreOrders(int currentActiveOrders)
+        {
+            return currentActiveOrders < MaxOrdersToBatch;
+        }
+        public double GetTotalRangeLimit() => MaxDistanceKm + MaxMergeExtraKm;
     }
 }
