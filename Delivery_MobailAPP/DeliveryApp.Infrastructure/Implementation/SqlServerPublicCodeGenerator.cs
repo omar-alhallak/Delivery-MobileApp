@@ -3,38 +3,41 @@ using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Application.interfaces;
 
-public sealed class SqlServerPublicCodeGenerator : IPublicCodeGenerator // يأنشئ الكود من سيكونسي السيرفر
+namespace DeliveryApp.Infrastructure.Implementation
 {
-    private readonly DbContext Context;
-
-    public SqlServerPublicCodeGenerator(DbContext context)
+    public sealed class SqlServerPublicCodeGenerator : IPublicCodeGenerator // يأنشئ الكود من سيكونسي السيرفر
     {
-        Context = context;
-    }
+        private readonly DbContext Context;
 
-    public Task<PublicCode> GenerateUserCodeAsync(CancellationToken ct = default)
-        => GenerateAsync("user_public_seq", "U", ct);
+        public SqlServerPublicCodeGenerator(DbContext context)
+        {
+            Context = context;
+        }
 
-    public Task<PublicCode> GenerateOrderCodeAsync(CancellationToken ct = default)
-        => GenerateAsync("order_public_seq", "ORD", ct);
+        public Task<PublicCode> GenerateUserCodeAsync(CancellationToken ct = default)
+            => GenerateAsync("user_public_seq", "U", ct);
 
-    public Task<PublicCode> GenerateMerchantCodeAsync(CancellationToken ct = default)
-        => GenerateAsync("merchant_public_seq", "MER", ct);
+        public Task<PublicCode> GenerateOrderCodeAsync(CancellationToken ct = default)
+            => GenerateAsync("order_public_seq", "ORD", ct);
 
-    private async Task<PublicCode> GenerateAsync(string sequenceName, string prefix, CancellationToken ct)
-    {
-        var connection = Context.Database.GetDbConnection();
+        public Task<PublicCode> GenerateMerchantCodeAsync(CancellationToken ct = default)
+            => GenerateAsync("merchant_public_seq", "MER", ct);
 
-        if (connection.State != ConnectionState.Open)
-            await connection.OpenAsync(ct);
+        private async Task<PublicCode> GenerateAsync(string sequenceName, string prefix, CancellationToken ct)
+        {
+            var connection = Context.Database.GetDbConnection();
 
-        using var command = connection.CreateCommand();
-        command.CommandText = $"SELECT NEXT VALUE FOR {sequenceName};";
+            if (connection.State != ConnectionState.Open)
+                await connection.OpenAsync(ct);
 
-        var result = await command.ExecuteScalarAsync(ct);
+            using var command = connection.CreateCommand();
+            command.CommandText = $"SELECT NEXT VALUE FOR {sequenceName};";
 
-        var number = Convert.ToInt64(result);
+            var result = await command.ExecuteScalarAsync(ct);
 
-        return PublicCode.Create(prefix, number);
+            var number = Convert.ToInt64(result);
+
+            return PublicCode.Create(prefix, number);
+        }
     }
 }
