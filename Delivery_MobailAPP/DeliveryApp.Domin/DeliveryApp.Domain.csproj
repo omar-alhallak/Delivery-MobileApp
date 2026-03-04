@@ -7,12 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ValueObjects\**" />
-    <EmbeddedResource Remove="ValueObjects\**" />
-    <None Remove="ValueObjects\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Enums\" />
   </ItemGroup>
 

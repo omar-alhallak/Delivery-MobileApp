@@ -1,47 +1,211 @@
 ﻿using DeliveryApp.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {
     public class User
     {
-        [Key]
-        public Guid UserID { get; set; }
+        public UserID ID { get; private set; }
+        public PublicCode? PublicID { get; private set; }
 
-        [MaxLength(255)]
-        public string? Email { get; set; }
+        public string? Email { get; private set; }
+        public string? FullName { get; private set; }
+        public string? Phone { get; private set; }
+        public string? PhotoUrl { get; private set; }
 
-        [MaxLength(150)]
-        public string? FullName { get; set; }
+        public bool IsProfileComplete { get; private set; }
 
-        [MaxLength(16)]
-        public string? Phone { get; set; }
+        public UserRole RoleMask { get; private set; }
 
-        [MaxLength(500)]
-        public string? PhotoURL { get; set; }
+        public AccountStatus AccountStatus { get; private set; } = AccountStatus.Active;
+        public DateTimeOffset? SuspendedUntilUtc { get; private set; }
 
-        public UserRole RoleMask { get; set; }
+        public DateTimeOffset CreatedAt { get; private set; }
+        public DateTimeOffset? LastLoginAt { get; private set; }
 
-        public int AccountStatus { get; set; }
+        private User() { } 
 
-        public bool IsProfileComplete { get; set; }
-
-        public DateTimeOffset CreatedAt { get; set; }
-
-        public DateTimeOffset? LastLoginAt { get; set; }
-
-        public User()
+        public User(UserID id, UserRole Roles, DateTimeOffset CreatedAtUtc)
         {
-            UserID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
-            RoleMask = 0;
-            AccountStatus = 1; 
+            if (id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(id));
+
+            if (CreatedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(CreatedAtUtc));
+
+            ID = id;
+            CreatedAt = CreatedAtUtc;
+
+            RoleMask = UserRole.None;
+            AddRoles(Roles);
+
             IsProfileComplete = false;
         }
+
+        // ----------------------------
+        //     Personal Information
+        // ----------------------------
+
+        public void AssignPublicID(PublicCode publicId) 
+        {
+            if (PublicID is not null) throw new DomainConflictException
+                    (UserErrors.PublicIdAlreadyAssignedCode, UserErrors.PublicIdAlreadyAssignedMessage);
+
+            PublicID = publicId;
+        }
+
+        public void UpdateProfile(string? email, string? phone, string? fullName, string? photoUrl)
+        {
+            PreventModificationIfBanned();
+
+            Email = Normalize(email)?.ToLowerInvariant();
+            Phone = Normalize(phone);
+            FullName = Normalize(fullName);
+            PhotoUrl = Normalize(photoUrl);
+
+            FieldLimits();
+
+            if (IsProfileComplete && !ProfileCompletionRules()) throw new DomainRuleViolationException
+                    (UserErrors.CantRemoveRequiredFieldCode, UserErrors.CantRemoveRequiredFieldMessage);
+        }
+
+        public void ProfileComplete()
+        {
+            PreventModificationIfBanned();
+
+            if (!ProfileCompletionRules()) throw new DomainRuleViolationException
+                    (UserErrors.ProfileFieldNotCompleteCode, UserErrors.ProfileFieldNotCompleteMessage);
+
+            IsProfileComplete = true;
+        }
+
+        public void ProfileNotcomplete()
+        {
+            PreventModificationIfBanned();
+            IsProfileComplete = false;
+        }
+
+        private bool ProfileCompletionRules() => Phone is not null && FullName is not null;
+
+        private void FieldLimits()
+        {
+            if (Email is not null && Email.Length > 255) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Email));
+
+            if (Phone is not null && Phone.Length > 16) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Phone));
+
+            if (FullName is not null && FullName.Length > 150) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(FullName));
+
+            if (PhotoUrl is not null && PhotoUrl.Length > 500) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(PhotoUrl));
+        }
+
+        // -------------------------
+        //        Roles
+        // -------------------------
+
+        public bool HasRole(UserRole role) => (RoleMask & role) == role;
+
+        public void AddRoles(UserRole roles)
+        {
+            PreventModificationIfBanned();
+
+            foreach (var role in SplitRoleMask(roles))
+                AddSingleRole(role);
+        }
+
+        public void RemoveRole(UserRole role)
+        {
+            PreventModificationIfBanned();
+
+            if (role == UserRole.None) return;
+
+            if ((role & UserRole.Customer) == UserRole.Customer && HasRole(UserRole.Driver))
+                throw new DomainRuleViolationException
+                    (UserErrors.CantRemoveCustFromDrivCode, UserErrors.CantRemoveCustFromDrivMessage);
+
+            RoleMask &= ~role;
+
+            CheckDriverIsCustomer();
+        }
+
+        private void AddSingleRole(UserRole role)
+        {
+            if (role == UserRole.None) return;
+
+            if (role == UserRole.Driver)
+                RoleMask |= UserRole.Customer;
+
+            RoleMask |= role;
+
+            CheckDriverIsCustomer();
+        }
+
+        private void CheckDriverIsCustomer()
+        {
+            if (HasRole(UserRole.Driver) && !HasRole(UserRole.Customer))
+                RoleMask |= UserRole.Customer;
+        }
+
+        private static IEnumerable<UserRole> SplitRoleMask(UserRole roles)
+        {
+            foreach (UserRole r in Enum.GetValues(typeof(UserRole)))
+            {
+                if (r == UserRole.None) continue;
+                if ((roles & r) == r) yield return r;
+            }
+        }
+
+        // -------------------------
+        //        Status
+        // -------------------------
+
+        public void Activate()
+        {
+            AccountStatus = AccountStatus.Active;
+            SuspendedUntilUtc = null;
+        }
+
+        public void Suspend(DateTimeOffset? UntilUtc)
+        {
+            PreventModificationIfBanned();
+
+            if (UntilUtc.HasValue && UntilUtc <= DateTimeOffset.UtcNow)
+                throw new DomainValidationException
+                    (UserErrors.SuspensionMustBeFutureCode, UserErrors.SuspensionMustBeFutureMessage, field: nameof(UntilUtc));
+
+            AccountStatus = AccountStatus.Suspended;
+            SuspendedUntilUtc = UntilUtc;
+        }
+
+        public void Ban()
+        {
+            AccountStatus = AccountStatus.Banned;
+            SuspendedUntilUtc = null;
+        }
+
+        public bool IsSuspensionExpired(DateTimeOffset UtcNow) => AccountStatus == AccountStatus.Suspended
+               && SuspendedUntilUtc.HasValue && UtcNow >= SuspendedUntilUtc.Value;
+
+        public void AutoActivateIfExpired(DateTimeOffset UtcNow)
+        {
+            if (IsSuspensionExpired(UtcNow))
+                Activate();
+        }
+
+        public void SetLastLogin(DateTimeOffset UtcNow) => LastLoginAt = UtcNow;
+
+        private void PreventModificationIfBanned()
+        {
+            if (AccountStatus == AccountStatus.Banned) throw new DomainRuleViolationException
+                    (UserErrors.BannedCannotBeModifiedCode, UserErrors.BannedCannotBeModifiedMessage);
+        }
+
+        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
     }
 }

@@ -9,7 +9,7 @@ using System.Xml.XPath;
 
 namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
-    public class Category
+    public class MarchentCategory
     {
         [Key]
         public Guid CategorieID { get; set; }
@@ -34,7 +34,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
         public DateTimeOffset CreatedAt { get; set; }
 
-        public Category()
+        public MarchentCategory()
         {
             CategorieID = Guid.NewGuid();
             CreatedAt = DateTimeOffset.UtcNow;

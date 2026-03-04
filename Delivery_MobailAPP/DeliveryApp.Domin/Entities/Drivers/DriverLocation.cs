@@ -1,33 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
     public class DriverLocation
     {
-        [Key]
-        public Guid ID { get; set; }
+        public Guid ID { get; private set; }
+        public UserID DriverID { get; private set; }
 
-        [Required]
-        public Guid DriverID { get; set; }
+        public decimal Latitude { get; private set; }
+        public decimal Longitude { get; private set; }
+        public DateTimeOffset RecordedAt { get; private set; }
 
-        [Required]
-        public double Latitude { get; set; }
+        private DriverLocation() { }
 
-        [Required]
-        public double Longitude { get; set; }
-
-        [Required]
-        public DateTimeOffset RecordedAt { get; set; }
-
-        public DriverLocation()
+        public DriverLocation(UserID DriverId, decimal latitude, decimal longitude, DateTimeOffset RecordedAtUtc)
         {
+            if (DriverId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(DriverId));
+
+            ValidateLocation(latitude, longitude);
+
+            if (RecordedAtUtc == default) throw new DomainValidationException
+                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(RecordedAtUtc));
+
             ID = Guid.NewGuid();
-            RecordedAt = DateTimeOffset.UtcNow;
+            DriverID = DriverId;
+            Latitude = latitude;
+            Longitude = longitude;
+            RecordedAt = RecordedAtUtc;
+        }
+
+        private static void ValidateLocation(decimal lat, decimal lng)
+        {
+            if (lat < -90 || lat > 90) throw new DomainValidationException
+                    (ValidationErrors.InvalidLatCode, ValidationErrors.InvalidLatMessage, field: nameof(lat));
+
+            if (lng < -180 || lng > 180) throw new DomainValidationException
+                    (ValidationErrors.InvalidLngCode, ValidationErrors.InvalidLngMessage, field: nameof(lng));
         }
     }
 }

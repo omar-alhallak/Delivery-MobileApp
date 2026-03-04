@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeliveryApp.Application.Abstractions.Persistence
+namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
-    public interface Class1
+    internal class MarchantSystemCategory
     {
-
     }
 }
