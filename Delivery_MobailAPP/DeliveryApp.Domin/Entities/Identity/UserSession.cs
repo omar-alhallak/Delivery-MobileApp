@@ -1,10 +1,13 @@
 ﻿using System;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {
     public class UserSession
     {
-        private const int RefreshHashLength = 32;      // HMACSHA256 = 32
+        private const int RefreshHashLength = 32;    // HMACSHA256 = 32
         private const int MaxDeviceIdLength = 100;
 
         public UserSessionID ID { get; private set; }
@@ -41,8 +44,8 @@ namespace DeliveryApp.Domain.Entities.Identity
         public static UserSession Create(UserSessionID id, UserID userId, string deviceId, byte[] refreshTokenHash,
             DateTimeOffset utcNow, TimeSpan lifetime)
         {
-            if (lifetime <= TimeSpan.Zero)
-                throw new ArgumentException("Lifetime must be positive.", nameof(lifetime));
+            if (lifetime <= TimeSpan.Zero) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(lifetime));
 
             return new UserSession(id: id, UserId: userId, DeviceId: deviceId, refreshTokenHash: refreshTokenHash,
                 CreatedAtUtc: utcNow, ExpiresAtUtc: utcNow.Add(lifetime));
@@ -57,7 +60,8 @@ namespace DeliveryApp.Domain.Entities.Identity
             var normalized = NormalizeAndValidateDeviceId(DeviceId);
 
             if (!string.Equals(DeviceID, normalized, StringComparison.Ordinal))
-                throw new InvalidOperationException("Account is already logged in on another device.");
+                throw new DomainConflictException
+                    (UserSessionErrors.DeviceMismatchCode, UserSessionErrors.DeviceMismatchMessage);
         }
 
         // ------------------------
@@ -69,8 +73,8 @@ namespace DeliveryApp.Domain.Entities.Identity
             JustSameDevice(DeviceId);
             SureActive(UtcNow);
 
-            if (lifetime <= TimeSpan.Zero)
-                throw new ArgumentException("Lifetime must be positive.", nameof(lifetime));
+            if (lifetime <= TimeSpan.Zero) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(lifetime));
 
             StoreRefreshTokenHash(newRefreshTokenHash);
 
@@ -84,8 +88,8 @@ namespace DeliveryApp.Domain.Entities.Identity
         {
             if (IsRevoked) return;
 
-            if (UtcNow < CreatedAt)
-                throw new InvalidOperationException("RevokedAt cannot be earlier than CreatedAt.");
+            if (UtcNow < CreatedAt) throw new DomainValidationException
+                    (UserSessionErrors.RevokedAtBeforeCreatedAtCode, UserSessionErrors.RevokedAtBeforeCreatedAtMessage, field: nameof(UtcNow));
 
             RevokedAt = UtcNow;
             LastSeenAt = UtcNow;
@@ -101,11 +105,11 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         private void SureActive(DateTimeOffset UtcNow)
         {
-            if (IsRevoked)
-                throw new InvalidOperationException("Session is revoked. Please login again.");
+            if (IsRevoked) throw new DomainRuleViolationException
+                    (UserSessionErrors.SessionRevokedCode, UserSessionErrors.SessionRevokedMessage);
 
-            if (IsExpired(UtcNow))
-                throw new InvalidOperationException("Session is expired. Please login again.");
+            if (IsExpired(UtcNow)) throw new DomainRuleViolationException
+                    (UserSessionErrors.SessionExpiredCode, UserSessionErrors.SessionExpiredMessage);
         }
 
         // -------------------------  
@@ -114,45 +118,46 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         private void StoreRefreshTokenHash(byte[] hash)
         {
-            if (hash is null) throw new ArgumentNullException(nameof(hash));
-            if (hash.Length != RefreshHashLength)
-                throw new ArgumentException($"RefreshTokenHash must be {RefreshHashLength} bytes.", nameof(hash));
+            if (hash is null) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(hash));
+            if (hash.Length != RefreshHashLength) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(hash));
 
             refreshTokenHash = (byte[])hash.Clone();  
         }
 
         private static string NormalizeAndValidateDeviceId(string deviceId)
         {
-            if (string.IsNullOrWhiteSpace(deviceId))
-                throw new ArgumentException("DeviceId is required.", nameof(deviceId));
+            if (string.IsNullOrWhiteSpace(deviceId)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(deviceId));
 
             deviceId = deviceId.Trim();
 
-            if (deviceId.Length > MaxDeviceIdLength)
-                throw new ArgumentException($"DeviceId is too long (max {MaxDeviceIdLength}).", nameof(deviceId));
+            if (deviceId.Length > MaxDeviceIdLength) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(deviceId));
 
             return deviceId;
         }
 
         private void ValidateState()
         {
-            if (CreatedAt == default)
-                throw new InvalidOperationException("CreatedAt is required.");
+            if (CreatedAt == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(CreatedAt));
 
-            if (LastSeenAt < CreatedAt)
-                throw new InvalidOperationException("LastSeenAt cannot be earlier than CreatedAt.");
+            if (LastSeenAt < CreatedAt) throw new DomainRuleViolationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
 
-            if (ExpiresAt <= CreatedAt)
-                throw new InvalidOperationException("ExpiresAt must be later than CreatedAt.");
+            if (ExpiresAt <= CreatedAt) throw new DomainRuleViolationException
+                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
 
-            if (refreshTokenHash.Length != RefreshHashLength)
-                throw new InvalidOperationException("RefreshTokenHash length is invalid.");
+            if (refreshTokenHash.Length != RefreshHashLength) throw new DomainRuleViolationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
 
-            if (string.IsNullOrWhiteSpace(DeviceID))
-                throw new InvalidOperationException("DeviceId is required.");
+            if (string.IsNullOrWhiteSpace(DeviceID)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(DeviceID));
 
-            if (RevokedAt.HasValue && RevokedAt.Value < CreatedAt)
-                throw new InvalidOperationException("RevokedAt cannot be earlier than CreatedAt.");
+            if (RevokedAt.HasValue && RevokedAt.Value < CreatedAt) throw new DomainValidationException
+                    (UserSessionErrors.RevokedAtBeforeCreatedAtCode, UserSessionErrors.RevokedAtBeforeCreatedAtMessage, field: nameof(RevokedAt));
         }
     }
 }

@@ -1,5 +1,8 @@
 ﻿using DeliveryApp.Domain.Enums;
 using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {
@@ -27,6 +30,12 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public User(UserID id, UserRole Roles, DateTimeOffset CreatedAtUtc)
         {
+            if (id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(id));
+
+            if (CreatedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(CreatedAtUtc));
+
             ID = id;
             CreatedAt = CreatedAtUtc;
 
@@ -42,15 +51,15 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public void AssignPublicID(PublicCode publicId) 
         {
-            if (PublicID is not null)
-                throw new InvalidOperationException("PublicID already assigned.");
+            if (PublicID is not null) throw new DomainConflictException
+                    (UserErrors.PublicIdAlreadyAssignedCode, UserErrors.PublicIdAlreadyAssignedMessage);
 
             PublicID = publicId;
         }
 
         public void UpdateProfile(string? email, string? phone, string? fullName, string? photoUrl)
         {
-            PreventModificationIfNotBanned();
+            PreventModificationIfBanned();
 
             Email = Normalize(email)?.ToLowerInvariant();
             Phone = Normalize(phone);
@@ -59,23 +68,23 @@ namespace DeliveryApp.Domain.Entities.Identity
 
             FieldLimits();
 
-            if (IsProfileComplete && !ProfileCompletionRules())
-                throw new InvalidOperationException("Profile is complete, required fields cannot be cleared.");
+            if (IsProfileComplete && !ProfileCompletionRules()) throw new DomainRuleViolationException
+                    (UserErrors.CantRemoveRequiredFieldCode, UserErrors.CantRemoveRequiredFieldMessage);
         }
 
         public void ProfileComplete()
         {
-            PreventModificationIfNotBanned();
+            PreventModificationIfBanned();
 
-            if (!ProfileCompletionRules())
-                throw new InvalidOperationException("Phone and FullName are required.");
+            if (!ProfileCompletionRules()) throw new DomainRuleViolationException
+                    (UserErrors.ProfileFieldNotCompleteCode, UserErrors.ProfileFieldNotCompleteMessage);
 
             IsProfileComplete = true;
         }
 
         public void ProfileNotcomplete()
         {
-            PreventModificationIfNotBanned();
+            PreventModificationIfBanned();
             IsProfileComplete = false;
         }
 
@@ -83,17 +92,17 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         private void FieldLimits()
         {
-            if (Email is not null && Email.Length > 255)
-                throw new ArgumentException("Email too long.");
+            if (Email is not null && Email.Length > 255) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Email));
 
-            if (Phone is not null && Phone.Length > 16)
-                throw new ArgumentException("Phone too long.");
+            if (Phone is not null && Phone.Length > 16) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Phone));
 
-            if (FullName is not null && FullName.Length > 150)
-                throw new ArgumentException("FullName too long.");
+            if (FullName is not null && FullName.Length > 150) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(FullName));
 
-            if (PhotoUrl is not null && PhotoUrl.Length > 500)
-                throw new ArgumentException("PhotoUrl too long.");
+            if (PhotoUrl is not null && PhotoUrl.Length > 500) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(PhotoUrl));
         }
 
         // -------------------------
@@ -104,7 +113,7 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public void AddRoles(UserRole roles)
         {
-            PreventModificationIfNotBanned();
+            PreventModificationIfBanned();
 
             foreach (var role in SplitRoleMask(roles))
                 AddSingleRole(role);
@@ -112,12 +121,13 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public void RemoveRole(UserRole role)
         {
-            PreventModificationIfNotBanned();
+            PreventModificationIfBanned();
 
             if (role == UserRole.None) return;
 
             if ((role & UserRole.Customer) == UserRole.Customer && HasRole(UserRole.Driver))
-                throw new InvalidOperationException("Cannot remove Customer role from a Driver.");
+                throw new DomainRuleViolationException
+                    (UserErrors.CantRemoveCustFromDrivCode, UserErrors.CantRemoveCustFromDrivMessage);
 
             RoleMask &= ~role;
 
@@ -163,10 +173,11 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public void Suspend(DateTimeOffset? UntilUtc)
         {
-            PreventModificationIfNotBanned();
+            PreventModificationIfBanned();
 
             if (UntilUtc.HasValue && UntilUtc <= DateTimeOffset.UtcNow)
-                throw new InvalidOperationException("Suspension must be in the future.");
+                throw new DomainValidationException
+                    (UserErrors.SuspensionMustBeFutureCode, UserErrors.SuspensionMustBeFutureMessage, field: nameof(UntilUtc));
 
             AccountStatus = AccountStatus.Suspended;
             SuspendedUntilUtc = UntilUtc;
@@ -189,10 +200,10 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public void SetLastLogin(DateTimeOffset UtcNow) => LastLoginAt = UtcNow;
 
-        private void PreventModificationIfNotBanned()
+        private void PreventModificationIfBanned()
         {
-            if (AccountStatus == AccountStatus.Banned)
-                throw new InvalidOperationException("Banned user cannot be modified.");
+            if (AccountStatus == AccountStatus.Banned) throw new DomainRuleViolationException
+                    (UserErrors.BannedCannotBeModifiedCode, UserErrors.BannedCannotBeModifiedMessage);
         }
 
         private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
