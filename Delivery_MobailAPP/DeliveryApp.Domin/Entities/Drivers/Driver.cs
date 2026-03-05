@@ -1,5 +1,6 @@
 ﻿using System;
 using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.DriverErrors;
 
@@ -19,8 +20,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         public DateTimeOffset? LastSeenAt { get; private set; }
 
-        public decimal? CurrentLat { get; private set; }
-        public decimal? CurrentLng { get; private set; }
+        public GeoPoint? CurrentLocation { get; private set; }
         public DateTimeOffset? LastLocationAt { get; private set; }
 
         public UserID ApprovedByAdminID { get; private set; }
@@ -92,8 +92,8 @@ namespace DeliveryApp.Domain.Entities.Drivers
         // ---------- Online ----------
         public bool IsOnline(DateTimeOffset UtcNow, TimeSpan threshold)
         {
-            if (threshold <= TimeSpan.Zero)
-                throw new DomainValidationException(ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(threshold));
+            if (threshold <= TimeSpan.Zero) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(threshold));
 
             return LastSeenAt.HasValue && (UtcNow - LastSeenAt.Value) <= threshold;
         }
@@ -110,10 +110,8 @@ namespace DeliveryApp.Domain.Entities.Drivers
         public void UpdateLocation(decimal lat, decimal lng, DateTimeOffset UtcNow)
         {
             IsNotDisable();
-            ValidateLocation(lat, lng);
 
-            CurrentLat = lat;
-            CurrentLng = lng;
+            CurrentLocation = GeoPoint.Create(lat, lng);
             LastLocationAt = UtcNow;
             LastSeenAt = UtcNow;
         }
@@ -162,15 +160,6 @@ namespace DeliveryApp.Domain.Entities.Drivers
             IsNotDisable();
             if (ActiveOrdersCount <= 0) return;
             ActiveOrdersCount--;
-        }
-
-        private static void ValidateLocation(decimal lat, decimal lng)
-        {
-            if (lat < -90 || lat > 90) throw new DomainValidationException
-                    (ValidationErrors.InvalidLatCode, ValidationErrors.InvalidLatMessage, nameof(lat));
-
-            if (lng < -180 || lng > 180) throw new DomainValidationException
-                    (ValidationErrors.InvalidLngCode, ValidationErrors.InvalidLngMessage, nameof(lng));
         }
     }
 }
