@@ -1,132 +1,163 @@
 ﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainErrors.Drivers;
 using DeliveryApp.Domain.DomainExceptions;
-using DeliveryApp.Domain.Entities.DriverRequest;
 using DeliveryApp.Domain.Enums.DriverEnums;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
     public class DriverRequest
     {
-        
-        public DriverRequestID ID { get; private set; } 
-        public UserID UserId { get; private set; }     
+        public DriverRequestID ID { get; private set; }
+        public UserID UserID { get; private set; }
         public VehicleTypeID VehicleTypeID { get; private set; }
+
         public string FullName { get; private set; } = null!;
         public string FatherName { get; private set; } = null!;
         public string NationalIdNumber { get; private set; } = null!;
+
         public string PersonalPhotoUrl { get; private set; } = null!;
         public string NationalIdPhotoUrl { get; private set; } = null!;
+
         public string? DrivingLicensePhotoUrl { get; private set; }
         public string? DrivingLicenseNumber { get; private set; }
         public string? VehiclePlateNumber { get; private set; }
 
         public DriverRequestStatus Status { get; private set; }
-        public UserID? ReviewedByAdminId { get; private set; } 
+
+        public UserID? ReviewedByAdminID { get; private set; }
         public DateTimeOffset? ReviewedAt { get; private set; }
+
         public DateTimeOffset CreatedAt { get; private set; }
 
-        private DriverRequest() { } 
+        private DriverRequest() { }
 
-        public DriverRequest(
-            DriverRequestID id,
-            UserID userId,
-            VehicleTypeID vehicleTypeId,
-            string fullName,
-            string fatherName,
-            string nationalIdNumber,
-            string personalPhotoUrl,
-            string nationalIdPhotoUrl,
-            DateTimeOffset createdAtUtc)
+        public DriverRequest(DriverRequestID id, UserID UserId, VehicleTypeID VehicleTypeId, string fullName,
+            string fatherName, string nationalIdNumber, string personalPhotoUrl, string nationalIdPhotoUrl, DateTimeOffset CreatedAtUtc)
         {
+            if (id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ID));
+
+            if (UserId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserID));
+
+            if (VehicleTypeId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(VehicleTypeID));
+
             ID = id;
-            UserId = userId;
-            VehicleTypeID = vehicleTypeId;
-            CreatedAt = createdAtUtc;
+            UserID = UserId;
+            VehicleTypeID = VehicleTypeId;
+
+            CreatedAt = CreatedAtUtc;
             Status = DriverRequestStatus.Pending;
 
-            // التحقق  للبيانات الأساسية
-            UpdatePersonalInfo(fullName, fatherName, nationalIdNumber);
-            UpdateBasePhotos(personalPhotoUrl, nationalIdPhotoUrl);
-        }
-       
-
-        //للدراجة النارية او السيارة 
-        public void SetVehicleDetails(
-            string licensePhoto,
-            string licenseNumber,
-            string plateNumber)
-        {
-            // التحقق من البيانات
-            if (string.IsNullOrWhiteSpace(licensePhoto)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(licensePhoto));
-
-            if (string.IsNullOrWhiteSpace(licenseNumber)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(licenseNumber));
-
-            if (string.IsNullOrWhiteSpace(plateNumber)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(plateNumber));
-
-            DrivingLicensePhotoUrl = licensePhoto.Trim();
-            DrivingLicenseNumber = licenseNumber.Trim();
-            VehiclePlateNumber = plateNumber.Trim();
+            SetPersonalInfo(fullName, fatherName, nationalIdNumber);
+            SetBasePhotos(personalPhotoUrl, nationalIdPhotoUrl);
         }
 
-        // للدراجة الهوائية والكهربائية
-        public void SetAsSimpleVehicle()
+        // ------------------------
+        //     Vehicle details
+        // ------------------------
+
+        public void SetVehicleLicense(string licensePhotoUrl, string licenseNumber, string plateNumber)
         {
+            CheckISPending();
+
+            DrivingLicensePhotoUrl = NormalizeRequired(licensePhotoUrl, nameof(DrivingLicensePhotoUrl), maxLen: 500);
+            DrivingLicenseNumber = NormalizeRequired(licenseNumber, nameof(DrivingLicenseNumber), maxLen: 50);
+            VehiclePlateNumber = NormalizeRequired(plateNumber, nameof(VehiclePlateNumber), maxLen: 30);
+        }
+
+        public void SetVehicleWithoutLicense()
+        {
+            CheckISPending();
+
             DrivingLicensePhotoUrl = null;
             DrivingLicenseNumber = null;
             VehiclePlateNumber = null;
         }
 
-        // عمليات المراجعة 
+        // -------------------------
+        //          Review
+        // -------------------------
 
-        public void Approve(UserID adminId, DateTimeOffset reviewedAtUtc)
+        public void Approve(UserID AdminId, DateTimeOffset ReviewedAtUtc, bool requiresVehicleDetails)
         {
-            //لازم يكون الطلب معلق لينقبل
-            if (Status != DriverRequestStatus.Pending)
-                throw new InvalidOperationException("Only pending applications can be approved.");
+            CheckISPending();
+
+            if (AdminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ReviewedByAdminID));
+
+            if (ReviewedAtUtc < CreatedAt) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(ReviewedAt));
+
+            if (requiresVehicleDetails && !HasVehicleDetails()) throw new DomainRuleViolationException
+                    (DriverRequestErrors.VehicleDetailsRequiredCode, DriverRequestErrors.VehicleDetailsRequiredMessage);
 
             Status = DriverRequestStatus.Approved;
-            ReviewedByAdminId = adminId;
-            ReviewedAt = reviewedAtUtc;
+            ReviewedByAdminID = AdminId;
+            ReviewedAt = ReviewedAtUtc;
         }
 
-        public void Reject(UserID adminId, DateTimeOffset reviewedAtUtc)
+        public void Reject(UserID AdminId, DateTimeOffset ReviewedAtUtc)
         {
-            if (Status != DriverRequestStatus.Pending)
-                throw new InvalidOperationException("Only pending requests can be rejected.");
+            CheckISPending();
+
+            if (AdminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ReviewedByAdminID));
+
+            if (ReviewedAtUtc < CreatedAt) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(ReviewedAt));
+
             Status = DriverRequestStatus.Rejected;
-            ReviewedByAdminId = adminId;
-            ReviewedAt = reviewedAtUtc;
-            //مستقبلا ممكن نضيف حقل لسبب الرفض 
+            ReviewedByAdminID = AdminId;
+            ReviewedAt = ReviewedAtUtc;
         }
 
-        //  للتحقق
+        // -------------------------
+        //      Private setters
+        // -------------------------
 
-        private void UpdatePersonalInfo(string fullName, string fatherName, string nationalId)
+        private void SetPersonalInfo(string fullName, string fatherName, string nationalIdNumber)
         {
-            if (string.IsNullOrWhiteSpace(fullName)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(fullName));
+            CheckISPending();
 
-            if (fullName.Length > 150) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(fullName));
-
-            FullName = fullName.Trim();
-            FatherName = fatherName.Trim();
-            NationalIdNumber = nationalId.Trim();
+            FullName = NormalizeRequired(fullName, nameof(FullName), maxLen: 150);
+            FatherName = NormalizeRequired(fatherName, nameof(FatherName), maxLen: 150);
+            NationalIdNumber = NormalizeRequired(nationalIdNumber, nameof(NationalIdNumber), maxLen: 50);
         }
 
-        private void UpdateBasePhotos(string personalUrl, string nationalIdUrl)
+        private void SetBasePhotos(string personalPhotoUrl, string nationalIdPhotoUrl)
         {
-            PersonalPhotoUrl = personalUrl.Trim();
-            NationalIdPhotoUrl = nationalIdUrl.Trim();
+            CheckISPending();
+
+            PersonalPhotoUrl = NormalizeRequired(personalPhotoUrl, nameof(PersonalPhotoUrl), maxLen: 500);
+            NationalIdPhotoUrl = NormalizeRequired(nationalIdPhotoUrl, nameof(NationalIdPhotoUrl), maxLen: 500);
+        }
+
+        // -------------------------
+        //          Helpers
+        // -------------------------
+
+        private void CheckISPending()
+        {
+            if (Status != DriverRequestStatus.Pending) throw new DomainRuleViolationException
+                    (DriverRequestErrors.NotPendingCode, DriverRequestErrors.NotPendingMessage);
+        }
+
+        private bool HasVehicleDetails() => !string.IsNullOrWhiteSpace(DrivingLicensePhotoUrl)
+               && !string.IsNullOrWhiteSpace(DrivingLicenseNumber) && !string.IsNullOrWhiteSpace(VehiclePlateNumber);
+
+        private static string NormalizeRequired(string? value, string field, int maxLen)
+        {
+            if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field);
+
+            var v = value.Trim();
+
+            if (v.Length > maxLen) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field);
+
+            return v;
         }
     }
 }
