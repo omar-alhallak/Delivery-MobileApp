@@ -1,4 +1,6 @@
-﻿using DeliveryApp.Domain.Entities.DriverRequest;
+﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.Entities.DriverRequest;
 using DeliveryApp.Domain.Enums.DriverEnums;
 using System;
 using System.Collections.Generic;
@@ -61,9 +63,14 @@ namespace DeliveryApp.Domain.Entities.Drivers
             string plateNumber)
         {
             // التحقق من البيانات
-            if (string.IsNullOrWhiteSpace(licensePhoto)) throw new ArgumentException("License photo is required for this vehicle type.");
-            if (string.IsNullOrWhiteSpace(licenseNumber)) throw new ArgumentException("License number is required.");
-            if (string.IsNullOrWhiteSpace(plateNumber)) throw new ArgumentException("Plate number is required.");
+            if (string.IsNullOrWhiteSpace(licensePhoto)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(licensePhoto));
+
+            if (string.IsNullOrWhiteSpace(licenseNumber)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(licenseNumber));
+
+            if (string.IsNullOrWhiteSpace(plateNumber)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(plateNumber));
 
             DrivingLicensePhotoUrl = licensePhoto.Trim();
             DrivingLicenseNumber = licenseNumber.Trim();
@@ -105,8 +112,11 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         private void UpdatePersonalInfo(string fullName, string fatherName, string nationalId)
         {
-            if (string.IsNullOrWhiteSpace(fullName)) throw new ArgumentException("Full name is required.");
-            if (fullName.Length > 150) throw new ArgumentException("Full name is too long.");
+            if (string.IsNullOrWhiteSpace(fullName)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(fullName));
+
+            if (fullName.Length > 150) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(fullName));
 
             FullName = fullName.Trim();
             FatherName = fatherName.Trim();
