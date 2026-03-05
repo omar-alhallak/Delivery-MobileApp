@@ -16,10 +16,10 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         public MerchantSystemCategory(MerchantID MerchantId, SystemCategoryID SystemCategoryId, DateTimeOffset CreatedAtUtc)
         {
             if (MerchantId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(MerchantId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(MerchantId));
 
             if (SystemCategoryId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(SystemCategoryId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(SystemCategoryId));
 
             MerchantID = MerchantId;
             SystemCategoryID = SystemCategoryId;

@@ -32,13 +32,16 @@ namespace DeliveryApp.Domain.Entities.Drivers
         public Driver(UserID UserId, VehicleTypeID VehicleTypeId, UserID ApprovedByAdminId, DateTimeOffset ApprovedAtUtc)
         {
             if (UserId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(UserId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserId));
+
             if (VehicleTypeId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(VehicleTypeId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(VehicleTypeId));
+
             if (ApprovedByAdminId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(ApprovedByAdminId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ApprovedByAdminId));
+
             if (ApprovedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(ApprovedAtUtc));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ApprovedAtUtc));
 
             ID = UserId;
             VehicleTypeID = VehicleTypeId;
@@ -58,7 +61,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
         public void Disable(UserID AdminId, DateTimeOffset UtcNow)
         {
             if (AdminId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(AdminId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(AdminId));
 
             if (!IsEnabled) return;
 
@@ -72,7 +75,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
         public void Enable(UserID AdminId, DateTimeOffset UtcNow)
         {
             if (AdminId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(AdminId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(AdminId));
 
             if (IsEnabled) return;
 
@@ -90,7 +93,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
         public bool IsOnline(DateTimeOffset UtcNow, TimeSpan threshold)
         {
             if (threshold <= TimeSpan.Zero)
-                throw new DomainValidationException(ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(threshold));
+                throw new DomainValidationException(ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(threshold));
 
             return LastSeenAt.HasValue && (UtcNow - LastSeenAt.Value) <= threshold;
         }
@@ -140,7 +143,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
             IsNotDisable();
 
             if (NewVehicleTypeId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(NewVehicleTypeId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(NewVehicleTypeId));
 
             VehicleTypeID = NewVehicleTypeId;
         }
@@ -164,10 +167,10 @@ namespace DeliveryApp.Domain.Entities.Drivers
         private static void ValidateLocation(decimal lat, decimal lng)
         {
             if (lat < -90 || lat > 90) throw new DomainValidationException
-                    (ValidationErrors.InvalidLatCode, ValidationErrors.InvalidLatMessage, field: nameof(lat));
+                    (ValidationErrors.InvalidLatCode, ValidationErrors.InvalidLatMessage, nameof(lat));
 
             if (lng < -180 || lng > 180) throw new DomainValidationException
-                    (ValidationErrors.InvalidLngCode, ValidationErrors.InvalidLngMessage, field: nameof(lng));
+                    (ValidationErrors.InvalidLngCode, ValidationErrors.InvalidLngMessage, nameof(lng));
         }
     }
 }

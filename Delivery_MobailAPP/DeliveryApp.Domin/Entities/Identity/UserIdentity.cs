@@ -24,13 +24,13 @@ namespace DeliveryApp.Domain.Entities.Identity
             string? passwordHash, DateTimeOffset CreatedAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(id));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
             if (UserId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(UserId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserId));
 
             if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(CreatedAtUtc));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
 
             ID = id;
             UserID = UserId;
@@ -51,7 +51,7 @@ namespace DeliveryApp.Domain.Entities.Identity
         public static UserIdentity CreateLocal(UserIdentityID id, UserID UserId, string passwordHash, DateTimeOffset CreatedAtUtc)
         {
             if (string.IsNullOrWhiteSpace(passwordHash)) throw new DomainValidationException
-                    (UserIdentityErrors.PasswordRequiredForLocalCode, UserIdentityErrors.PasswordRequiredForLocalMessage, field: nameof(passwordHash));
+                    (UserIdentityErrors.PasswordRequiredForLocalCode, UserIdentityErrors.PasswordRequiredForLocalMessage, nameof(passwordHash));
 
             return new UserIdentity(id: id, UserId: UserId, provider: AuthProvider.Local, providerUserId: null,
                 passwordHash: passwordHash, CreatedAtUtc: CreatedAtUtc);
@@ -60,7 +60,7 @@ namespace DeliveryApp.Domain.Entities.Identity
         public static UserIdentity CreateGoogle(UserIdentityID id, UserID UserId, string googleSub, DateTimeOffset CreatedAtUtc)
         {
             if (string.IsNullOrWhiteSpace(googleSub)) throw new DomainValidationException
-                    (UserIdentityErrors.GoogleSubRequiredCode, UserIdentityErrors.GoogleSubRequiredMessage, field: nameof(googleSub));
+                    (UserIdentityErrors.GoogleSubRequiredCode, UserIdentityErrors.GoogleSubRequiredMessage, nameof(googleSub));
 
             return new UserIdentity(id: id, UserId: UserId, provider: AuthProvider.Google, providerUserId: googleSub,
                 passwordHash: null, CreatedAtUtc: CreatedAtUtc);
@@ -72,7 +72,7 @@ namespace DeliveryApp.Domain.Entities.Identity
                     (UserIdentityErrors.PasswordChangeOnlyForLocalCode, UserIdentityErrors.PasswordChangeOnlyForLocalMessage);
 
             if (string.IsNullOrWhiteSpace(NewPasswordHash)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(NewPasswordHash));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(NewPasswordHash));
 
             PasswordHash = Normalize(NewPasswordHash);
 

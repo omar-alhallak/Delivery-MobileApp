@@ -1,43 +1,95 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.ValueObjects;
 
 namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
     public class Product
     {
-        [Key]
-        public Guid ProductID { get; set; }
+        public ProductID ID { get; private set; }
 
-        [Required]
-        public Guid MerchantID { get; set; }
+        public MerchantCategoryID MerchantCategoryID { get; private set; }
 
-        [Required]
-        public Guid CategoryID { get; set; }
+        public CatalogName ProductName { get; private set; } = null!;
 
-        [Required]
-        [MaxLength(200)]
-        public string ProductName { get; set; } = string.Empty;
+        public string? Description { get; private set; }
+        public string? ImageURL { get; private set; }
 
-        [MaxLength(1000)]
-        public string? Description { get; set; }
+        public bool IsActive { get; private set; }
+        public DateTimeOffset CreatedAt { get; private set; }
 
-        [MaxLength(500)]
-        public string? ImageURL { get; set; }
+        private Product() { }
 
-        public bool IsActive { get; set; }
-
-        public DateTimeOffset CreatedAt { get; set; }
-
-        public Product()
+        public Product(ProductID id, MerchantCategoryID MerchantCategoryId, string productName,
+            string? description, string? imageUrl, DateTimeOffset CreatedAtUtc)
         {
-            ProductID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
+            if (id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ID));
+
+            if (MerchantCategoryId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(MerchantCategoryID));
+
+            ID = id;
+            MerchantCategoryID = MerchantCategoryId;
+
+            SetName(productName);
+            SetDescription(description);
+            SetImageUrl(imageUrl);
+
             IsActive = true;
+            CreatedAt = CreatedAtUtc;
         }
+
+        // -------------------------
+        //          Behavior
+        // -------------------------
+
+        public void Rename(string name) => SetName(name);
+
+        public void ChangeDescription(string? description) => SetDescription(description);
+
+        public void ChangeImage(string? imageUrl) => SetImageUrl(imageUrl);
+
+        public void MoveToCategory(MerchantCategoryID newMerchantCategoryId)
+        {
+            if (newMerchantCategoryId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(MerchantCategoryID));
+
+            MerchantCategoryID = newMerchantCategoryId;
+        }
+
+        public void Activate() => IsActive = true;
+
+        public void Deactivate() => IsActive = false;
+
+        // -------------------------
+        //           Setters
+        // -------------------------
+
+        private void SetName(string value) =>
+            ProductName = CatalogName.Create(value, maxLength: 150, field: nameof(ProductName));
+
+        private void SetDescription(string? value)
+        {
+            value = NormalizeOptional(value);
+
+            if (value is not null && value.Length > 1000) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(Description));
+
+            Description = value;
+        }
+
+        private void SetImageUrl(string? value)
+        {
+            value = NormalizeOptional(value);
+
+            if (value is not null && value.Length > 500) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ImageURL));
+
+            ImageURL = value;
+        }
+
+        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }
