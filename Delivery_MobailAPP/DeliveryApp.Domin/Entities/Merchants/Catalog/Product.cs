@@ -1,7 +1,7 @@
 ﻿using System;
 using DeliveryApp.Domain.DomainErrors;
-using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
@@ -16,13 +16,15 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         public string? Description { get; private set; }
         public string? ImageURL { get; private set; }
 
+        public decimal? BasePrice { get; private set; }
+
         public bool IsActive { get; private set; }
         public DateTimeOffset CreatedAt { get; private set; }
 
         private Product() { }
 
-        public Product(ProductID id, MerchantCategoryID MerchantCategoryId, string productName,
-            string? description, string? imageUrl, DateTimeOffset CreatedAtUtc)
+        public Product(ProductID id, MerchantCategoryID MerchantCategoryId, string productName, string? description,
+            string? imageUrl, DateTimeOffset CreatedAtUtc, decimal? basePrice = null)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ID));
@@ -36,13 +38,14 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
             SetName(productName);
             SetDescription(description);
             SetImageUrl(imageUrl);
+            SetBasePrice(basePrice);
 
             IsActive = true;
             CreatedAt = CreatedAtUtc;
         }
 
         // -------------------------
-        //          Behavior
+        //         Behavior
         // -------------------------
 
         public void Rename(string name) => SetName(name);
@@ -50,6 +53,8 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         public void ChangeDescription(string? description) => SetDescription(description);
 
         public void ChangeImage(string? imageUrl) => SetImageUrl(imageUrl);
+
+        public void ChangeBasePrice(decimal? basePrice) => SetBasePrice(basePrice);
 
         public void MoveToCategory(MerchantCategoryID newMerchantCategoryId)
         {
@@ -88,6 +93,14 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ImageURL));
 
             ImageURL = value;
+        }
+
+        private void SetBasePrice(decimal? value)
+        {
+            if (value.HasValue && value.Value <= 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(BasePrice));
+
+            BasePrice = value;
         }
 
         private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
