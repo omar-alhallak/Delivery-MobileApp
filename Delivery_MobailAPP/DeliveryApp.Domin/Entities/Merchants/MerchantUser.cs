@@ -1,27 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Enums;
-using DeliveryApp.Domain.ValueObjects;
 
 namespace DeliveryApp.Domain.Entities.Merchants
 {
     public class MerchantUser
     {
-        public MerchantID ID { get; private set; }
-
-        public PublicCode? PublicID { get; private set; }
-
+        public  MerchantID MerchantID { get; private set; }
+        public  UserID UserID { get; private set; }
         public Merchant? Merchant { get; private set; }
-        public Guid UserID { get; private set; }
 
-        public User? user { get; private set; }
+        public User? User { get; private set; }
 
         public MerchantUserRole Role { get; private set; }
 
@@ -31,39 +21,24 @@ namespace DeliveryApp.Domain.Entities.Merchants
 
         private MerchantUser() { }
 
-        public MerchantUser(MerchantID iD, Guid userID, MerchantUserRole role)
+        public MerchantUser(MerchantID merchantID, UserID userID, MerchantUserRole role)
         {
-            ID = iD;
+            MerchantID = merchantID;
             UserID = userID;
-            Role = role;
-            IsActive = true;
-            CreatedAt = DateTimeOffset.UtcNow;
-            Role = MerchantUserRole.None;
-            UpdateMerchantUser(role, iD, userID);
+            CreatedAt = DateTimeOffset.UtcNow;    
         }
-        public void UpdateMerchantUser(MerchantUserRole role, MerchantID iD, Guid userID)
+        public void UpdateMerchantUser(MerchantID iD, UserID id, MerchantUserRole role)
         {
-            ID = iD;
-            UserID = userID;
             Role = role;
             IsActive = true;
-            CreatedAt = DateTimeOffset.UtcNow;
             FieldLimits();
         }
-
         private void FieldLimits()
         {
-            if (ID.Value == Guid.Empty)
-                throw new ArgumentException("A valid merchant ID must be provided; it cannot be blank.");
-
-            if (UserID == Guid.Empty)
-                throw new ArgumentException("A valid user ID must be provided to link it to the merchant.");
-
-            if (Role >= 0)
-                throw new ArgumentException("A valid user role number must be specified.");
-
-            if (Role == Role && ID == ID && UserID == UserID)
-                throw new ArgumentException("No changes detected in the merchant user details; update operation is redundant.");
+            if (MerchantID.IsEmpty)
+                throw new DomainRuleViolationException(ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage);
+            if (UserID.IsEmpty)
+                throw new DomainRuleViolationException(ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage);
         }
         public bool HasRole(MerchantUserRole role) => (Role & role) == role;
         public void AddRoles(MerchantUserRole roles)
@@ -74,13 +49,11 @@ namespace DeliveryApp.Domain.Entities.Merchants
         public void RemoveRole(MerchantUserRole role)
         {
             if (role == MerchantUserRole.None) return;
-
             if (role == MerchantUserRole.Owner && !HasRole(MerchantUserRole.Staff))
-                throw new InvalidOperationException("The owner cannot be removed without at least one replacement employee.");
 
+                throw new DomainRuleViolationException(MerchantErrors.OwnerRequiredCode,MerchantErrors.OwnerRequiredMessage);
             Role &= ~role;
         }
-
         private void AddSingleRole(MerchantUserRole role)
         {
             if (role == MerchantUserRole.None) return;
