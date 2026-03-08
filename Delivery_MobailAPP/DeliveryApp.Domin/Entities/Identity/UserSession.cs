@@ -45,7 +45,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             DateTimeOffset utcNow, TimeSpan lifetime)
         {
             if (lifetime <= TimeSpan.Zero) throw new DomainValidationException
-                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(lifetime));
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(lifetime));
 
             return new UserSession(id: id, UserId: userId, DeviceId: deviceId, refreshTokenHash: refreshTokenHash,
                 CreatedAtUtc: utcNow, ExpiresAtUtc: utcNow.Add(lifetime));
@@ -74,7 +74,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             SureActive(UtcNow);
 
             if (lifetime <= TimeSpan.Zero) throw new DomainValidationException
-                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(lifetime));
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(lifetime));
 
             StoreRefreshTokenHash(newRefreshTokenHash);
 
@@ -89,7 +89,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             if (IsRevoked) return;
 
             if (UtcNow < CreatedAt) throw new DomainValidationException
-                    (UserSessionErrors.RevokedAtBeforeCreatedAtCode, UserSessionErrors.RevokedAtBeforeCreatedAtMessage, field: nameof(UtcNow));
+                    (UserSessionErrors.RevokedAtBeforeCreatedAtCode, UserSessionErrors.RevokedAtBeforeCreatedAtMessage, nameof(UtcNow));
 
             RevokedAt = UtcNow;
             LastSeenAt = UtcNow;
@@ -119,9 +119,9 @@ namespace DeliveryApp.Domain.Entities.Identity
         private void StoreRefreshTokenHash(byte[] hash)
         {
             if (hash is null) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(hash));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(hash));
             if (hash.Length != RefreshHashLength) throw new DomainValidationException
-                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(hash));
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(hash));
 
             refreshTokenHash = (byte[])hash.Clone();  
         }
@@ -129,12 +129,12 @@ namespace DeliveryApp.Domain.Entities.Identity
         private static string NormalizeAndValidateDeviceId(string deviceId)
         {
             if (string.IsNullOrWhiteSpace(deviceId)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(deviceId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(deviceId));
 
             deviceId = deviceId.Trim();
 
             if (deviceId.Length > MaxDeviceIdLength) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(deviceId));
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(deviceId));
 
             return deviceId;
         }
@@ -142,7 +142,7 @@ namespace DeliveryApp.Domain.Entities.Identity
         private void ValidateState()
         {
             if (CreatedAt == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(CreatedAt));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAt));
 
             if (LastSeenAt < CreatedAt) throw new DomainRuleViolationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
@@ -154,10 +154,10 @@ namespace DeliveryApp.Domain.Entities.Identity
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
 
             if (string.IsNullOrWhiteSpace(DeviceID)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(DeviceID));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(DeviceID));
 
             if (RevokedAt.HasValue && RevokedAt.Value < CreatedAt) throw new DomainValidationException
-                    (UserSessionErrors.RevokedAtBeforeCreatedAtCode, UserSessionErrors.RevokedAtBeforeCreatedAtMessage, field: nameof(RevokedAt));
+                    (UserSessionErrors.RevokedAtBeforeCreatedAtCode, UserSessionErrors.RevokedAtBeforeCreatedAtMessage, nameof(RevokedAt));
         }
     }
 }

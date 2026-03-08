@@ -11,7 +11,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         public SystemCategoryID ID { get; private set; }
         public MerchantType MerchantType { get; private set; }
 
-        public string CategoriesName { get; private set; } = null!;
+        public CatalogName CategoriesName { get; private set; } = null!;
         public Slug Slug { get; private set; } = null!;
 
         public string? ImageURL { get; private set; }
@@ -23,18 +23,17 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
         private SystemCategory() { }
 
-        public SystemCategory(SystemCategoryID id, MerchantType merchantType, string categoriesName
-            , string slug, string? imageUrl, int sortOrder, DateTimeOffset CreatedAtUtc)
+        public SystemCategory(SystemCategoryID id, MerchantType merchantType, string categoriesName,
+            string slug, string? imageUrl, int sortOrder, DateTimeOffset CreatedAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(id));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ID));
 
             ID = id;
             MerchantType = merchantType;
 
             SetName(categoriesName);
             SetSlug(slug);
-
             SetImageUrl(imageUrl);
             SetSortOrder(sortOrder);
 
@@ -43,9 +42,8 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         }
 
         // -------------------------
-        //          Behavior
+        //         Behavior
         // -------------------------
-
         public void Rename(string categoriesName) => SetName(categoriesName);
 
         public void ChangeSlug(string slug) => SetSlug(slug);
@@ -61,28 +59,17 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         // -------------------------
         //           setters
         // -------------------------
+        private void SetName(string value) =>
+            CategoriesName = CatalogName.Create(value, 150, nameof(CategoriesName));
 
-        private void SetName(string value)
-        {
-            value = NormalizeRequired(value, nameof(CategoriesName));
-
-            if (value.Length > 150) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(CategoriesName));
-
-            CategoriesName = value;
-        }
-
-        private void SetSlug(string value)
-        {
-            Slug = Slug.Create(value);
-        }
+        private void SetSlug(string value) => Slug = Slug.Create(value);
 
         private void SetImageUrl(string? value)
         {
             value = NormalizeOptional(value);
 
             if (value is not null && value.Length > 500) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(ImageURL));
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ImageURL));
 
             ImageURL = value;
         }
@@ -90,21 +77,9 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         private void SetSortOrder(int value)
         {
             if (value < 0) throw new DomainValidationException
-                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(SortOrder));
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(SortOrder));
 
             SortOrder = value;
-        }
-
-        // -------------------------
-        //          Helpers
-        // -------------------------
-
-        private static string NormalizeRequired(string? value, string field)
-        {
-            if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: field);
-
-            return value.Trim();
         }
 
         private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
