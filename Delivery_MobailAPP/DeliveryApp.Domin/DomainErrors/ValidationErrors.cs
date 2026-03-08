@@ -9,11 +9,11 @@ namespace DeliveryApp.Domain.DomainErrors
         public const string RequiredMessage = "Value is required.";
 
         // نص أطول من الحد المسموح
-        public const string TooLongCode = "Validation.too_Long";
+        public const string TooLongCode = "Validation.Too_Long";
         public const string TooLongMessage = "Value is too long.";
 
         // رقم خارج المدى
-        public const string OutOfRangeCode = "Validation.out_of_Range";
+        public const string OutOfRangeCode = "Validation.Out_Of_Range";
         public const string OutOfRangeMessage = "Value is out of range.";
 
         // Latitude out [90,-90] خط العرض
