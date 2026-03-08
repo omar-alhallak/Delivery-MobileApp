@@ -1,38 +1,67 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
     public class Variant
     {
-        [Key]
-        public Guid VariantID { get; set; }
+        public VariantID ID { get; private set; }
+        public ProductID ProductID { get; private set; }
 
-        [Required]
-        public Guid ProductID { get; set; }
+        public CatalogName VariantName { get; private set; } = null!;
 
-        [Required]
-        [MaxLength(150)]
-        public string VariantName { get; set; } = string.Empty;
+        public decimal BasePrice { get; private set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal BasePrice { get; set; }
+        public bool IsActive { get; private set; }
+        public DateTimeOffset CreatedAt { get; private set; }
 
-        public bool IsActive { get; set; }
+        private Variant() { }
 
-        public DateTimeOffset CreatedAt { get; set; }
-
-        public Variant()
+        public Variant(VariantID Id, ProductID ProductId, string variantName, decimal basePrice, DateTimeOffset CreatedAtUtc)
         {
-            VariantID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
+            if (Id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ID));
+
+            if (ProductId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ProductID));
+
+            ID = Id;
+            ProductID = ProductId;
+
+            SetName(variantName);
+            SetBasePrice(basePrice);
+
             IsActive = true;
+            CreatedAt = CreatedAtUtc;
+        }
+
+        // -------------------------
+        //          Behavior
+        // -------------------------
+
+        public void Rename(string name) => SetName(name);
+
+        public void ChangePrice(decimal basePrice) => SetBasePrice(basePrice);
+
+        public void Activate() => IsActive = true;
+
+        public void Deactivate() => IsActive = false;
+
+        // -------------------------
+        //           Setters
+        // -------------------------
+
+        private void SetName(string value) =>
+            VariantName = CatalogName.Create(value, maxLength: 100, field: nameof(VariantName));
+
+        private void SetBasePrice(decimal value)
+        {
+            if (value <= 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(BasePrice));
+
+            BasePrice = value;
         }
     }
 }

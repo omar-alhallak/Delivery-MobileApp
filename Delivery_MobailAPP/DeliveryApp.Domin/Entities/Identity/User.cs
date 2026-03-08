@@ -31,10 +31,10 @@ namespace DeliveryApp.Domain.Entities.Identity
         public User(UserID id, UserRole Roles, DateTimeOffset CreatedAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(id));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
             if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(CreatedAtUtc));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
 
             ID = id;
             CreatedAt = CreatedAtUtc;
@@ -93,16 +93,16 @@ namespace DeliveryApp.Domain.Entities.Identity
         private void FieldLimits()
         {
             if (Email is not null && Email.Length > 255) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Email));
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(Email));
 
             if (Phone is not null && Phone.Length > 16) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Phone));
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(Phone));
 
             if (FullName is not null && FullName.Length > 150) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(FullName));
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(FullName));
 
             if (PhotoUrl is not null && PhotoUrl.Length > 500) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(PhotoUrl));
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(PhotoUrl));
         }
 
         // -------------------------
@@ -177,7 +177,7 @@ namespace DeliveryApp.Domain.Entities.Identity
 
             if (UntilUtc.HasValue && UntilUtc <= DateTimeOffset.UtcNow)
                 throw new DomainValidationException
-                    (UserErrors.SuspensionMustBeFutureCode, UserErrors.SuspensionMustBeFutureMessage, field: nameof(UntilUtc));
+                    (UserErrors.SuspensionMustBeFutureCode, UserErrors.SuspensionMustBeFutureMessage, nameof(UntilUtc));
 
             AccountStatus = AccountStatus.Suspended;
             SuspendedUntilUtc = UntilUtc;
