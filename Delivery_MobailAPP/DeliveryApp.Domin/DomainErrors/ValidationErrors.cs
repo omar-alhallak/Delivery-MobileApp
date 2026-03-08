@@ -29,7 +29,7 @@ namespace DeliveryApp.Domain.DomainErrors
         public const string InvalidSlugMessage = "Slug contains invalid characters.";
 
         // خطأ إدخال
-        public const string InvalidFormatCode = "Validation.invalid_Format";
+        public const string InvalidFormatCode = "Validation.Invalid_Format";
         public const string InvalidFormatMessage = "Value has an invalid format.";
     }
 }

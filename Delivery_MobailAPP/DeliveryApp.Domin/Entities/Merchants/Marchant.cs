@@ -1,123 +1,184 @@
-﻿using DeliveryApp.Domain.DomainErrors;
-using DeliveryApp.Domain.DomainErrors.IdentityErrors;
-using DeliveryApp.Domain.DomainExceptions;
+﻿using System;
+using DeliveryApp.Domain.Enums;
 using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.DomainErrors.MerchantErrors;
 
 namespace DeliveryApp.Domain.Entities.Merchants
 {
     public class Merchant
     {
-        public StrongID<MerchantTag> MerchantID { get; private set; }
-
+        public MerchantID ID { get; private set; }
         public PublicCode? PublicID { get; private set; }
-        public string MerchantType { get; private set; } = string.Empty;
 
-        public string MerchantName { get; private set; } = string.Empty;
+        public MerchantType MerchantType { get; private set; }
+
+        public string MerchantName { get; private set; } = null!;
+        public Slug Slug { get; private set; } = null!;
 
         public string? Description { get; private set; }
-
         public string? Phone { get; private set; }
 
-        public string? LogoURL { get; private set; }
+        public string? LogoUrl { get; private set; }
+        public string? CoverImageUrl { get; private set; }
 
-        public string? CoverImageURL { get; private set; }
+        public GeoPoint Location { get; private set; } = null!;
 
-        public decimal Lat { get; private set; }
-
-        public decimal Lng { get; private set; }
-
-        public bool IsProfileComplete { get; private set; }
         public bool IsActive { get; private set; }
 
         public DateTimeOffset CreatedAt { get; private set; }
 
         private Merchant() { }
 
-        public Merchant(StrongID<MerchantTag> merchantID, string merchantType, DateTimeOffset CreatedAtUtc)
+        public Merchant(MerchantID id, MerchantType merchantType, string merchantName, string slug, decimal lat, decimal lng,
+            string? description, string? phone, string? logoUrl, string? coverImageUrl, DateTimeOffset CreatedAtUtc)
         {
-            MerchantID = merchantID;
-            CreatedAt = DateTimeOffset.UtcNow;
-            UpdateProfileStatus();
-        }
-        
-       
-        public void UpdateMerchant(string merchantType, string merchantName, string? description, string? phone, string? logoURL, string? coverImageURL, decimal lat, decimal lng)
-        {
-            MerchantType = Normalize(merchantType) ?? string.Empty; 
-            MerchantName = Normalize(merchantName) ?? string.Empty;
-            Description = Normalize(description);
-            Phone = Normalize(phone);
-            LogoURL = Normalize(logoURL);
-            CoverImageURL = Normalize(coverImageURL);
-            Lat = lat;
-            Lng = lng;
-            if (IsProfileComplete && !ProfileCompletionRules()) throw new DomainRuleViolationException
-                    (UserErrors.CantRemoveRequiredFieldCode, UserErrors.CantRemoveRequiredFieldMessage);
-            UpdateProfileStatus();
-            FieldLimits();
-        }
-        private bool ProfileCompletionRules() => Phone is not null && MerchantName is not null;
+            if (id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-        private void FieldLimits()
-        {
-            if (MerchantName.Length > 150)
-                throw new DomainValidationException(ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(MerchantName));
+            if (CreatedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
 
-            if (Phone is not null && Phone.Length > 16)
-                throw new DomainValidationException(ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Phone));
+            if (!Enum.IsDefined(typeof(MerchantType), merchantType)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(merchantType));
 
-            if (Description is not null && Description.Length > 500)
-                throw new DomainValidationException(ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(Description));
+            ID = id;
+            MerchantType = merchantType;
 
-            if (LogoURL is not null && LogoURL.Length > 500)
-                throw new DomainValidationException(ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(LogoURL));
+            SetName(merchantName);
+            SetSlug(slug);
+            SetLocation(lat, lng);
 
-            if (CoverImageURL is not null && CoverImageURL.Length > 500)
-                throw new DomainValidationException(ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(CoverImageURL));
+            SetDescription(description);
+            SetPhone(phone);
 
-            if (MerchantType.Length > 50)
-                throw new DomainValidationException(ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, field: nameof(MerchantType));
+            SetLogoUrl(logoUrl);
+            SetCoverImageUrl(coverImageUrl);
 
-            if (Lat < -90 || Lat > 90)
-                throw new DomainRuleViolationException(ValidationErrors.InvalidLatCode, ValidationErrors.InvalidLatMessage);
-
-            if (Lng < -180 || Lng > 180)
-                throw new DomainRuleViolationException(ValidationErrors.InvalidLngCode, ValidationErrors.InvalidLngMessage);
-
-        }
-        public void UpdateProfileStatus()
-        {
-            IsProfileComplete = !string.IsNullOrWhiteSpace(MerchantName) && Lat != 0;
-            IsActive = IsProfileComplete;
+            CreatedAt = CreatedAtUtc;
+            IsActive = false;
         }
 
-        public void ProfileComplete()
-        {
-            if (!ProfileCompletionRules()) throw new DomainRuleViolationException
-                    (UserErrors.ProfileFieldNotCompleteCode, UserErrors.ProfileFieldNotCompleteMessage);
-                    IsActive = true; 
-        }
-        public void ProfileNotComplete()
-        {
-            PreventModificationIfInactive();
-            IsActive = false; 
-        }
-        public void Activate()
-        {
-            IsActive = true;
-        }
+        // ------------ Public ID ------------
         public void AssignPublicID(PublicCode publicId)
         {
-            if (PublicID is not null)
-                throw new DomainConflictException(MerchantErrors.PublicIdAlreadyAssignedCode,MerchantErrors.PublicIdAlreadyAssignedMessage); 
+            if (PublicID is not null) throw new DomainConflictException
+                    (MerchantErrors.PublicIdAlreadyAssignedCode, MerchantErrors.PublicIdAlreadyAssignedMessage);
 
             PublicID = publicId;
         }
-        private void PreventModificationIfInactive()
+
+        // -------------------------
+        //         Behavior
+        // -------------------------
+
+        public void Rename(string name) => SetName(name);
+
+        public void ChangeSlug(string slug) => SetSlug(slug);
+
+        public void ChangeDescription(string? description) => SetDescription(description);
+
+        public void ChangePhone(string? phone) => SetPhone(phone);
+
+        public void ChangeLogo(string? logoUrl) => SetLogoUrl(logoUrl);
+
+        public void ChangeCoverImage(string? coverImageUrl) => SetCoverImageUrl(coverImageUrl);
+
+        public void Relocate(decimal lat, decimal lng) => SetLocation(lat, lng);
+
+        public void Deactivate()
         {
-            if (!IsActive)
-                throw new DomainRuleViolationException(MerchantErrors.ProfileIncompleteCode,MerchantErrors.ProfileIncompleteMessage);
+            if (!IsActive) return;
+
+            IsActive = false;
         }
-        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+        public void Activate()
+        {
+            if (IsActive) return;
+
+            CheckCanBeActivated();
+            IsActive = true;
+        }
+
+        // -------------------------
+        //        Validation
+        // -------------------------
+
+        private void CheckCanBeActivated()
+        {
+            if (string.IsNullOrWhiteSpace(MerchantName)) throw new DomainRuleViolationException
+                    (MerchantErrors.CantActivateWithoutNameCode, MerchantErrors.CantActivateWithoutNameMessage);
+
+            if (string.IsNullOrWhiteSpace(LogoUrl)) throw new DomainRuleViolationException
+                    (MerchantErrors.CantActivateWithoutLogoCode, MerchantErrors.CantActivateWithoutLogoMessage);
+
+            if (string.IsNullOrWhiteSpace(CoverImageUrl)) throw new DomainRuleViolationException
+                    (MerchantErrors.CantActivateWithoutCoverImageCode, MerchantErrors.CantActivateWithoutCoverImageMessage);
+        }
+
+        // -------------------------
+        //         Setters
+        // -------------------------
+
+        private void SetName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(MerchantName));
+
+            value = value.Trim();
+
+            if (value.Length > 150) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(MerchantName));
+
+            MerchantName = value;
+        }
+
+        private void SetSlug(string value) => Slug = Slug.Create(value);
+
+        private void SetLocation(decimal lat, decimal lng) => Location = GeoPoint.Create(lat, lng);
+
+        private void SetDescription(string? value)
+        {
+            value = NormalizeOptional(value);
+
+            if (value is not null && value.Length > 2000) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(Description));
+
+            Description = value;
+        }
+
+        private void SetPhone(string? value)
+        {
+            value = NormalizeOptional(value);
+
+            if (value is not null && value.Length > 20) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(Phone));
+
+            Phone = value;
+        }
+
+        private void SetLogoUrl(string? value)
+        {
+            value = NormalizeOptional(value);
+
+            if (value is not null && value.Length > 500) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(LogoUrl));
+
+            LogoUrl = value;
+        }
+
+        private void SetCoverImageUrl(string? value)
+        {
+            value = NormalizeOptional(value);
+
+            if (value is not null && value.Length > 500) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(CoverImageUrl));
+
+            CoverImageUrl = value;
+        }
+
+        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }
