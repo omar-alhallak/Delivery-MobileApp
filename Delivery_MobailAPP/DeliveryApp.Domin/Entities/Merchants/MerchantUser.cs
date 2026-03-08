@@ -1,31 +1,64 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Domain.Enums;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Merchants
 {
     public class MerchantUser
     {
-        [Key, Column(Order = 0)]
-        public Guid MerchantID { get; set; }
+        public MerchantID MerchantID { get; private set; }
+        public UserID UserID { get; private set; }
 
-        [Key, Column(Order = 1)]
-        public Guid UserID { get; set; }
+        public MerchantUserRole Role { get; private set; }
 
-        public int Role { get; set; }
+        public bool IsActive { get; private set; }
 
-        public bool IsActive { get; set; }
+        public DateTimeOffset CreatedAt { get; private set; }
 
-        public DateTimeOffset CreatedAt { get; set; }
+        private MerchantUser() { }
 
-        public MerchantUser()
+        public MerchantUser(MerchantID MerchantId, UserID UserId, MerchantUserRole role, DateTimeOffset CreatedAtUtc)
         {
-            CreatedAt = DateTimeOffset.UtcNow;
+            if (MerchantId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(MerchantId));
+
+            if (UserId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserId));
+
+            if (CreatedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+
+            if (!Enum.IsDefined(typeof(MerchantUserRole), role)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(role));
+
+            MerchantID = MerchantId;
+            UserID = UserId;
+            Role = role;
+            CreatedAt = CreatedAtUtc;
             IsActive = true;
+        }
+
+        public void ChangeRole(MerchantUserRole role)
+        {
+            if (!Enum.IsDefined(typeof(MerchantUserRole), role)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(role));
+
+            Role = role;
+        }
+
+        public void Activate()
+        {
+            if (IsActive) return;
+
+            IsActive = true;
+        }
+
+        public void Deactivate()
+        {
+            if (!IsActive) return;
+
+            IsActive = false;
         }
     }
 }
