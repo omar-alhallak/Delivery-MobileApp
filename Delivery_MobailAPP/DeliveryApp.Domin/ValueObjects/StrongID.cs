@@ -20,6 +20,8 @@ namespace DeliveryApp.Domain.ValueObjects
     public readonly struct UserIdentityTag { }
     public readonly struct UserSessionTag { }
 
+    public readonly struct AddressTag { }
+
     public readonly struct MerchantTag { }
 
     public readonly struct SystemCategoryTag { }
