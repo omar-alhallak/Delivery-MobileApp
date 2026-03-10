@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DeliveryApp.Domain.Enums.Order
 {
@@ -10,30 +6,30 @@ namespace DeliveryApp.Domain.Enums.Order
     {
         None = 0,
 
-        // Merchant
-        VendorBusy = 10,            // المطعم مشغول
-        VendorClosed = 11,          // المطعم مغلق
-        OutOfStock = 12,            // عنصر غير متوفر
-        VendorRejectedOther = 19,   // سبب آخر من المطعم
+        // Merchant // 1 > 9
+        VendorBusy = 1,            // المطعم مشغول
+        VendorClosed = 2,          // المطعم مغلق
+        OutOfStock = 3,            // عنصر غير متوفر
+        VendorRejectedOther = 9,   // سبب آخر من المطعم
 
-        // Driver
-        DriverAccident = 30,        // حادث / صارلو شي
-        VehicleBreakdown = 31,      // عطل بالمركبة
-        DriverNoShow = 32,          // السائق ما حضر/اختفى
-        DriverRejected = 33,        // السائق رفض بعد قبول
-        DeliveryIssueOther = 39,    // سبب آخر من السائق
+        // Driver // 10 > 19
+        DriverAccident = 10,        // حادث / صارلو شي
+        VehicleBreakdown = 11,      // عطل بالمركبة
+        DriverNoShow = 12,          // السائق ما حضر/اختفى
+        DriverRejected = 13,        // السائق رفض بعد قبول
+        DeliveryIssueOther = 19,    // سبب آخر من السائق
 
-        // Customer
-        CustomerNoAnswer = 50,      // ما بيرد
-        CustomerNotAvailable = 51,  // موجود بس ما فتح / ما استلم
-        WrongAddress = 52,          // العنوان غلط
-        CustomerInsistedCancel = 53,// مصر يلغي لظرف طارء
-        CustomerIssueOther = 59,    // سبب آخر من زبون
+        // Customer // 20 > 29
+        CustomerNoAnswer = 20,      // ما بيرد
+        CustomerNotAvailable = 21,  // موجود بس ما فتح / ما استلم
+        WrongAddress = 22,          // العنوان غلط
+        CustomerInsistedCancel = 23,// مصر يلغي لظرف طارء
+        CustomerIssueOther = 24,    // سبب آخر من زبون
 
-        // Admin
-        NoDriversAvailable = 70,    // ما لقينا سائقين
-        AdminDecision = 71,         // قرار إداري
-        SystemError = 72,           // مشكلة تقنية
-        Other = 99                  // سبب آخر من المشرف
+        // Admin // 30 > 39
+        NoDriversAvailable = 30,    // ما لقينا سائقين
+        AdminDecision = 31,         // قرار إداري
+        SystemError = 32,           // مشكلة تقنية
+        Other = 39                  // سبب آخر من المشرف
     }
 }
