@@ -31,5 +31,6 @@ namespace DeliveryApp.Domain.DomainErrors
         // خطأ إدخال
         public const string InvalidFormatCode = "Validation.Invalid_Format";
         public const string InvalidFormatMessage = "Value has an invalid format.";
+       
     }
 }
