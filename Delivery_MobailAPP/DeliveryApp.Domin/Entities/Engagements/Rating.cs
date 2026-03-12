@@ -53,14 +53,12 @@ namespace DeliveryApp.Domain.Entities.Feedback
                 throw new DomainRuleViolationException( RatingErrors.EditExpiredCode,RatingErrors.EditExpiredMessage);
             }
 
-            // 2. فحص طول التعليق (Validation)
             if (newComment != null && newComment.Length > RatingConstraints.MaxCommentLength)
             {
                 throw new DomainValidationException( RatingErrors.CommentTooLongCode,RatingErrors.CommentTooLongMessage,
                     nameof(newComment));
             }
 
-            // 3. فحص النجوم (Validation)
             if (newStars < RatingConstraints.MinStars || newStars > RatingConstraints.MaxStars)
             {
                 throw new DomainValidationException( RatingErrors.InvalidStarsCode, RatingErrors.InvalidStarsMessage,
