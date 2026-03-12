@@ -1,12 +1,7 @@
-﻿using DeliveryApp.Domain.DomainErrors;
-using DeliveryApp.Domain.DomainExceptions;
+﻿using System;
+using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Moderation.Zones
 {
@@ -32,15 +27,14 @@ namespace DeliveryApp.Domain.Entities.Moderation.Zones
             SetSortOrder(sortOrder);
         }
 
-        public void ChangeSortOrder(int sortOrder)
-        {
-            SetSortOrder(sortOrder);
-        }
+        public void ChangeSortOrder(int sortOrder) => SetSortOrder(sortOrder);
 
         public void ChangeLocation(GeoPoint location)
         {
             if (location is null) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(location));
+
+            if (Location.Equals(location)) return;
 
             Location = location;
         }
