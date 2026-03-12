@@ -9,9 +9,6 @@ namespace DeliveryApp.Domain.DomainErrors.ZoneErrors
     public class ZoneErrors
     {
         // ترتيب نقاط المضلع مكرر
-        //public const string InvalidPoint = "Zone.Duplicate_Sort_Order";
-        //public const string InvalidPointMessage = "Polygon point sort order must be unique within the zone.";
-        // ترتيب نقاط المضلع مكرر
         public const string DuplicatePolygonOrderCode = "Zone.Duplicate_Polygon_Order";
         public const string DuplicatePolygonOrderMessage = "Polygon point order already exists.";
         // موقع نقاط المضلع مكرر
