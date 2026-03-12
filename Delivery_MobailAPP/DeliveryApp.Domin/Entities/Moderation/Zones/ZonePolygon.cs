@@ -1,4 +1,7 @@
-﻿using System;
+﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.ValueObjects;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,34 +12,45 @@ namespace DeliveryApp.Domain.Entities.Moderation.Zones
 {
     public class ZonePolygon
     {
-        [Key]
-        public Guid ID { get; set; }
+        public GeoPoint Location { get; private set; } = null!;
+        public int SortOrder { get; private set; }
+        public DateTimeOffset CreatedAt { get; private set; }
 
-        [Required]
-        public Guid ZoneID { get; set; }
+        private ZonePolygon() { }
 
-        [Required]
-        public decimal Latitude { get; set; }
-
-        [Required]
-        public decimal Longitude { get; set; }
-
-        [Required]
-        public int SortOrder { get; set; }
-
-        [Required]
-        public DateTimeOffset CreatedAt { get; set; }
-
-        private ZonePolygon() { } 
-
-        public ZonePolygon(Guid ZoneId, decimal latitude, decimal longitude, int sortOrder)
+        public ZonePolygon(GeoPoint location, int sortOrder, DateTimeOffset createdAtUtc)
         {
-            ID = Guid.NewGuid();
-            ZoneID = ZoneId;
-            Latitude = latitude;
-            Longitude = longitude;
-            SortOrder = sortOrder;
-            CreatedAt = DateTimeOffset.UtcNow;
+            if (location is null) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(location));
+
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
+
+            Location = location;
+            CreatedAt = createdAtUtc;
+
+            SetSortOrder(sortOrder);
+        }
+
+        public void ChangeSortOrder(int sortOrder)
+        {
+            SetSortOrder(sortOrder);
+        }
+
+        public void ChangeLocation(GeoPoint location)
+        {
+            if (location is null) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(location));
+
+            Location = location;
+        }
+
+        private void SetSortOrder(int value)
+        {
+            if (value <= 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(SortOrder));
+
+            SortOrder = value;
         }
     }
 }
