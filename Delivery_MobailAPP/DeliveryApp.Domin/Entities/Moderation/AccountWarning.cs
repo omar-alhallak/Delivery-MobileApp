@@ -1,13 +1,8 @@
-﻿using DeliveryApp.Domain.DomainErrors;
-using DeliveryApp.Domain.DomainErrors.AccountWarningErrors;
+﻿using System;
+using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.AccountWarningEnums;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Domain.DomainErrors.ModerationErrors;
 
 namespace DeliveryApp.Domain.Entities.Moderation
 {
@@ -21,6 +16,7 @@ namespace DeliveryApp.Domain.Entities.Moderation
         public OrderID? RelatedOrderID { get; private set; }
 
         public WarningReason Reason { get; private set; }
+        public string ReasonDetails { get; private set; } = null!;
         public WarningSeverity Severity { get; private set; }
 
         public WarningDecision Decision { get; private set; }
@@ -30,126 +26,131 @@ namespace DeliveryApp.Domain.Entities.Moderation
         public DateTimeOffset? ExpiresAt { get; private set; }
 
         public UserID CreatedByAdminID { get; private set; }
-
         public UserID? DecidedByAdminID { get; private set; }
 
-        public string? Notes { get; private set; }
-
         public DateTimeOffset CreatedAt { get; private set; }
-
         public DateTimeOffset? DecidedAt { get; private set; }
 
         private AccountWarning() { }
 
-        public AccountWarning(
-            WarningID id,
-            WarningEntityType entityType,
-            Guid entityId,
-            WarningReason reason,
-            WarningSeverity severity,
-            UserID createdByAdminID,
-            DateTimeOffset createdAtUtc,
-            OrderID? relatedOrderID = null,
-            DateTimeOffset? expiresAt = null,
-            string? notes = null)
+        public AccountWarning(WarningID id, WarningEntityType entityType, Guid EntityId, WarningReason reason,
+            string reasonDetails, WarningSeverity severity, UserID CreatedByAdminid, DateTimeOffset CreatedAtUtc,
+            OrderID? RelatedOrderid = null, DateTimeOffset? ExpiresAtUtc = null)
         {
             if (id.IsEmpty) throw new DomainValidationException
-                (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (entityId == Guid.Empty) throw new DomainValidationException
-                (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(entityId));
+            if (EntityId == Guid.Empty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(EntityId));
 
-            if (createdByAdminID.IsEmpty) throw new DomainValidationException
-                (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdByAdminID));
+            if (CreatedByAdminid.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedByAdminid));
 
-            if (createdAtUtc == default) throw new DomainValidationException
-                (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
+            if (CreatedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
 
-            if (!Enum.IsDefined(typeof(WarningEntityType), entityType))
-                throw new DomainValidationException
-                (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(entityType));
+            if (!Enum.IsDefined(typeof(WarningEntityType), entityType)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(entityType));
 
-            if (!Enum.IsDefined(typeof(WarningReason), reason))
-                throw new DomainValidationException
-                (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(reason));
+            if (!Enum.IsDefined(typeof(WarningReason), reason)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(reason));
 
-            if (!Enum.IsDefined(typeof(WarningSeverity), severity))
-                throw new DomainValidationException
-                (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(severity));
+            if (!Enum.IsDefined(typeof(WarningSeverity), severity)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(severity));
+
+            if (ExpiresAtUtc.HasValue && ExpiresAtUtc.Value <= CreatedAtUtc) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(ExpiresAtUtc));
 
             ID = id;
+
             EntityType = entityType;
-            EntityID = entityId;
+            EntityID = EntityId;
 
             Reason = reason;
+            SetReasonDetails(reasonDetails);
             Severity = severity;
 
-            CreatedByAdminID = createdByAdminID;
-            CreatedAt = createdAtUtc;
+            CreatedByAdminID = CreatedByAdminid;
+            CreatedAt = CreatedAtUtc;
 
-            RelatedOrderID = relatedOrderID;
-            ExpiresAt = expiresAt;
-
-            Notes = NormalizeOptional(notes);
+            RelatedOrderID = RelatedOrderid;
+            ExpiresAt = ExpiresAtUtc;
 
             Decision = WarningDecision.Pending;
             IsActive = true;
         }
 
-        // Decision
-        // Only pending warnings can be confirmed or dismissed. Once a decision is made, it cannot be changed.
+        // ------------------------
+        //        Decisions
+        // ------------------------
+
         public void Confirm(UserID adminId, DateTimeOffset decidedAtUtc)
         {
             EnsurePending();
 
             if (adminId.IsEmpty) throw new DomainValidationException
-                (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(adminId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(adminId));
 
             if (decidedAtUtc == default) throw new DomainValidationException
-                (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(decidedAtUtc));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(decidedAtUtc));
 
             Decision = WarningDecision.Confirmed;
             DecidedByAdminID = adminId;
             DecidedAt = decidedAtUtc;
         }
-        // Decision
+
         public void Dismiss(UserID adminId, DateTimeOffset decidedAtUtc)
         {
             EnsurePending();
 
             if (adminId.IsEmpty) throw new DomainValidationException
-                (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(adminId));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(adminId));
 
             if (decidedAtUtc == default) throw new DomainValidationException
-                (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(decidedAtUtc));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(decidedAtUtc));
 
             Decision = WarningDecision.Dismissed;
             DecidedByAdminID = adminId;
             DecidedAt = decidedAtUtc;
+            IsActive = false;
         }
 
-        // Admin Actions
-        // Only active warnings can be deactivated. Once deactivated, a warning cannot be reactivated.
         public void Deactivate()
         {
             if (!IsActive) throw new DomainRuleViolationException
-                (AccountWarningErrors.WarningAlreadyInactiveCode,AccountWarningErrors.WarningAlreadyInactiveMessage);
+                    (AccountWarningErrors.WarningAlreadyInactiveCode, AccountWarningErrors.WarningAlreadyInactiveMessage);
 
             IsActive = false;
         }
 
-        // Helpers
+        // -------------------------
+        //        Helpers
+        // -------------------------
 
-        public bool IsExpired(DateTimeOffset now)
-            => ExpiresAt.HasValue && now >= ExpiresAt.Value;
-        
+        public bool IsExpired(DateTimeOffset now) => ExpiresAt.HasValue && now >= ExpiresAt.Value;
+
         private void EnsurePending()
         {
             if (Decision != WarningDecision.Pending) throw new DomainRuleViolationException
-                (AccountWarningErrors.WarningAlreadyDecidedCode,AccountWarningErrors.WarningAlreadyDecidedMessage);
+                    (AccountWarningErrors.WarningAlreadyDecidedCode, AccountWarningErrors.WarningAlreadyDecidedMessage);
         }
 
-        private static string? NormalizeOptional(string? value)
-            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        private void SetReasonDetails(string value)
+        {
+            value = NormalizeRequired(value, nameof(ReasonDetails));
+
+            if (value.Length > 1000) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ReasonDetails));
+
+            ReasonDetails = value;
+        }
+
+        private static string NormalizeRequired(string? value, string field)
+        {
+            if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field);
+
+            return value.Trim();
+        }
     }
 }

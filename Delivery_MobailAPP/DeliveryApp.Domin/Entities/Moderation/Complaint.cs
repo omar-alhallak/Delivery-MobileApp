@@ -1,5 +1,5 @@
 ﻿using DeliveryApp.Domain.DomainErrors;
-using DeliveryApp.Domain.DomainErrors.ComplaintErrors;
+using DeliveryApp.Domain.DomainErrors.ModerationErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.ComplaintEnums;
 using System;
