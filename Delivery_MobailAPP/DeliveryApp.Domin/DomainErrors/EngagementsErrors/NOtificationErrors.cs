@@ -11,27 +11,21 @@ namespace DeliveryApp.Domain.DomainErrors.EngagementsErrors
         public const string InvalidTitleCode = "Notification.InvalidTitle";
         public const string InvalidTitleMessage = "Title cannot be empty or whitespace.";
 
-        public const string TooLongCode = "Notification.TooLong";
-        public const string TooLongMessage = "Content is too long. Please stay within the character limit.";
+        public const string TitleTooLongCode = "Notification.TitleTooLong";
+        public const string TitleTooLongMessage = "Title exceeds the maximum allowed length (150).";
 
-        // Body Errors
+        // Body
         public const string InvalidBodyCode = "Notification.InvalidBody";
         public const string InvalidBodyMessage = "Notification body is required and cannot be empty.";
 
-        public const string IncompatibleTypeCode = "Notification.IncompatibleType";
-        public const string IncompatibleTypeMessage = "The notification type does not match the requested action.";
-
-        public const string EmptyBodyCode = "Notification.Empty_Body";
-        public const string EmptyBodyMessage = "Notification body cannot be empty.";
-
-        public const string BodyTooLongCode = "Notification.Body_Too_Long";
+        public const string BodyTooLongCode = "Notification.BodyTooLong";
         public const string BodyTooLongMessage = "Body exceeds the maximum allowed length (1000).";
 
-        // أخطاء النوع والارتباط
-        public const string InvalidTypeCode = "Notification.Invalid_Type";
-        public const string InvalidTypeMessage = "Notification type must be a valid positive value.";
+        // Type & Logic
+        public const string InvalidTypeCode = "Notification.InvalidType";
+        public const string InvalidTypeMessage = "Notification type must be a valid value.";
 
-        public const string RelatedEntityRequiredCode = "Notification.Related_Entity_Required";
-        public const string RelatedEntityRequiredMessage = "RelatedEntityID is required when type is specified.";
+        public const string RelatedEntityRequiredCode = "Notification.RelatedEntityRequired";
+        public const string RelatedEntityRequiredMessage = "RelatedEntityID is required for this notification type.";
     }
 }

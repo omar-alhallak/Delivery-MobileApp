@@ -1,120 +1,84 @@
-﻿using DeliveryApp.Domain.DomainErrors.EngagementsErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainErrors.EngagementsErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Entities.DriverRequest;
-using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Enums.EngagementsEnams;
+using DeliveryApp.Domain.ValueObjects;
 
 namespace DeliveryApp.Domain.Entities.Feedback
 {
     public class Notification
     {
-        public Guid NotificationID { get; private set; }
 
-        public Guid UserId { get; private set; }
-        public User? User { get; private set; }
-
+        public StrongID<NotificationTag> Id { get; private set; }
+        public StrongID<UserTag> UserId { get; private set; }
         public string Title { get; private set; } = string.Empty;
-
         public string Body { get; private set; } = string.Empty;
-
-        public int Type { get; private set; }
-
+        public NotificationType Type { get; private set; }
         public RelatedEntityType? RelatedEntityType { get; private set; }
-
-        public Guid? RelatedEntityID { get; private set; }
-        public User? RelatedEntity { get; private set; }
-
+        public Guid? RelatedEntityId { get; private set; }
         public bool IsRead { get; private set; }
-
         public DateTimeOffset CreatedAt { get; private set; }
+        public DateTimeOffset? ReadAt { get; private set; }
 
         private Notification() { }
-        public Notification(Guid userId, string title, string body, int type, RelatedEntityType? relatedEntityType = null, Guid? relatedEntityId = null)
+
+        public Notification(StrongID<UserTag> userId, string title, string body, NotificationType type, Guid? relatedEntityId = null, RelatedEntityType? relatedEntityType = null)
         {
-            NotificationID = Guid.NewGuid();
+            // 1. الفحص أولاً وقبل كل شيء(
+            if (userId.IsEmpty)
+                throw new DomainValidationException(ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(userId));
+
+            // 2. منطق الربط (Business Logic)
+            if (relatedEntityId.HasValue && !relatedEntityType.HasValue)
+                throw new DomainValidationException(NotificationErrors.RelatedEntityRequiredCode, NotificationErrors.RelatedEntityRequiredMessage, nameof(relatedEntityType));
+
+            Id = StrongID<NotificationTag>.New();
             UserId = userId;
-            Title = Normalize(title);
-            Body = Normalize(body);
             Type = type;
+            RelatedEntityId = relatedEntityId;
             RelatedEntityType = relatedEntityType;
-            RelatedEntityID = relatedEntityId;
+
+            SetTitle(title);
+            SetBody(body);
+
             IsRead = false;
+            CreatedAt = DateTimeOffset.UtcNow;
         }
+        
         public void MarkAsRead()
         {
             if (IsRead) return;
 
             IsRead = true;
-            CreatedAt = DateTimeOffset.UtcNow;
+            ReadAt = DateTimeOffset.UtcNow;
+        }
+        private void SetTitle(string title)
+        {
+            string? normalized = Normalize(title);
+
+            if (normalized == null)
+                throw new DomainValidationException(NotificationErrors.InvalidTitleCode,NotificationErrors.InvalidTitleMessage, nameof(Title));
+
+            if (normalized.Length > 150)
+                throw new DomainValidationException(NotificationErrors.TitleTooLongCode, NotificationErrors.TitleTooLongMessage, nameof(Title));
+
+            Title = normalized;
         }
 
-        private void SetTitle(string value)
+        private void SetBody(string body)
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new DomainValidationException(NotificationErrors.InvalidTitleCode, NotificationErrors.InvalidTitleMessage, nameof(Title));
+            string? normalized = string.IsNullOrWhiteSpace(body) ? null : body.Trim();
 
-            value = value.Trim();
-
-            if (value.Length > 150)
-                throw new DomainValidationException(NotificationErrors.TooLongCode, NotificationErrors.TooLongMessage, nameof(Title));
-
-            Title = value;
-        }
-        private void SetBody(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
+            if (normalized == null)
                 throw new DomainValidationException(NotificationErrors.InvalidBodyCode, NotificationErrors.InvalidBodyMessage, nameof(Body));
 
-            value = value.Trim();
+            if (normalized.Length > 1000)
+                throw new DomainValidationException(NotificationErrors.BodyTooLongCode, NotificationErrors.BodyTooLongMessage, nameof(Body));
 
-            if (value.Length > 1000)
-                throw new DomainValidationException(NotificationErrors.TooLongCode, NotificationErrors.TooLongMessage, nameof(Body));
-
-            Body = value;
-        }
-        public void UpdateContent(string newTitle, string newBody)
-        {
-            if (string.IsNullOrWhiteSpace(newTitle) || newTitle.Length < 3 || newTitle.Length > 150)
-            {
-                throw new DomainValidationException(NotificationErrors.InvalidTitleCode, NotificationErrors.InvalidTitleMessage, nameof(newTitle));
-            }
-            SetTitle(newTitle);
-            SetBody(newBody);
-        }
-        public void UpdateRelatedEntity(RelatedEntityType? newType, Guid? newId)
-        {
-            if (newType.HasValue && !newId.HasValue)
-            {
-                throw new DomainRuleViolationException(NotificationErrors.RelatedEntityRequiredCode, NotificationErrors.RelatedEntityRequiredMessage);
-            }
-
-            if (newType.HasValue) RelatedEntityType = newType.Value;
-
-            if (newId.HasValue) RelatedEntityID = newId.Value;
+            Body = normalized;
         }
 
-        public void AttachOrder(Guid orderId)
-        {
-            if (Type != (int)NotificationType.OrderUpdate)
-            {
-                throw new DomainRuleViolationException(NotificationErrors.IncompatibleTypeCode, NotificationErrors.IncompatibleTypeMessage);
-            }
-            RelatedEntityID = orderId;
-        }
-
-        public void UpdateType(int newType)
-        {
-            if (newType <= 0)
-            {
-                throw new DomainValidationException(NotificationErrors.InvalidTypeCode, NotificationErrors.InvalidTypeMessage, nameof(newType));
-            }
-
-            Type = newType;
-        }
-
-        private static string Normalize(string value)
-        {
-            return value?.Trim() ?? string.Empty;
-        }
+        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
     }
 }

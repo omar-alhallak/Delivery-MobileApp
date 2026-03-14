@@ -31,4 +31,6 @@ namespace DeliveryApp.Domain.ValueObjects
     public readonly struct VehicleTypeTag { }
     public readonly struct DriverRequestTag { }
     public readonly struct ZoneTag { }
+    public readonly struct RatingTag { }
+    public readonly struct NotificationTag { }
 }
