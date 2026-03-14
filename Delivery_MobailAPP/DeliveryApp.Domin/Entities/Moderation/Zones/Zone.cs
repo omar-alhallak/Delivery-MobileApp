@@ -2,7 +2,7 @@
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainExceptions;
-using DeliveryApp.Domain.DomainErrors.ZoneErrors;
+using DeliveryApp.Domain.DomainErrors.ModerationErrors.ZoneErrors;
 
 namespace DeliveryApp.Domain.Entities.Moderation.Zones
 {

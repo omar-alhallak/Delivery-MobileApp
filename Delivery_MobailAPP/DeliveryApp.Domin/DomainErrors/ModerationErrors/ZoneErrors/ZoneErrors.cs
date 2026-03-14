@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DeliveryApp.Domain.DomainErrors.ZoneErrors
+namespace DeliveryApp.Domain.DomainErrors.ModerationErrors.ZoneErrors
 {
     public class ZoneErrors
     {
