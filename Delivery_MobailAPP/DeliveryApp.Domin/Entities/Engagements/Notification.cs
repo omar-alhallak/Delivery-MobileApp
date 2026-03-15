@@ -10,8 +10,8 @@ namespace DeliveryApp.Domain.Entities.Feedback
     public class Notification
     {
 
-        public StrongID<NotificationTag> Id { get; private set; }
-        public StrongID<UserTag> UserId { get; private set; }
+        public NotificationID Id { get; private set; }
+        public UserID UserId { get; private set; }
         public string Title { get; private set; } = string.Empty;
         public string Body { get; private set; } = string.Empty;
         public NotificationType Type { get; private set; }
@@ -23,7 +23,7 @@ namespace DeliveryApp.Domain.Entities.Feedback
 
         private Notification() { }
 
-        public Notification(StrongID<UserTag> userId, string title, string body, NotificationType type, Guid? relatedEntityId = null, RelatedEntityType? relatedEntityType = null)
+        public Notification(UserID userId, string title, string body, NotificationType type, DateTimeOffset CreatedAtUtc, Guid? relatedEntityId = null, RelatedEntityType? relatedEntityType = null)
         {
             // 1. الفحص أولاً وقبل كل شيء(
             if (userId.IsEmpty)
@@ -33,7 +33,7 @@ namespace DeliveryApp.Domain.Entities.Feedback
             if (relatedEntityId.HasValue && !relatedEntityType.HasValue)
                 throw new DomainValidationException(NotificationErrors.RelatedEntityRequiredCode, NotificationErrors.RelatedEntityRequiredMessage, nameof(relatedEntityType));
 
-            Id = StrongID<NotificationTag>.New();
+            Id = NotificationID.New();
             UserId = userId;
             Type = type;
             RelatedEntityId = relatedEntityId;
@@ -41,9 +41,8 @@ namespace DeliveryApp.Domain.Entities.Feedback
 
             SetTitle(title);
             SetBody(body);
-
+            CreatedAt = CreatedAtUtc;
             IsRead = false;
-            CreatedAt = DateTimeOffset.UtcNow;
         }
         
         public void MarkAsRead()
