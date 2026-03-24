@@ -1,54 +1,166 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.Enums.ComplaintEnums;
+using DeliveryApp.Domain.DomainErrors.ModerationErrors;
 
 namespace DeliveryApp.Domain.Entities.Moderation
 {
     public class Complaint
     {
-        [Key]
-        public Guid ComplaintID { get; set; }
+        public ComplaintID ID { get; private set; }
 
+        public UserID CreatedByUserID { get; private set; }
 
-        [Required]
-        public Guid CreatedByUserID { get; set; }
+        public ComplaintTargetType TargetType { get; private set; }
+        public Guid TargetID { get; private set; }
 
-        [Required]
-        public int TargetType { get; set; }
+        public OrderID OrderID { get; private set; }
 
-        [Required]
-        public Guid TargetID { get; set; }
+        public ComplaintReason Reason { get; private set; }
+        public string Message { get; private set; } = null!;
 
+        public ComplaintStatus Status { get; private set; }
 
-        public Guid? OrderID { get; set; }
+        public UserID? ReviewedByAdminID { get; private set; }
+        public string? AdminResponse { get; private set; }
 
-        [Required]
-        [MaxLength(500)]
-        public string Reason { get; set; } = string.Empty;
+        public DateTimeOffset CreatedAt { get; private set; }
+        public DateTimeOffset? ResolvedAt { get; private set; }
 
-        [MaxLength(2000)]
-        public string? Message { get; set; }
+        private Complaint() { }
 
-        [Required]
-        public int Status { get; set; }
-
-        public Guid? ReviewedByAdminId { get; set; }
-
-        [MaxLength(2000)]
-        public string? AdminResponse { get; set; }
-
-        public DateTimeOffset CreatedAt { get; set; }
-
-        public DateTimeOffset? ResolvedAt { get; set; }
-
-        public Complaint()
+        public Complaint(ComplaintID id, UserID CreatedByUserid, ComplaintTargetType targetType, Guid TargetId,
+            OrderID OrderId, ComplaintReason reason, string message, DateTimeOffset CreatedAtUtc)
         {
-            ComplaintID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
-            Status = 0;
+            if (id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
+
+            if (CreatedByUserid.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedByUserid));
+
+            if (!Enum.IsDefined(typeof(ComplaintTargetType), targetType)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(targetType));
+
+            if (TargetId == Guid.Empty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(TargetId));
+
+            if (OrderId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(OrderId));
+
+            if (!Enum.IsDefined(typeof(ComplaintReason), reason)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(reason));
+
+            if (CreatedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+
+            ID = id;
+            CreatedByUserID = CreatedByUserid;
+            TargetType = targetType;
+            TargetID = TargetId;
+            OrderID = OrderId;
+            Reason = reason;
+            CreatedAt = CreatedAtUtc;
+
+            SetMessage(message);
+
+            Status = ComplaintStatus.Pending;
+        }
+
+        // -------------------------
+        //         Behavior
+        // -------------------------
+
+        public void UpdateReason(ComplaintReason reason)
+        {
+            EnsurePending();
+
+            if (!Enum.IsDefined(typeof(ComplaintReason), reason)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(reason));
+
+            Reason = reason;
+        }
+
+        public void UpdateMessage(string message)
+        {
+            EnsurePending();
+            SetMessage(message);
+        }
+
+        public void Resolve(UserID reviewedByAdminID, string adminResponse, DateTimeOffset resolvedAtUtc)
+        {
+            EnsurePending();
+
+            if (reviewedByAdminID.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(reviewedByAdminID));
+
+            if (resolvedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(resolvedAtUtc));
+
+            if (resolvedAtUtc < CreatedAt) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(resolvedAtUtc));
+
+            SetAdminResponse(adminResponse);
+
+            Status = ComplaintStatus.Resolved;
+            ReviewedByAdminID = reviewedByAdminID;
+            ResolvedAt = resolvedAtUtc;
+        }
+
+        public void Reject(UserID ReviewedByAdminid, string adminResponse, DateTimeOffset resolvedAtUtc)
+        {
+            EnsurePending();
+
+            if (ReviewedByAdminid.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ReviewedByAdminid));
+
+            if (resolvedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(resolvedAtUtc));
+
+            if (resolvedAtUtc < CreatedAt) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(resolvedAtUtc));
+
+            SetAdminResponse(adminResponse);
+
+            Status = ComplaintStatus.Rejected;
+            ReviewedByAdminID = ReviewedByAdminid;
+            ResolvedAt = resolvedAtUtc;
+        }
+
+        // -------------------------
+        //         Setters
+        // -------------------------
+
+        private void SetMessage(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(Message));
+
+            value = value.Trim();
+
+            if (value.Length > 1000) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(Message));
+
+            Message = value;
+        }
+
+        private void SetAdminResponse(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(AdminResponse));
+
+            value = value.Trim();
+
+            if (value.Length > 500) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(AdminResponse));
+
+            AdminResponse = value;
+        }
+
+        private void EnsurePending()
+        {
+            if (Status != ComplaintStatus.Pending) throw new DomainRuleViolationException
+                    (ComplaintErrors.ComplaintMustBePendingCode, ComplaintErrors.ComplaintMustBePendingMessage);
         }
     }
 }
