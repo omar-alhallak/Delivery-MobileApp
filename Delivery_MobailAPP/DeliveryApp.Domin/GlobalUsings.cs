@@ -16,6 +16,10 @@ global using VariantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Do
 
 global using VehicleTypeID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.VehicleTypeTag>;
 global using DriverRequestID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.DriverRequestTag>;
+
+global using RatingID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.RatingTag>;
+global using NotificationID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.NotificationTag>;
+
 global using ZoneID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.ZoneTag>;
 global using WarningID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.AccountWarningTag>;
 global using ComplaintID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.ComplaintTag>;

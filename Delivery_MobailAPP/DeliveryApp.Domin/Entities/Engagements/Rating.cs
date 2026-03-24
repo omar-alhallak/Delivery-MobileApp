@@ -1,42 +1,81 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainErrors.EngagementsErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.Enums.EngagementsEnams;
+using DeliveryApp.Domain.ValueObjects;
 
 namespace DeliveryApp.Domain.Entities.Feedback
 {
     public class Rating
     {
-        [Key]
-        public Guid RatingID { get; set; }
+        public RatingID Id { get; private set; }
+        public OrderID OrderId { get; private set; }
+        public UserID RaterUserId { get; private set; }
 
-        [Required]
-        public Guid OrderID { get; set; }
+        public RatedEntityType TargetType { get; private set; }
 
-        [Required]
-        public Guid RaterUserID { get; set; }
+        public UserID RatedEntityId { get; private set; }
 
-        [Required]
-        public int RatedEntityType { get; set; }
+        public RatingStars Stars { get; private set; }        
+        public string? Comment { get; private set; }   
 
-        [Required]
-        public Guid RatedEntityID { get; set; }
+        public DateTimeOffset CreatedAt { get; private set; }
 
-        [Required]
-        [Range(1, 5)]
-        public int Stars { get; set; }
+        private Rating() { }
 
-        [MaxLength(1000)]
-        public string? Comment { get; set; }
-
-        public DateTimeOffset CreatedAt { get; set; }
-
-        public Rating()
+   
+        public Rating(OrderID orderId, UserID raterId, UserID targetId, RatingStars stars, RatedEntityType targetType, DateTimeOffset CreatedAtUtc, string? comment = null )
         {
-            RatingID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
+
+            if (!Enum.IsDefined(typeof(RatedEntityType), targetType))
+                throw new DomainValidationException(RatingErrors.InvalidTypeCode, RatingErrors.InvalidTypeMessage, nameof(TargetType));
+            if (orderId.IsEmpty)
+                throw new DomainValidationException(ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(orderId));
+
+            if (raterId.IsEmpty)
+                throw new DomainValidationException(ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(raterId));
+
+            if (targetId.IsEmpty)
+                throw new DomainValidationException(ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(targetId));
+
+            if (raterId == targetId)
+                throw new DomainRuleViolationException(RatingErrors.SelfRatingCode, RatingErrors.SelfRatingMessage);
+
+            Id = RatingID.New();
+            OrderId = orderId;
+            RaterUserId = raterId;
+            RatedEntityId = targetId;
+            TargetType = targetType;
+            CreatedAt = CreatedAtUtc;
+            SetStars(stars);
+            SetComment(comment);
         }
+        public void Update(RatingStars newStars, string? newComment)
+        {
+            if (DateTimeOffset.UtcNow > CreatedAt.AddDays(1))
+                throw new DomainRuleViolationException(RatingErrors.EditExpiredCode, RatingErrors.EditExpiredMessage);
+
+            SetStars(newStars);
+            SetComment(newComment);
+        }
+        // 5. ميثودز الحماية والتعديل (Behavior)
+        private void SetStars(RatingStars stars)
+        {
+            if (!Enum.IsDefined(typeof(RatingStars), stars))
+                throw new DomainValidationException(RatingErrors.InvalidStarsCode, RatingErrors.InvalidStarsMessage, nameof(Stars));
+
+            Stars = stars;
+        }
+
+        private void SetComment(string? comment)
+        {
+            string? normalized = Normalize(comment);
+
+            if (normalized != null && normalized.Length > 500)
+                throw new DomainValidationException(RatingErrors.CommentTooLongCode, RatingErrors.CommentTooLongMessage, nameof(Comment));
+
+            Comment = normalized;
+        }
+        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
     }
 }
