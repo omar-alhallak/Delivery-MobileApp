@@ -96,24 +96,20 @@ namespace DeliveryApp.Domain.Entities.Identity
             switch (Provider)
             {
                 case AuthProvider.Local:
-                    if (string.IsNullOrWhiteSpace(PasswordHash))
-                        throw new DomainRuleViolationException
+                    if (string.IsNullOrWhiteSpace(PasswordHash)) throw new DomainRuleViolationException
                             (UserIdentityErrors.PasswordRequiredForLocalCode, UserIdentityErrors.PasswordRequiredForLocalMessage);
 
-                    if (!string.IsNullOrWhiteSpace(ProviderUserId))
-                        throw new DomainRuleViolationException
+                    if (!string.IsNullOrWhiteSpace(ProviderUserId)) throw new DomainRuleViolationException
                             (UserIdentityErrors.LocalCantBeHaveProviderUserIDCode, UserIdentityErrors.LocalCantBeHaveProviderUserIDMessage);
 
                     break;
 
                 case AuthProvider.Google:
-                    if (string.IsNullOrWhiteSpace(ProviderUserId))
-                        throw new DomainRuleViolationException
+                    if (string.IsNullOrWhiteSpace(ProviderUserId)) throw new DomainRuleViolationException
                             (UserIdentityErrors.GoogleSubRequiredCode, UserIdentityErrors.GoogleSubRequiredMessage);
 
 
-                    if (!string.IsNullOrWhiteSpace(PasswordHash))
-                        throw new DomainRuleViolationException
+                    if (!string.IsNullOrWhiteSpace(PasswordHash)) throw new DomainRuleViolationException
                             (UserIdentityErrors.GoogleCantBeHavePasswordHashCode, UserIdentityErrors.GoogleCantBeHavePasswordHashMessage);
                     break;
 

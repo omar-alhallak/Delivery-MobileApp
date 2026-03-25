@@ -3,6 +3,7 @@ using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.DriverErrors;
+using DeliveryApp.Domain.Enums.EngagementEnams;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
@@ -22,6 +23,9 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         public GeoPoint? CurrentLocation { get; private set; }
         public DateTimeOffset? LastLocationAt { get; private set; }
+
+        public decimal AverageRating { get; private set; }
+        public int RatingsCount { get; private set; }
 
         public UserID ApprovedByAdminID { get; private set; }
         public DateTimeOffset ApprovedAt { get; private set; }
@@ -49,6 +53,9 @@ namespace DeliveryApp.Domain.Entities.Drivers
             ApprovedByAdminID = ApprovedByAdminId;
             ApprovedAt = ApprovedAtUtc;
             CreatedAt = ApprovedAtUtc;
+
+            AverageRating = 0;
+            RatingsCount = 0;
 
             IsAvailable = false;
             ActiveOrdersCount = 0;
@@ -160,6 +167,40 @@ namespace DeliveryApp.Domain.Entities.Drivers
             IsNotDisable();
             if (ActiveOrdersCount <= 0) return;
             ActiveOrdersCount--;
+        }
+
+        // -------------------------
+        //         Rating
+        // -------------------------
+
+        public void AddRating(RatingStars stars)
+        {
+            ValidateRatingStars(stars);
+
+            var value = (int)stars;
+
+            AverageRating = ((AverageRating * RatingsCount) + value) / (RatingsCount + 1);
+            RatingsCount++;
+        }
+
+        public void UpdateRating(RatingStars oldStars, RatingStars newStars)
+        {
+            ValidateRatingStars(oldStars);
+            ValidateRatingStars(newStars);
+
+            if (RatingsCount <= 0) throw new DomainRuleViolationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
+
+            var oldValue = (int)oldStars;
+            var newValue = (int)newStars;
+
+            AverageRating = ((AverageRating * RatingsCount) - oldValue + newValue) / RatingsCount;
+        }
+
+        private static void ValidateRatingStars(RatingStars stars)
+        {
+            if (!Enum.IsDefined(typeof(RatingStars), stars)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(stars));
         }
     }
 }

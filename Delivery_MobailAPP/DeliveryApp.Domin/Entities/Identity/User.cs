@@ -3,6 +3,7 @@ using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.IdentityErrors;
+using DeliveryApp.Domain.Enums.EngagementEnams;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {
@@ -23,10 +24,13 @@ namespace DeliveryApp.Domain.Entities.Identity
         public AccountStatus AccountStatus { get; private set; } = AccountStatus.Active;
         public DateTimeOffset? SuspendedUntilUtc { get; private set; }
 
+        public decimal CustomerAverageRating { get; private set; }
+        public int CustomerRatingsCount { get; private set; }
+
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? LastLoginAt { get; private set; }
 
-        private User() { } 
+        private User() { }
 
         public User(UserID id, UserRole Roles, DateTimeOffset CreatedAtUtc)
         {
@@ -43,13 +47,16 @@ namespace DeliveryApp.Domain.Entities.Identity
             AddRoles(Roles);
 
             IsProfileComplete = false;
+
+            CustomerAverageRating = 0;
+            CustomerRatingsCount = 0;
         }
 
         // ----------------------------
         //     Personal Information
         // ----------------------------
 
-        public void AssignPublicID(PublicCode publicId) 
+        public void AssignPublicID(PublicCode publicId)
         {
             if (PublicID is not null) throw new DomainConflictException
                     (UserErrors.PublicIdAlreadyAssignedCode, UserErrors.PublicIdAlreadyAssignedMessage);
@@ -116,7 +123,9 @@ namespace DeliveryApp.Domain.Entities.Identity
             PreventModificationIfBanned();
 
             foreach (var role in SplitRoleMask(roles))
+            {
                 AddSingleRole(role);
+            }
         }
 
         public void RemoveRole(UserRole role)
@@ -125,8 +134,7 @@ namespace DeliveryApp.Domain.Entities.Identity
 
             if (role == UserRole.None) return;
 
-            if ((role & UserRole.Customer) == UserRole.Customer && HasRole(UserRole.Driver))
-                throw new DomainRuleViolationException
+            if ((role & UserRole.Customer) == UserRole.Customer && HasRole(UserRole.Driver)) throw new DomainRuleViolationException
                     (UserErrors.CantRemoveCustFromDrivCode, UserErrors.CantRemoveCustFromDrivMessage);
 
             RoleMask &= ~role;
@@ -175,8 +183,7 @@ namespace DeliveryApp.Domain.Entities.Identity
         {
             PreventModificationIfBanned();
 
-            if (UntilUtc.HasValue && UntilUtc <= DateTimeOffset.UtcNow)
-                throw new DomainValidationException
+            if (UntilUtc.HasValue && UntilUtc <= DateTimeOffset.UtcNow) throw new DomainValidationException
                     (UserErrors.SuspensionMustBeFutureCode, UserErrors.SuspensionMustBeFutureMessage, nameof(UntilUtc));
 
             AccountStatus = AccountStatus.Suspended;
@@ -207,5 +214,31 @@ namespace DeliveryApp.Domain.Entities.Identity
         }
 
         private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+        // -------------------------
+        //        Rating
+        // -------------------------
+
+        public void AddCustomerRating(RatingStars stars)
+        {
+            var value = (int)stars;
+
+            CustomerAverageRating = ((CustomerAverageRating * CustomerRatingsCount) + value) / (CustomerRatingsCount + 1);
+            CustomerRatingsCount++;
+        }
+
+        public void UpdateCustomerRating(RatingStars oldStars, RatingStars newStars)
+        {
+            var oldValue = (int)oldStars;
+            var newValue = (int)newStars;
+
+            CustomerAverageRating = ((CustomerAverageRating * CustomerRatingsCount) - oldValue + newValue) / CustomerRatingsCount;
+        }
+
+        private static void ValidateRatingStars(byte stars)
+        {
+            if (stars < 1 || stars > 5) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(stars));
+        }
     }
 }

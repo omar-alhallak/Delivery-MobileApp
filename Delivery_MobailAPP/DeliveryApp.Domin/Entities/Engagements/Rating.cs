@@ -1,81 +1,113 @@
 ﻿using DeliveryApp.Domain.DomainErrors;
-using DeliveryApp.Domain.DomainErrors.EngagementsErrors;
+using DeliveryApp.Domain.DomainErrors.EngagementErrors;
 using DeliveryApp.Domain.DomainExceptions;
-using DeliveryApp.Domain.Enums.EngagementsEnams;
-using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.Enums.EngagementEnams;
+using System;
 
-namespace DeliveryApp.Domain.Entities.Feedback
+namespace DeliveryApp.Domain.Entities.Engagements
 {
     public class Rating
     {
-        public RatingID Id { get; private set; }
-        public OrderID OrderId { get; private set; }
-        public UserID RaterUserId { get; private set; }
+        public RatingID ID { get; private set; }
+        public OrderID OrderID { get; private set; }
+        public UserID RaterUserID { get; private set; }
 
         public RatedEntityType TargetType { get; private set; }
+        public Guid RatedEntityID { get; private set; }
 
-        public UserID RatedEntityId { get; private set; }
-
-        public RatingStars Stars { get; private set; }        
-        public string? Comment { get; private set; }   
+        public RatingStars Stars { get; private set; }
+        public string? Comment { get; private set; }
 
         public DateTimeOffset CreatedAt { get; private set; }
 
         private Rating() { }
 
-   
-        public Rating(OrderID orderId, UserID raterId, UserID targetId, RatingStars stars, RatedEntityType targetType, DateTimeOffset CreatedAtUtc, string? comment = null )
+        public Rating(
+            OrderID orderId,
+            UserID raterUserId,
+            Guid ratedEntityId,
+            RatingStars stars,
+            RatedEntityType targetType,
+            DateTimeOffset createdAtUtc,
+            string? comment = null)
         {
+            if (orderId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(orderId));
 
-            if (!Enum.IsDefined(typeof(RatedEntityType), targetType))
-                throw new DomainValidationException(RatingErrors.InvalidTypeCode, RatingErrors.InvalidTypeMessage, nameof(TargetType));
-            if (orderId.IsEmpty)
-                throw new DomainValidationException(ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(orderId));
+            if (raterUserId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(raterUserId));
 
-            if (raterId.IsEmpty)
-                throw new DomainValidationException(ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(raterId));
+            if (ratedEntityId == Guid.Empty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ratedEntityId));
 
-            if (targetId.IsEmpty)
-                throw new DomainValidationException(ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(targetId));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
-            if (raterId == targetId)
-                throw new DomainRuleViolationException(RatingErrors.SelfRatingCode, RatingErrors.SelfRatingMessage);
+            if (!Enum.IsDefined(typeof(RatedEntityType), targetType)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(targetType));
 
-            Id = RatingID.New();
-            OrderId = orderId;
-            RaterUserId = raterId;
-            RatedEntityId = targetId;
+            if (raterUserId.Value == ratedEntityId) throw new DomainRuleViolationException
+                    (RatingErrors.SelfRatingCode, RatingErrors.SelfRatingMessage);
+
+            ID = RatingID.New();
+            OrderID = orderId;
+            RaterUserID = raterUserId;
+
             TargetType = targetType;
-            CreatedAt = CreatedAtUtc;
+            RatedEntityID = ratedEntityId;
+
+            CreatedAt = createdAtUtc;
+
             SetStars(stars);
             SetComment(comment);
         }
-        public void Update(RatingStars newStars, string? newComment)
+
+        // -------------------------
+        //         Behavior
+        // -------------------------
+
+        public void Update(RatingStars newStars, string? newComment, DateTimeOffset utcNow)
         {
-            if (DateTimeOffset.UtcNow > CreatedAt.AddDays(1))
-                throw new DomainRuleViolationException(RatingErrors.EditExpiredCode, RatingErrors.EditExpiredMessage);
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
+
+            if (utcNow < CreatedAt) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(utcNow));
+
+            if (utcNow > CreatedAt.AddDays(1)) throw new DomainRuleViolationException
+                    (RatingErrors.EditExpiredCode, RatingErrors.EditExpiredMessage);
 
             SetStars(newStars);
             SetComment(newComment);
         }
-        // 5. ميثودز الحماية والتعديل (Behavior)
-        private void SetStars(RatingStars stars)
-        {
-            if (!Enum.IsDefined(typeof(RatingStars), stars))
-                throw new DomainValidationException(RatingErrors.InvalidStarsCode, RatingErrors.InvalidStarsMessage, nameof(Stars));
 
-            Stars = stars;
+        // -------------------------
+        //         Setters
+        // -------------------------
+
+        private void SetStars(RatingStars value)
+        {
+            if (!Enum.IsDefined(typeof(RatingStars), value)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(Stars));
+
+            Stars = value;
         }
 
-        private void SetComment(string? comment)
+        private void SetComment(string? value)
         {
-            string? normalized = Normalize(comment);
+            value = NormalizeOptional(value);
 
-            if (normalized != null && normalized.Length > 500)
-                throw new DomainValidationException(RatingErrors.CommentTooLongCode, RatingErrors.CommentTooLongMessage, nameof(Comment));
+            if (value is not null && value.Length > 500) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(Comment));
 
-            Comment = normalized;
+            Comment = value;
         }
-        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+        // -------------------------
+        //         Helpers
+        // -------------------------
+
+        private static string? NormalizeOptional(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }
