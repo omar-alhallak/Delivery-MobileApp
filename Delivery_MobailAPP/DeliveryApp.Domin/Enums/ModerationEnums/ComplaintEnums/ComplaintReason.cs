@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.Enums.ComplaintEnums
+﻿namespace DeliveryApp.Domain.Enums.ModerationEnums.ComplaintEnums
 {
-    public enum ComplaintReason : byte
+    public enum ComplaintReason : byte // سبب شكوى
     {
         // Service - Delivery // 1 > 9
         LateDelivery = 1,                // تأخير في التوصيل
@@ -22,14 +20,14 @@ namespace DeliveryApp.Domain.Enums.ComplaintEnums
         RefusedToPay = 21,               // رفض الدفع
 
         // Conduct // 30 > 39
-        AbusiveBehavior = 30,           // سلوك مسيء
-        UnprofessionalBehavior = 31,    // سلوك غير مهني
-        Fraud = 32,                     // احتيال
-        ThreateningBehavior = 33,       // تهديد
+        AbusiveBehavior = 30,            // سلوك مسيء
+        UnprofessionalBehavior = 31,     // سلوك غير مهني
+        Fraud = 32,                      // احتيال
+        ThreateningBehavior = 33,        // تهديد
 
         // General - Policy // 40 > 49
-        PolicyViolation = 40,           // مخالفة سياسة
-        SpamComplaint = 41,             // شكوة كاذبة أو متكررة
-        Other = 49                      // سبب آخر
+        PolicyViolation = 40,            // مخالفة سياسة
+        SpamComplaint = 41,              // شكوة كاذبة أو متكررة
+        Other = 49                       // سبب آخر
     }
 }

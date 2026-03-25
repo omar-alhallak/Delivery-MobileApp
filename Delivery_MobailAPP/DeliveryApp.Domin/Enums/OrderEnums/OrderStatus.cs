@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.Enums.Order
+﻿namespace DeliveryApp.Domain.Enums.OrderEnums
 {
-    public enum OrderStatus : byte
+    public enum OrderStatus : byte // حالة الطلب
     {
         Draft = 1,                       // قبل التأكيد
         SearchingDrivers = 2,           // البحث عن سائقين

@@ -1,7 +1,7 @@
 ﻿using System;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
-using DeliveryApp.Domain.Enums.EngagementEnams;
+using DeliveryApp.Domain.Enums.EngagementEnums;
 using DeliveryApp.Domain.DomainErrors.EngagementErrors;
 
 namespace DeliveryApp.Domain.Entities.Engagements

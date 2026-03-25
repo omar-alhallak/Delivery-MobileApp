@@ -1,9 +1,9 @@
-﻿using DeliveryApp.Domain.Enums;
-using DeliveryApp.Domain.ValueObjects;
+﻿using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.IdentityErrors;
-using DeliveryApp.Domain.Enums.EngagementEnams;
+using DeliveryApp.Domain.Enums.EngagementEnums;
+using DeliveryApp.Domain.Enums.IdentityEnums;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {

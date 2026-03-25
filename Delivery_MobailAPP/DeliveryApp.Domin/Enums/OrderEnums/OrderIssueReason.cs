@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.Enums.Order
+﻿namespace DeliveryApp.Domain.Enums.OrderEnums
 {
-    public enum OrderIssueReason : byte
+    public enum OrderIssueReason : byte // سبب رفض الطلب
     {
         None = 0,
 

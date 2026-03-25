@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.Enums.AccountWarningEnums
+﻿namespace DeliveryApp.Domain.Enums.ModerationEnums.AccountWarningEnums
 {
-    public enum WarningReason : byte
+    public enum WarningReason : byte // سبب التحذير
     {
         // Customer // 1 > 9
         FakeOrder = 1,                // طلب وهمي

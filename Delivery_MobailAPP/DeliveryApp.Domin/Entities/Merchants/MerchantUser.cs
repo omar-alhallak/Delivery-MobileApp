@@ -1,7 +1,7 @@
 ﻿using System;
-using DeliveryApp.Domain.Enums;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.Enums.MerchantEnums;
 
 namespace DeliveryApp.Domain.Entities.Merchants
 {

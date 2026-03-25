@@ -1,9 +1,9 @@
 ﻿using System;
-using DeliveryApp.Domain.Enums;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.AddressErrors;
+using DeliveryApp.Domain.Enums.CustomerEnums;
 
 namespace DeliveryApp.Domain.Entities.Customers
 {

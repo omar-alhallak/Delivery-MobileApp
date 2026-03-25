@@ -3,7 +3,7 @@ using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.DriverErrors;
-using DeliveryApp.Domain.Enums.EngagementEnams;
+using DeliveryApp.Domain.Enums.EngagementEnums;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {

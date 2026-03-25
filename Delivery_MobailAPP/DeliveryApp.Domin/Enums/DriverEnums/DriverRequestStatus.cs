@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.Enums.DriverEnums
+﻿namespace DeliveryApp.Domain.Enums.DriverEnums
 {
-    public enum DriverRequestStatus : byte
+    public enum DriverRequestStatus : byte // حالة طلب التقديم ك سائق
     {
-        Pending = 1,
-        Approved = 2,
-        Rejected = 3
+        Pending = 1,    // معلق
+        Approved = 2,   // مقبول
+        Rejected = 3    // مرفوض
     }
 }

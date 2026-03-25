@@ -1,10 +1,10 @@
 ﻿using System;
-using DeliveryApp.Domain.Enums;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.MerchantErrors;
-using DeliveryApp.Domain.Enums.EngagementEnams;
+using DeliveryApp.Domain.Enums.EngagementEnums;
+using DeliveryApp.Domain.Enums.MerchantEnums;
 
 namespace DeliveryApp.Domain.Entities.Merchants
 {

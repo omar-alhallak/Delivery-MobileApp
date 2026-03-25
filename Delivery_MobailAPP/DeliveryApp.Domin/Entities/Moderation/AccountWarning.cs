@@ -1,8 +1,8 @@
 ﻿using System;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
-using DeliveryApp.Domain.Enums.AccountWarningEnums;
 using DeliveryApp.Domain.DomainErrors.ModerationErrors;
+using DeliveryApp.Domain.Enums.ModerationEnums.AccountWarningEnums;
 
 namespace DeliveryApp.Domain.Entities.Moderation
 {
