@@ -8,7 +8,7 @@ namespace DeliveryApp.Domain.Entities.Moderation
 {
     public class AccountWarning
     {
-        public WarningID ID { get; private set; }
+        public AccountWarningID ID { get; private set; }
 
         public WarningEntityType EntityType { get; private set; }
         public Guid EntityID { get; private set; }
@@ -33,7 +33,7 @@ namespace DeliveryApp.Domain.Entities.Moderation
 
         private AccountWarning() { }
 
-        public AccountWarning(WarningID id, WarningEntityType entityType, Guid EntityId, WarningReason reason,
+        public AccountWarning(AccountWarningID id, WarningEntityType entityType, Guid EntityId, WarningReason reason,
             string reasonDetails, WarningSeverity severity, UserID CreatedByAdminid, DateTimeOffset CreatedAtUtc,
             OrderID? RelatedOrderid = null, DateTimeOffset? ExpiresAtUtc = null)
         {

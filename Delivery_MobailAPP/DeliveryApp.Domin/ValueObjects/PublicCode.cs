@@ -1,49 +1,52 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
+using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.ValueObjects
 {
-    public readonly record struct PublicCode // ينشئ الكود الظاهر للمستخدم
+    public readonly record struct PublicCode // الكود الذي يظهر للمستخدم مثال ORD-000000
     {
-        private static readonly Regex Format = new(@"^[A-Z]{1,5}-\d{6}$", RegexOptions.Compiled);
+        private static readonly Regex Format = new(@"^[A-Z]{1,5}-\d{6}$", RegexOptions.Compiled); // للتحقق من الكود كاملاً
+        private static readonly Regex PrefixFormat = new(@"^[A-Z]{1,5}$", RegexOptions.Compiled); // تحقق من البداية مثال ORD
 
-        public string Value { get; }
+        public string Value { get; } // القيمة النهائية بعد التحقق
 
-        private PublicCode(string value)
+        private PublicCode(string value) => Value = value; // لمنع إنشاء الصف إلا عن طريق Create
+
+
+        public static PublicCode From(string value) // للتحقق من الكود أنه صحيح
         {
-            Value = value;
-        }
-
-        public static PublicCode From(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Public code cannot be empty.", nameof(value));
+            if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(value));
 
             value = value.Trim().ToUpperInvariant();
 
-            if (!Format.IsMatch(value))
-                throw new ArgumentException("Invalid public code format. Example: U-000001 or ORD-000001", nameof(value));
+            if (!Format.IsMatch(value)) throw new DomainValidationException
+                    (ValidationErrors.InvalidFormatCode, ValidationErrors.InvalidFormatMessage, nameof(value));
 
             return new PublicCode(value);
         }
 
-        public static PublicCode Create(string prefix, long number)
+        public static PublicCode Create(string prefix, long number) // يستخدم مع سيكونسي لينشئ النظام الكود
         {
-            if (string.IsNullOrWhiteSpace(prefix))
-                throw new ArgumentException("Prefix is required.", nameof(prefix));
+            if (string.IsNullOrWhiteSpace(prefix)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(prefix));
 
             prefix = prefix.Trim().ToUpperInvariant();
 
-            if (!Regex.IsMatch(prefix, @"^[A-Z]{1,5}$"))
-                throw new ArgumentException("Prefix must contain only letters (1-5).", nameof(prefix));
+            if (!PrefixFormat.IsMatch(prefix)) throw new DomainValidationException
+                    (ValidationErrors.InvalidFormatCode, ValidationErrors.InvalidFormatMessage, nameof(prefix));
 
-            if (number <= 0)
-                throw new ArgumentException("Number must be greater than zero.", nameof(number));
+            if (number <= 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(number));
+
+            if (number > 999999) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(number));
 
             var formatted = $"{prefix}-{number:000000}";
             return new PublicCode(formatted);
         }
 
-        public override string ToString() => Value;
+        public override string ToString() => Value; // لتحويل الكلاس لنص
     }
 }

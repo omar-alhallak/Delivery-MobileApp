@@ -54,7 +54,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         // -------------------------
 
         private void SetName(string value) =>
-            VariantName = CatalogName.Create(value, maxLength: 100, field: nameof(VariantName));
+            VariantName = CatalogName.Create(value, maxLength: 100, fieldName: nameof(VariantName));
 
         private void SetBasePrice(decimal value)
         {
