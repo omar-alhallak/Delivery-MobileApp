@@ -58,8 +58,9 @@ namespace DeliveryApp.Domain.ValueObjects
     //          Drivers
     // -------------------------
 
-    public readonly struct VehicleTypeTag { }
+    public readonly struct DriverLocationTag { }
     public readonly struct DriverRequestTag { }
+    public readonly struct VehicleTypeTag { }
 
     // -------------------------
     //        Moderation

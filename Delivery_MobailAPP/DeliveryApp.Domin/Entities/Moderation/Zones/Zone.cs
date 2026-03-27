@@ -1,56 +1,76 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.ModerationErrors.ZoneErrors;
 
 namespace DeliveryApp.Domain.Entities.Moderation.Zones
 {
-    public class Zone
+    public class Zone // يمثل منطقة توصيل وحدودها الجغرافية
     {
-        public ZoneID ID { get; private set; }
-        public string ZoneName { get; private set; } = null!;
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public bool IsActive { get; private set; }
-        public bool IsServiceable { get; private set; }
+        public ZoneID ID { get; private set; } // PK معرف المنطقة
 
-        public DateTimeOffset CreatedAt { get; private set; }
+        // -------------------------
+        //       Zone Info
+        // -------------------------
 
-        private readonly List<ZonePolygon> polygons = new();
-        public IReadOnlyCollection<ZonePolygon> Polygons => polygons.AsReadOnly();
+        public string ZoneName { get; private set; } = null!; // اسم المنطقة
+
+        // -------------------------
+        //         Status
+        // -------------------------
+
+        public bool IsActive { get; private set; } // هل المنطقة مفعلة
+        public bool IsServiceable { get; private set; } // هل المنطقة صالحة للخدمة والتوصيل
+
+        // -------------------------
+        //          Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء المنطقة
+
+        // -------------------------
+        //         Polygon
+        // -------------------------
+
+        private readonly List<ZonePolygon> polygons = new(); // نقاط حدود المنطقة
+        public IReadOnlyCollection<ZonePolygon> Polygons => polygons.AsReadOnly(); // عرض النقاط
 
         private Zone() { }
 
-        public Zone(ZoneID id, string zoneName, DateTimeOffset CreatedAtUtc)
+        public Zone(ZoneID id, string zoneName, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
-               (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             ID = id;
             SetName(zoneName);
 
             IsActive = true;
             IsServiceable = false;
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
         }
 
         // -------------------------
         //         Behavior
         // -------------------------
 
-        public void Rename(string zoneName) => SetName(zoneName);
+        public void Rename(string zoneName) => SetName(zoneName); // تغيير اسم المنطقة
 
-        public void Activate()
+        public void Activate() // تفعيل المنطقة
         {
             if (IsActive) return;
 
             IsActive = true;
         }
 
-        public void Deactivate()
+        public void Deactivate() // تعطيل المنطقة
         {
             if (!IsActive) return;
 
@@ -58,34 +78,34 @@ namespace DeliveryApp.Domain.Entities.Moderation.Zones
             IsServiceable = false;
         }
 
-        public void MarkAsServiceable()
+        public void MarkAsServiceable() // جعل المنطقة مخدمة
         {
             if (IsServiceable) return;
 
             if (!IsActive) throw new DomainRuleViolationException
-                    (ZoneErrors.InactiveZoneCannotBeServiceableCode, ZoneErrors.InactiveZoneCannotBeServiceableMessage);
+                    (ZoneErrors.InactiveZoneCantBeServiceableCode, ZoneErrors.InactiveZoneCantBeServiceableMessage);
 
-            EnsureValidPolygon();
+            EnsureMinimumPolygonPoints();
             IsServiceable = true;
         }
 
-        public void MarkAsNotServiceable()
+        public void MarkAsNotServiceable() // إلغاء تخديم المنطقة
         {
             if (!IsServiceable) return;
 
             IsServiceable = false;
         }
 
-        public void AddPolygonPoint(GeoPoint location, int sortOrder, DateTimeOffset CreatedAtUtc)
+        public void AddPolygonPoint(GeoPoint location, int sortOrder, DateTimeOffset createdAtUtc) // إضافة نقطة جديدة إلى حدود المنطقة
         {
             if (location is null) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(location));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             if (sortOrder <= 0) throw new DomainValidationException
-            (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(sortOrder));
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(sortOrder));
 
             if (polygons.Any(x => x.SortOrder == sortOrder)) throw new DomainRuleViolationException
                     (ZoneErrors.DuplicatePolygonOrderCode, ZoneErrors.DuplicatePolygonOrderMessage);
@@ -93,27 +113,28 @@ namespace DeliveryApp.Domain.Entities.Moderation.Zones
             if (polygons.Any(x => x.Location.Equals(location))) throw new DomainRuleViolationException
                     (ZoneErrors.DuplicatePolygonLocationCode, ZoneErrors.DuplicatePolygonLocationMessage);
 
-            polygons.Add(new ZonePolygon(location, sortOrder, CreatedAtUtc));
+            polygons.Add(new ZonePolygon(location, sortOrder, createdAtUtc));
         }
- 
-        public void RemovePolygonPoint(int sortOrder)
+
+        public void RemovePolygonPoint(int sortOrder) // إزالة نقطة من حدود المنطقة
         {
             var polygon = polygons.FirstOrDefault(x => x.SortOrder == sortOrder);
 
             if (polygon is null) throw new DomainRuleViolationException
-                   (ZoneErrors.PointNotFoundCode, ZoneErrors.PointNotFoundMessage);
+                    (ZoneErrors.PointNotFoundCode, ZoneErrors.PointNotFoundMessage);
 
             polygons.Remove(polygon);
 
-            if (polygons.Count < 3) IsServiceable = false;
+            if (polygons.Count < 3)
+                IsServiceable = false;
         }
 
-        public void ChangePolygonPointOrder(int currentSortOrder, int newSortOrder)
+        public void ChangePolygonPointOrder(int currentSortOrder, int newSortOrder) // تغيير ترتيب نقطة ضمن حدود المنطقة
         {
             if (currentSortOrder == newSortOrder) return;
 
             if (newSortOrder <= 0) throw new DomainValidationException
-                   (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(newSortOrder));
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(newSortOrder));
 
             var polygon = polygons.FirstOrDefault(x => x.SortOrder == currentSortOrder);
 
@@ -121,12 +142,12 @@ namespace DeliveryApp.Domain.Entities.Moderation.Zones
                     (ZoneErrors.PointNotFoundCode, ZoneErrors.PointNotFoundMessage);
 
             if (polygons.Any(x => x.SortOrder == newSortOrder)) throw new DomainRuleViolationException
-                   (ZoneErrors.DuplicatePolygonOrderCode, ZoneErrors.DuplicatePolygonOrderMessage);
+                    (ZoneErrors.DuplicatePolygonOrderCode, ZoneErrors.DuplicatePolygonOrderMessage);
 
             polygon.ChangeSortOrder(newSortOrder);
         }
 
-        public void ChangePolygonPointLocation(int sortOrder, GeoPoint location)
+        public void ChangePolygonPointLocation(int sortOrder, GeoPoint location) // تغيير موقع نقطة موجودة ضمن المنطقة
         {
             if (location is null) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(location));
@@ -149,7 +170,7 @@ namespace DeliveryApp.Domain.Entities.Moderation.Zones
         //         Setters
         // -------------------------
 
-        private void SetName(string value)
+        private void SetName(string value) // إدخال اسم المنطقة
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ZoneName));
@@ -162,10 +183,14 @@ namespace DeliveryApp.Domain.Entities.Moderation.Zones
             ZoneName = value;
         }
 
-        private void EnsureValidPolygon()
+        // -------------------------
+        //         Helpers
+        // -------------------------
+
+        private void EnsureMinimumPolygonPoints() // التأكد أن الحدود تحتوي على الحد الأدنى من النقاط
         {
             if (polygons.Count < 3) throw new DomainRuleViolationException
-                 (ZoneErrors.PolygonRequiresMinimumPointsCode, ZoneErrors.PolygonRequiresMinimumPointsMessage);
+                    (ZoneErrors.PolygonRequiresMinimumPointsCode, ZoneErrors.PolygonRequiresMinimumPointsMessage);
         }
     }
 }

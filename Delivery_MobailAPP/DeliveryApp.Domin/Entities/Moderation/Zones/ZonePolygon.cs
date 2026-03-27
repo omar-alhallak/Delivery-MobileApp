@@ -1,15 +1,28 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Moderation.Zones
 {
-    public class ZonePolygon
+    public class ZonePolygon // يمثل نقطة ضمن حدود منطقة
     {
-        public GeoPoint Location { get; private set; } = null!;
-        public int SortOrder { get; private set; }
-        public DateTimeOffset CreatedAt { get; private set; }
+        // -------------------------
+        //         Location
+        // -------------------------
+
+        public GeoPoint Location { get; private set; } = null!; // إحداثيات النقطة
+
+        // -------------------------
+        //          Order
+        // -------------------------
+
+        public int SortOrder { get; private set; } // ترتيب النقطة ضمن الشكل
+
+        // -------------------------
+        //          Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء النقطة
 
         private ZonePolygon() { }
 
@@ -27,9 +40,18 @@ namespace DeliveryApp.Domain.Entities.Moderation.Zones
             SetSortOrder(sortOrder);
         }
 
-        public void ChangeSortOrder(int sortOrder) => SetSortOrder(sortOrder);
+        // -------------------------
+        //         Behavior
+        // -------------------------
 
-        public void ChangeLocation(GeoPoint location)
+        public void ChangeSortOrder(int sortOrder) // تغيير ترتيب النقطة داخل الشكل
+        {
+            if (SortOrder == sortOrder) return;
+
+            SetSortOrder(sortOrder);
+        }
+
+        public void ChangeLocation(GeoPoint location) // تغيير موقع النقطة
         {
             if (location is null) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(location));
@@ -39,10 +61,14 @@ namespace DeliveryApp.Domain.Entities.Moderation.Zones
             Location = location;
         }
 
-        private void SetSortOrder(int value)
+        // -------------------------
+        //         Setters
+        // -------------------------
+
+        private void SetSortOrder(int value) // إدخال ترتيب النقطة
         {
             if (value <= 0) throw new DomainValidationException
-                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(SortOrder));
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(value));
 
             SortOrder = value;
         }

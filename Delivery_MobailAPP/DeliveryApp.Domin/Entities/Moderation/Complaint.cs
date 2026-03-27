@@ -1,66 +1,93 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.ModerationErrors;
 using DeliveryApp.Domain.Enums.ModerationEnums.ComplaintEnums;
 
 namespace DeliveryApp.Domain.Entities.Moderation
 {
-    public class Complaint
+    public class Complaint // يمثل شكوى مقدمة من مستخدم ضد جهة معينة
     {
-        public ComplaintID ID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public UserID CreatedByUserID { get; private set; }
+        public ComplaintID ID { get; private set; } // PK معرف الشكوى
 
-        public ComplaintTargetType TargetType { get; private set; }
-        public Guid TargetID { get; private set; }
+        // -------------------------
+        //         Creator
+        // -------------------------
 
-        public OrderID OrderID { get; private set; }
+        public UserID CreatedByUserID { get; private set; } // المستخدم الذي أنشأ الشكوى
 
-        public ComplaintReason Reason { get; private set; }
-        public string Message { get; private set; } = null!;
+        // -------------------------
+        //         Target
+        // -------------------------
 
-        public ComplaintStatus Status { get; private set; }
+        public ComplaintTargetType TargetType { get; private set; } // نوع الجهة المستهدفة بالشكوى
+        public Guid TargetID { get; private set; } // معرف الجهة المستهدفة
 
-        public UserID? ReviewedByAdminID { get; private set; }
-        public string? AdminResponse { get; private set; }
+        // -------------------------
+        //         Relation
+        // -------------------------
 
-        public DateTimeOffset CreatedAt { get; private set; }
-        public DateTimeOffset? ResolvedAt { get; private set; }
+        public OrderID OrderID { get; private set; } // الطلب المرتبط بالشكوى
+
+        // -------------------------
+        //      Complaint Details
+        // -------------------------
+
+        public ComplaintReason Reason { get; private set; } // سبب الشكوى
+        public string Message { get; private set; } = null!; // وصف الشكوى من المستخدم
+
+        // -------------------------
+        //          Review
+        // -------------------------
+
+        public ComplaintStatus Status { get; private set; } // حالة الشكوى
+
+        public UserID? ReviewedByAdminID { get; private set; } // المشرف الذي راجع الشكوى
+        public string? AdminResponse { get; private set; } // رد المشرف على الشكوى
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء الشكوى
+        public DateTimeOffset? ResolvedAt { get; private set; } // وقت حسم الشكوى
 
         private Complaint() { }
 
-        public Complaint(ComplaintID id, UserID CreatedByUserid, ComplaintTargetType targetType, Guid TargetId,
-            OrderID OrderId, ComplaintReason reason, string message, DateTimeOffset CreatedAtUtc)
+        public Complaint(ComplaintID id, UserID createdByUserId, ComplaintTargetType targetType, Guid targetId, OrderID orderId,
+            ComplaintReason reason, string message, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (CreatedByUserid.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedByUserid));
+            if (createdByUserId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdByUserId));
 
             if (!Enum.IsDefined(typeof(ComplaintTargetType), targetType)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(targetType));
 
-            if (TargetId == Guid.Empty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(TargetId));
+            if (targetId == Guid.Empty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(targetId));
 
-            if (OrderId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(OrderId));
+            if (orderId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(orderId));
 
             if (!Enum.IsDefined(typeof(ComplaintReason), reason)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(reason));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             ID = id;
-            CreatedByUserID = CreatedByUserid;
+            CreatedByUserID = createdByUserId;
             TargetType = targetType;
-            TargetID = TargetId;
-            OrderID = OrderId;
+            TargetID = targetId;
+            OrderID = orderId;
             Reason = reason;
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
 
             SetMessage(message);
 
@@ -71,7 +98,7 @@ namespace DeliveryApp.Domain.Entities.Moderation
         //         Behavior
         // -------------------------
 
-        public void UpdateReason(ComplaintReason reason)
+        public void UpdateReason(ComplaintReason reason) // تعديل سبب الشكوى
         {
             EnsurePending();
 
@@ -81,18 +108,18 @@ namespace DeliveryApp.Domain.Entities.Moderation
             Reason = reason;
         }
 
-        public void UpdateMessage(string message)
+        public void UpdateMessage(string message) // تعديل وصف الشكوى
         {
             EnsurePending();
             SetMessage(message);
         }
 
-        public void Resolve(UserID reviewedByAdminID, string adminResponse, DateTimeOffset resolvedAtUtc)
+        public void Resolve(UserID reviewedByAdminId, string adminResponse, DateTimeOffset resolvedAtUtc) // اعتماد الشكوى
         {
             EnsurePending();
 
-            if (reviewedByAdminID.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(reviewedByAdminID));
+            if (reviewedByAdminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(reviewedByAdminId));
 
             if (resolvedAtUtc == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(resolvedAtUtc));
@@ -103,16 +130,16 @@ namespace DeliveryApp.Domain.Entities.Moderation
             SetAdminResponse(adminResponse);
 
             Status = ComplaintStatus.Resolved;
-            ReviewedByAdminID = reviewedByAdminID;
+            ReviewedByAdminID = reviewedByAdminId;
             ResolvedAt = resolvedAtUtc;
         }
 
-        public void Reject(UserID ReviewedByAdminid, string adminResponse, DateTimeOffset resolvedAtUtc)
+        public void Reject(UserID reviewedByAdminId, string adminResponse, DateTimeOffset resolvedAtUtc) // رفض الشكوى
         {
             EnsurePending();
 
-            if (ReviewedByAdminid.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ReviewedByAdminid));
+            if (reviewedByAdminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(reviewedByAdminId));
 
             if (resolvedAtUtc == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(resolvedAtUtc));
@@ -123,7 +150,7 @@ namespace DeliveryApp.Domain.Entities.Moderation
             SetAdminResponse(adminResponse);
 
             Status = ComplaintStatus.Rejected;
-            ReviewedByAdminID = ReviewedByAdminid;
+            ReviewedByAdminID = reviewedByAdminId;
             ResolvedAt = resolvedAtUtc;
         }
 
@@ -131,7 +158,7 @@ namespace DeliveryApp.Domain.Entities.Moderation
         //         Setters
         // -------------------------
 
-        private void SetMessage(string value)
+        private void SetMessage(string value) // إدخال نص الشكوى
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(Message));
@@ -144,7 +171,7 @@ namespace DeliveryApp.Domain.Entities.Moderation
             Message = value;
         }
 
-        private void SetAdminResponse(string value)
+        private void SetAdminResponse(string value) // إدخال رد المشرفين على شكوى
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(AdminResponse));
@@ -157,7 +184,11 @@ namespace DeliveryApp.Domain.Entities.Moderation
             AdminResponse = value;
         }
 
-        private void EnsurePending()
+        // -------------------------
+        //         Helpers
+        // -------------------------
+
+        private void EnsurePending() // التأكد أن الشكوى لم تحسم بعد
         {
             if (Status != ComplaintStatus.Pending) throw new DomainRuleViolationException
                     (ComplaintErrors.ComplaintMustBePendingCode, ComplaintErrors.ComplaintMustBePendingMessage);

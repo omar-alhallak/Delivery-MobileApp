@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.DomainErrors
+﻿namespace DeliveryApp.Domain.DomainErrors
 {
     public static class ValidationErrors
     {

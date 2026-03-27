@@ -38,8 +38,9 @@ global using OrderItemID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.
 //          Drivers
 // -------------------------
 
-global using VehicleTypeID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.VehicleTypeTag>;
+global using DriverLocationID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.DriverLocationTag>;
 global using DriverRequestID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.DriverRequestTag>;
+global using VehicleTypeID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.VehicleTypeTag>;
 
 // -------------------------
 //        Moderation
