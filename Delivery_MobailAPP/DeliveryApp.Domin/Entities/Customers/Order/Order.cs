@@ -1,5 +1,5 @@
 ﻿using System;
-using DeliveryApp.Domain.Enums.Order;
+using DeliveryApp.Domain.Enums.OrderEnums;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;

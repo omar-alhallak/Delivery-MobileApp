@@ -1,7 +1,8 @@
-﻿using DeliveryApp.Domain.Enums;
-using DeliveryApp.Domain.ValueObjects;
+﻿using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.Enums.IdentityEnums;
+using DeliveryApp.Domain.Enums.EngagementEnums;
 using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 
 namespace DeliveryApp.Domain.Entities.Identity
@@ -23,33 +24,39 @@ namespace DeliveryApp.Domain.Entities.Identity
         public AccountStatus AccountStatus { get; private set; } = AccountStatus.Active;
         public DateTimeOffset? SuspendedUntilUtc { get; private set; }
 
+        public decimal CustomerAverageRating { get; private set; }
+        public int CustomerRatingsCount { get; private set; }
+
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? LastLoginAt { get; private set; }
 
-        private User() { } 
+        private User() { }
 
-        public User(UserID id, UserRole Roles, DateTimeOffset CreatedAtUtc)
+        public User(UserID id, UserRole roles, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             ID = id;
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
 
             RoleMask = UserRole.None;
-            AddRoles(Roles);
+            AddRoles(roles);
 
             IsProfileComplete = false;
+
+            CustomerAverageRating = 0;
+            CustomerRatingsCount = 0;
         }
 
         // ----------------------------
         //     Personal Information
         // ----------------------------
 
-        public void AssignPublicID(PublicCode publicId) 
+        public void AssignPublicID(PublicCode publicId)
         {
             if (PublicID is not null) throw new DomainConflictException
                     (UserErrors.PublicIdAlreadyAssignedCode, UserErrors.PublicIdAlreadyAssignedMessage);
@@ -82,7 +89,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             IsProfileComplete = true;
         }
 
-        public void ProfileNotcomplete()
+        public void ProfileNotComplete()
         {
             PreventModificationIfBanned();
             IsProfileComplete = false;
@@ -116,7 +123,9 @@ namespace DeliveryApp.Domain.Entities.Identity
             PreventModificationIfBanned();
 
             foreach (var role in SplitRoleMask(roles))
+            {
                 AddSingleRole(role);
+            }
         }
 
         public void RemoveRole(UserRole role)
@@ -125,8 +134,7 @@ namespace DeliveryApp.Domain.Entities.Identity
 
             if (role == UserRole.None) return;
 
-            if ((role & UserRole.Customer) == UserRole.Customer && HasRole(UserRole.Driver))
-                throw new DomainRuleViolationException
+            if ((role & UserRole.Customer) == UserRole.Customer && HasRole(UserRole.Driver)) throw new DomainRuleViolationException
                     (UserErrors.CantRemoveCustFromDrivCode, UserErrors.CantRemoveCustFromDrivMessage);
 
             RoleMask &= ~role;
@@ -171,16 +179,15 @@ namespace DeliveryApp.Domain.Entities.Identity
             SuspendedUntilUtc = null;
         }
 
-        public void Suspend(DateTimeOffset? UntilUtc)
+        public void Suspend(DateTimeOffset? untilUtc, DateTimeOffset utcNow)
         {
             PreventModificationIfBanned();
 
-            if (UntilUtc.HasValue && UntilUtc <= DateTimeOffset.UtcNow)
-                throw new DomainValidationException
-                    (UserErrors.SuspensionMustBeFutureCode, UserErrors.SuspensionMustBeFutureMessage, nameof(UntilUtc));
+            if (untilUtc.HasValue && untilUtc <= utcNow) throw new DomainValidationException
+                    (UserErrors.SuspensionMustBeFutureCode, UserErrors.SuspensionMustBeFutureMessage, nameof(untilUtc));
 
             AccountStatus = AccountStatus.Suspended;
-            SuspendedUntilUtc = UntilUtc;
+            SuspendedUntilUtc = untilUtc;
         }
 
         public void Ban()
@@ -189,23 +196,66 @@ namespace DeliveryApp.Domain.Entities.Identity
             SuspendedUntilUtc = null;
         }
 
-        public bool IsSuspensionExpired(DateTimeOffset UtcNow) => AccountStatus == AccountStatus.Suspended
-               && SuspendedUntilUtc.HasValue && UtcNow >= SuspendedUntilUtc.Value;
+        public bool IsSuspensionExpired(DateTimeOffset utcNow) =>
+            AccountStatus == AccountStatus.Suspended &&
+            SuspendedUntilUtc.HasValue &&
+            utcNow >= SuspendedUntilUtc.Value;
 
-        public void AutoActivateIfExpired(DateTimeOffset UtcNow)
+        public void AutoActivateIfExpired(DateTimeOffset utcNow)
         {
-            if (IsSuspensionExpired(UtcNow))
+            if (IsSuspensionExpired(utcNow))
                 Activate();
         }
 
-        public void SetLastLogin(DateTimeOffset UtcNow) => LastLoginAt = UtcNow;
+        public void SetLastLogin(DateTimeOffset utcNow)
+        {
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
+
+            LastLoginAt = utcNow;
+        }
 
         private void PreventModificationIfBanned()
         {
             if (AccountStatus == AccountStatus.Banned) throw new DomainRuleViolationException
-                    (UserErrors.BannedCannotBeModifiedCode, UserErrors.BannedCannotBeModifiedMessage);
+                    (UserErrors.BannedCantBeModifiedCode, UserErrors.BannedCantBeModifiedMessage);
         }
 
-        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+        private static string? Normalize(string? s) =>
+            string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+        // -------------------------
+        //        Rating
+        // -------------------------
+
+        public void AddCustomerRating(RatingStars stars)
+        {
+            ValidateRatingStars(stars);
+
+            var value = (int)stars;
+
+            CustomerAverageRating = ((CustomerAverageRating * CustomerRatingsCount) + value) / (CustomerRatingsCount + 1);
+            CustomerRatingsCount++;
+        }
+
+        public void UpdateCustomerRating(RatingStars oldStars, RatingStars newStars)
+        {
+            ValidateRatingStars(oldStars);
+            ValidateRatingStars(newStars);
+
+            if (CustomerRatingsCount <= 0) throw new DomainRuleViolationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
+
+            var oldValue = (int)oldStars;
+            var newValue = (int)newStars;
+
+            CustomerAverageRating = ((CustomerAverageRating * CustomerRatingsCount) - oldValue + newValue) / CustomerRatingsCount;
+        }
+
+        private static void ValidateRatingStars(RatingStars stars)
+        {
+            if (!Enum.IsDefined(typeof(RatingStars), stars)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(stars));
+        }
     }
 }

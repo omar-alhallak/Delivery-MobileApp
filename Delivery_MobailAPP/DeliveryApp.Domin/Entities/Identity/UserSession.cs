@@ -2,6 +2,7 @@
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.IdentityErrors;
+using DeliveryApp.Domain.Enums.IdentityEnums;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {
@@ -12,6 +13,7 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         public UserSessionID ID { get; private set; }
         public UserID UserID { get; private set; }
+        public ClientType ClientType { get; private set; }
         public string DeviceID { get; private set; } = null!;
 
         private byte[] refreshTokenHash = Array.Empty<byte>();
@@ -25,11 +27,27 @@ namespace DeliveryApp.Domain.Entities.Identity
 
         private UserSession() { }
 
-        private UserSession(UserSessionID id, UserID UserId, string DeviceId, byte[] refreshTokenHash,
+        private UserSession(UserSessionID id, UserID UserId, ClientType clientType, string DeviceId, byte[] refreshTokenHash,
             DateTimeOffset CreatedAtUtc, DateTimeOffset ExpiresAtUtc)
         {
+            if (id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
+
+            if (UserId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserId));
+
+            if (!Enum.IsDefined(typeof(ClientType), clientType)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(clientType));
+
+            if (CreatedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+
+            if (ExpiresAtUtc <= CreatedAtUtc) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(ExpiresAtUtc));
+
             ID = id;
             UserID = UserId;
+            ClientType = clientType;
 
             DeviceID = NormalizeAndValidateDeviceId(DeviceId);
             StoreRefreshTokenHash(refreshTokenHash);
@@ -41,13 +59,13 @@ namespace DeliveryApp.Domain.Entities.Identity
             ValidateState();
         }
 
-        public static UserSession Create(UserSessionID id, UserID userId, string deviceId, byte[] refreshTokenHash,
+        public static UserSession Create(UserSessionID id, UserID userId, ClientType clientType, string deviceId, byte[] refreshTokenHash,
             DateTimeOffset utcNow, TimeSpan lifetime)
         {
             if (lifetime <= TimeSpan.Zero) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(lifetime));
 
-            return new UserSession(id: id, UserId: userId, DeviceId: deviceId, refreshTokenHash: refreshTokenHash,
+            return new UserSession(id: id, UserId: userId, clientType: clientType, DeviceId: deviceId, refreshTokenHash: refreshTokenHash,
                 CreatedAtUtc: utcNow, ExpiresAtUtc: utcNow.Add(lifetime));
         }
 
@@ -120,10 +138,11 @@ namespace DeliveryApp.Domain.Entities.Identity
         {
             if (hash is null) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(hash));
+
             if (hash.Length != RefreshHashLength) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(hash));
 
-            refreshTokenHash = (byte[])hash.Clone();  
+            refreshTokenHash = (byte[])hash.Clone();
         }
 
         private static string NormalizeAndValidateDeviceId(string deviceId)

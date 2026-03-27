@@ -73,7 +73,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         // -------------------------
 
         private void SetName(string value) =>
-            ProductName = CatalogName.Create(value, maxLength: 150, field: nameof(ProductName));
+            ProductName = CatalogName.Create(value, maxLength: 150, fieldName: nameof(ProductName));
 
         private void SetDescription(string? value)
         {

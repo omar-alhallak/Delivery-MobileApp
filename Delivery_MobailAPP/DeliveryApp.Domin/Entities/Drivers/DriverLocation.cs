@@ -1,32 +1,49 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
-using DeliveryApp.Domain.DomainExceptions;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
-    public class DriverLocation
+    public class DriverLocation // يمثل سجل موقع للسائق في وقت معين
     {
-        public Guid ID { get; private set; }
-        public UserID DriverID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public GeoPoint Location { get; private set; } = null!;
-        public DateTimeOffset RecordedAt { get; private set; }
+        public DriverLocationID ID { get; private set; } // PK معرف سجل الموقع
+
+        // -------------------------
+        //         Relations
+        // -------------------------
+
+        public UserID DriverID { get; private set; } // السائق الي يخصه هذا السجل
+
+        // -------------------------
+        //          Location
+        // -------------------------
+
+        public GeoPoint Location { get; private set; } = null!; // موقع السائق
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset RecordedAt { get; private set; } // وقت تسجيل هذا الموقع
 
         private DriverLocation() { }
 
-        public DriverLocation(UserID DriverId, decimal latitude, decimal longitude, DateTimeOffset RecordedAtUtc)
+        public DriverLocation(UserID driverId, decimal latitude, decimal longitude, DateTimeOffset recordedAtUtc) 
         {
-            if (DriverId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(DriverId));
+            if (driverId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(driverId));
 
-            if (RecordedAtUtc == default) throw new DomainValidationException
-                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(RecordedAtUtc));
+            if (recordedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(recordedAtUtc));
 
-            ID = Guid.NewGuid();
-            DriverID = DriverId;
+            ID = DriverLocationID.New();
+            DriverID = driverId;
             Location = GeoPoint.Create(latitude, longitude);
-            RecordedAt = RecordedAtUtc;
+            RecordedAt = recordedAtUtc;
         }
     }
 }

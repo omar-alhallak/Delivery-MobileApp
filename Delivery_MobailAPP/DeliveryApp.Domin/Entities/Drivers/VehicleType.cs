@@ -1,39 +1,62 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
-    public class VehicleType
+    public class VehicleType // يمثل نوع مركبة السائق
     {
-        public VehicleTypeID ID { get; private set; }
-        public string VehicleName { get; private set; } = null!;
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public double MaxDistanceKm { get; private set; }
-        public double MaxMergeExtraKm { get; private set; }
-        public int MaxOrdersToBatch { get; private set; }
-        public int CommissionPercent { get; private set; }
+        public VehicleTypeID ID { get; private set; } // PK معرف نوع المركبة
 
-        public bool RequiresLicenseAndPlate { get; private set; }
+        // -------------------------
+        //       Vehicle Info
+        // -------------------------
 
-        public bool IsActive { get; private set; }
+        public string VehicleName { get; private set; } = null!; // نوع المركبة
+
+        // -------------------------
+        //     Delivery Limits
+        // -------------------------
+
+        public double MaxDistanceKm { get; private set; } // أقصى مسافة توصيل مسموحة
+        public double MaxMergeExtraKm { get; private set; } // أقصى مسافة إضافية مسموحة عند دمج الطلبات
+        public int MaxOrdersToBatch { get; private set; } // أقصى عدد طلبات يمكن تجميعها معا
+
+        // -------------------------
+        //       Commission
+        // -------------------------
+
+        public int CommissionPercent { get; private set; } // نسبة العمولة لهذه المركبة
+
+        // -------------------------
+        //          Requird
+        // -------------------------
+
+        public bool RequiresLicenseAndPlate { get; private set; } // هل هذا النوع يحتاج رخصة ولوحة
+
+        // -------------------------
+        //         Status
+        // -------------------------
+
+        public bool IsActive { get; private set; } // هل نوع المركبة مفعل ويمكن استخدامه
 
         private VehicleType() { }
 
-        public VehicleType(VehicleTypeID id, string name, double maxDist, double maxExtra, int maxBatch,
-            int commissionPercent, bool requiresLicenseAndPlate)
+        public VehicleType(VehicleTypeID id, string name, double maxDistanceKm, double maxMergeExtraKm, int maxOrdersToBatch, int commissionPercent, bool requiresLicenseAndPlate)
         {
             if (id.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ID));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
             ID = id;
 
             SetName(name);
-            SetLimits(maxDist, maxExtra, maxBatch);
+            SetLimits(maxDistanceKm, maxMergeExtraKm, maxOrdersToBatch);
             SetCommission(commissionPercent);
 
             RequiresLicenseAndPlate = requiresLicenseAndPlate;
-
             IsActive = true;
         }
 
@@ -41,31 +64,43 @@ namespace DeliveryApp.Domain.Entities.Drivers
         //          Behavior
         // -------------------------
 
-        public void Rename(string name) => SetName(name);
+        public void Rename(string name) => SetName(name); // تغيير اسم نوع المركبة
 
-        public void ChangeLimits(double maxDist, double maxExtra, int maxBatch) => SetLimits(maxDist, maxExtra, maxBatch);
+        public void ChangeLimits(double maxDistanceKm, double maxMergeExtraKm, int maxOrdersToBatch) => SetLimits(maxDistanceKm, maxMergeExtraKm, maxOrdersToBatch); // تغيير حدود التوصيل
 
-        public void ChangeCommission(int commissionPercent) => SetCommission(commissionPercent);
+        public void ChangeCommission(int commissionPercent) => SetCommission(commissionPercent); // تغيير نسبة العمولة
 
-        public void SetRequiresLicenseAndPlate(bool value) => RequiresLicenseAndPlate = value;
+        public void SetRequiresLicenseAndPlate(bool value) => RequiresLicenseAndPlate = value; // تحديد هل هذا النوع يتطلب رخصة ولوحة
 
-        public void Activate() => IsActive = true;
-        public void Deactivate() => IsActive = false;
-
-        public bool CanAcceptMoreOrders(int currentActiveOrders)
+        public void Activate() // تفعيل
         {
+            if (IsActive) return;
+            IsActive = true;
+        }
+
+        public void Deactivate() // تعطيل
+        {
+            if (!IsActive) return;
+            IsActive = false;
+        }
+
+        public bool CanAcceptMoreOrders(int currentActiveOrders) // التحقق هل يمكن للمركبة استقبال طلبات إضافية
+        {
+            if (currentActiveOrders < 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(currentActiveOrders));
+
             if (!IsActive) return false;
-            if (currentActiveOrders < 0) currentActiveOrders = 0;
+
             return currentActiveOrders < MaxOrdersToBatch;
         }
 
-        public double GetTotalRangeLimit() => MaxDistanceKm + MaxMergeExtraKm;
+        public double GetTotalRangeLimit() => MaxDistanceKm + MaxMergeExtraKm; // حساب الحد الأقصى للمسافة
 
         // -------------------------
-        //          setters
+        //          Setters
         // -------------------------
 
-        private void SetName(string value)
+        private void SetName(string value) // إدخال نوع المركبة
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(VehicleName));
@@ -78,23 +113,23 @@ namespace DeliveryApp.Domain.Entities.Drivers
             VehicleName = value;
         }
 
-        private void SetLimits(double maxDist, double maxExtra, int maxBatch)
+        private void SetLimits(double maxDistanceKm, double maxMergeExtraKm, int maxOrdersToBatch) // إدخال حدود التشغيل لهذا النوع
         {
-            if (maxDist <= 0) throw new DomainValidationException
+            if (maxDistanceKm <= 0) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(MaxDistanceKm));
 
-            if (maxExtra < 0) throw new DomainValidationException
+            if (maxMergeExtraKm < 0) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(MaxMergeExtraKm));
 
-            if (maxBatch < 1) throw new DomainValidationException
+            if (maxOrdersToBatch < 1) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(MaxOrdersToBatch));
 
-            MaxDistanceKm = maxDist;
-            MaxMergeExtraKm = maxExtra;
-            MaxOrdersToBatch = maxBatch;
+            MaxDistanceKm = maxDistanceKm;
+            MaxMergeExtraKm = maxMergeExtraKm;
+            MaxOrdersToBatch = maxOrdersToBatch;
         }
 
-        private void SetCommission(int commissionPercent)
+        private void SetCommission(int commissionPercent) // ضبط نسبة العمولة 
         {
             if (commissionPercent < 0 || commissionPercent > 100) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(CommissionPercent));

@@ -1,9 +1,10 @@
 ﻿using System;
-using DeliveryApp.Domain.Enums;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.DomainErrors.MerchantErrors;
+using DeliveryApp.Domain.Enums.EngagementEnums;
+using DeliveryApp.Domain.Enums.MerchantEnums;
 
 namespace DeliveryApp.Domain.Entities.Merchants
 {
@@ -24,6 +25,9 @@ namespace DeliveryApp.Domain.Entities.Merchants
         public string? CoverImageUrl { get; private set; }
 
         public GeoPoint Location { get; private set; } = null!;
+
+        public decimal AverageRating { get; private set; }
+        public int RatingsCount { get; private set; }
 
         public bool IsActive { get; private set; }
 
@@ -55,6 +59,9 @@ namespace DeliveryApp.Domain.Entities.Merchants
 
             SetLogoUrl(logoUrl);
             SetCoverImageUrl(coverImageUrl);
+
+            AverageRating = 0;
+            RatingsCount = 0;
 
             CreatedAt = CreatedAtUtc;
             IsActive = false;
@@ -102,6 +109,30 @@ namespace DeliveryApp.Domain.Entities.Merchants
             IsActive = true;
         }
 
+        public void AddRating(RatingStars stars)
+        {
+            ValidateRatingStars(stars);
+
+            var value = (int)stars;
+
+            AverageRating = ((AverageRating * RatingsCount) + value) / (RatingsCount + 1);
+            RatingsCount++;
+        }
+
+        public void UpdateRating(RatingStars oldStars, RatingStars newStars)
+        {
+            ValidateRatingStars(oldStars);
+            ValidateRatingStars(newStars);
+
+            if (RatingsCount <= 0) throw new DomainRuleViolationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
+
+            var oldValue = (int)oldStars;
+            var newValue = (int)newStars;
+
+            AverageRating = ((AverageRating * RatingsCount) - oldValue + newValue) / RatingsCount;
+        }
+
         // -------------------------
         //        Validation
         // -------------------------
@@ -116,6 +147,12 @@ namespace DeliveryApp.Domain.Entities.Merchants
 
             if (string.IsNullOrWhiteSpace(CoverImageUrl)) throw new DomainRuleViolationException
                     (MerchantErrors.CantActivateWithoutCoverImageCode, MerchantErrors.CantActivateWithoutCoverImageMessage);
+        }
+
+        private static void ValidateRatingStars(RatingStars stars)
+        {
+            if (!Enum.IsDefined(typeof(RatingStars), stars)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(stars));
         }
 
         // -------------------------

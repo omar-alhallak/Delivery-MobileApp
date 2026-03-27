@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.DomainExceptions
+﻿namespace DeliveryApp.Domain.DomainExceptions
 {
-    public sealed class DomainValidationException : DomainException
+    public sealed class DomainValidationException : DomainException // خطأ إدخال بيانات
     {
         public string? Field { get; }
 
