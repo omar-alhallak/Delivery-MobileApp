@@ -1,64 +1,87 @@
-﻿using System;
-using DeliveryApp.Domain.ValueObjects;
+﻿using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
-using DeliveryApp.Domain.DomainErrors.AddressErrors;
 using DeliveryApp.Domain.Enums.CustomerEnums;
+using DeliveryApp.Domain.DomainErrors.AddressErrors;
 
 namespace DeliveryApp.Domain.Entities.Customers
 {
-    public class Address
+    public class Address // يمثل عنوان المستخدم
     {
-        public AddressID ID { get; private set; }
-        public UserID UserID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public string? Label { get; private set; }
-        public AddressType? AddressType { get; private set; }
+        public AddressID ID { get; private set; } // pk معرف العنوان
+        public UserID UserID { get; private set; } // صاحب العنوان
 
-        public GeoPoint Location { get; private set; } = null!;
+        // -------------------------
+        //       Basic Info
+        // -------------------------
 
-        public string? BuildingName { get; private set; }
-        public string? Floor { get; private set; }
-        public string? DoorInfo { get; private set; }
-        public string? Notes { get; private set; }
+        public string? Label { get; private set; } //  اسم مختصر للعنوان منإضافة الزبون
+        public AddressType? AddressType { get; private set; } // نوع العنوان
 
-        public bool IsDefault { get; private set; }
-        public bool IsTemporary { get; private set; }
-        public bool IsActive { get; private set; }
+        // -------------------------
+        //         Location
+        // -------------------------
 
-        public DateTimeOffset CreatedAt { get; private set; }
+        public GeoPoint Location { get; private set; } = null!; // موقع العنوان
+
+        // -------------------------
+        //         Details
+        // -------------------------
+
+        public string? BuildingName { get; private set; } // اسم أو رقم البناء
+        public string? Floor { get; private set; } // الطابق
+        public string? DoorInfo { get; private set; } // معلومات الباب أو الشقة
+        public string? Notes { get; private set; } // ملاحظات إضافية
+
+        // -------------------------
+        //          Flags
+        // -------------------------
+
+        public bool IsDefault { get; private set; } // هل هذا هو العنوان الافتراضي
+        public bool IsTemporary { get; private set; } // هل العنوان مؤقت ولم تكتمل بياناته بعد
+        public bool IsActive { get; private set; } // هل العنوان نشط
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء العنوان
 
         private Address() { }
 
-        public Address(AddressID id, UserID UserId, decimal lat, decimal lng, DateTimeOffset CreatedAtUtc)
+        public Address(AddressID id, UserID userId, decimal lat, decimal lng, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (UserId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserId));
+            if (userId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(userId));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             ID = id;
-            UserID = UserId;
+            UserID = userId;
 
             SetLocation(lat, lng);
 
-            IsDefault = true;
+            IsDefault = false;
             IsTemporary = true;
             IsActive = true;
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
         }
 
         // -------------------------
         //         Behavior
         // -------------------------
 
-        public void Complete(string label, AddressType addressType, string buildingName, string floor, string doorInfo, string? notes)
+        public void Complete(string label, AddressType addressType, string buildingName, string floor, string doorInfo, string? notes) // إكمال بيانات العنوان المؤقت وتحويله إلى عنوان كامل
         {
-            CheckTemporary();
+            EnsureTemporary();
 
             ValidateAddressType(addressType);
 
@@ -72,7 +95,7 @@ namespace DeliveryApp.Domain.Entities.Customers
             IsTemporary = false;
         }
 
-        public void UpdateDetails(string label, AddressType addressType, string buildingName, string floor, string doorInfo, string? notes)
+        public void UpdateDetails(string label, AddressType addressType, string buildingName, string floor, string doorInfo, string? notes) // تعديل تفاصيل العنوان بعد إنشائه
         {
             ValidateAddressType(addressType);
 
@@ -85,34 +108,34 @@ namespace DeliveryApp.Domain.Entities.Customers
             AddressType = addressType;
         }
 
-        public void Relocate(decimal lat, decimal lng)
+        public void Relocate(decimal lat, decimal lng) // تغيير موقع العنوان فقط إذا كان ما يزال مؤقت
         {
-            CheckTemporary();
+            EnsureTemporary();
             SetLocation(lat, lng);
         }
 
-        public void SetAsDefault()
+        public void SetAsDefault() // تعيين هذا العنوان كعنوان افتراضي
         {
             if (IsDefault) return;
 
             IsDefault = true;
         }
 
-        public void RemoveDefault()
+        public void RemoveDefault() // إزالة الصفة الافتراضية عن هذا العنوان
         {
             if (!IsDefault) return;
 
             IsDefault = false;
         }
 
-        public void Activate()
+        public void Activate() // تفعيل العنوان
         {
             if (IsActive) return;
 
             IsActive = true;
         }
 
-        public void Deactivate()
+        public void Deactivate() // تعطيل العنوان وإزالة صفته الافتراضية
         {
             if (!IsActive) return;
 
@@ -124,13 +147,13 @@ namespace DeliveryApp.Domain.Entities.Customers
         //        Validation
         // -------------------------
 
-        private void CheckTemporary()
+        private void EnsureTemporary() // التأكد أن العنوان ما زال مؤقتاً قبل تغيير موقعه أو إكماله
         {
             if (!IsTemporary) throw new DomainRuleViolationException
                     (AddressErrors.CompletedAddressLocationCantBeChangedCode, AddressErrors.CompletedAddressLocationCantBeChangedMessage);
         }
 
-        private static void ValidateAddressType(AddressType addressType)
+        private static void ValidateAddressType(AddressType addressType) // التحقق من صحة نوع العنوان
         {
             if (!Enum.IsDefined(typeof(AddressType), addressType)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(addressType));
@@ -140,9 +163,12 @@ namespace DeliveryApp.Domain.Entities.Customers
         //         Setters
         // -------------------------
 
-        private void SetLocation(decimal lat, decimal lng) => Location = GeoPoint.Create(lat, lng);
+        private void SetLocation(decimal lat, decimal lng) // إدخال موقع العنوان
+        {
+            Location = GeoPoint.Create(lat, lng);
+        }
 
-        private void SetLabel(string value)
+        private void SetLabel(string value) // إدخال اسم مختصر للعنوان
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(Label));
@@ -155,7 +181,7 @@ namespace DeliveryApp.Domain.Entities.Customers
             Label = value;
         }
 
-        private void SetBuildingName(string value)
+        private void SetBuildingName(string value) // إدخال اسم أو رقم البناء
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(BuildingName));
@@ -168,7 +194,7 @@ namespace DeliveryApp.Domain.Entities.Customers
             BuildingName = value;
         }
 
-        private void SetFloor(string value)
+        private void SetFloor(string value) // إدخال الطابق
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(Floor));
@@ -181,7 +207,7 @@ namespace DeliveryApp.Domain.Entities.Customers
             Floor = value;
         }
 
-        private void SetDoorInfo(string value)
+        private void SetDoorInfo(string value) // إدخال معلومات الباب أو الشقة
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(DoorInfo));
@@ -194,7 +220,7 @@ namespace DeliveryApp.Domain.Entities.Customers
             DoorInfo = value;
         }
 
-        private void SetNotes(string? value)
+        private void SetNotes(string? value) // إدخال الملاحظات
         {
             value = NormalizeOptional(value);
 
@@ -204,6 +230,9 @@ namespace DeliveryApp.Domain.Entities.Customers
             Notes = value;
         }
 
-        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        private static string? NormalizeOptional(string? value) // تنظيف النصوص
+        {
+            return string.IsNullOrWhiteSpace(value) ? null : value.Trim(); 
+        }
     }
 }

@@ -1,37 +1,43 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Customers.Order
 {
-    public class OrderItem
+    public class OrderItem // يمثل عنصر داخل الطلب (Line Item)
     {
-        public OrderItemID ID { get; private set; }
-        public OrderID OrderID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public string ProductNameSnapshot { get; private set; } = null!;
-        public string? VariantNameSnapshot { get; private set; }
+        public OrderItemID ID { get; private set; } // pk معرف العنصر
+        public OrderID OrderID { get; private set; } // الطلب المرتبط به
 
-        public decimal UnitPriceSnapshot { get; private set; }
-        public int Quantity { get; private set; }
+        // -------------------------
+        //         Snapshot
+        // -------------------------
 
-        public decimal LineTotalSnapshot { get; private set; }
+        public string ProductNameSnapshot { get; private set; } = null!; // اسم المنتج وقت الطلب
+        public string? VariantNameSnapshot { get; private set; } // اسم التفصيل (مثل الحجم) وقت الطلب
 
-        public string? CustomerNote { get; private set; }
+        public decimal UnitPriceSnapshot { get; private set; } // سعر الوحدة وقت الطلب
+        public int Quantity { get; private set; } // الكمية المطلوبة
+
+        public decimal LineTotalSnapshot { get; private set; } // الإجمالي
+
+        public string? CustomerNote { get; private set; } // ملاحظة الزبون على العنصر
 
         private OrderItem() { }
 
-        public OrderItem(OrderItemID id, OrderID OrderId, string productName, string? variantName,
-            decimal unitPrice, int quantity, string? customerNote)
+        public OrderItem(OrderItemID id, OrderID orderId, string productName, string? variantName, decimal unitPrice, int quantity, string? customerNote)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (OrderId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(OrderId));
+            if (orderId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(orderId));
 
             ID = id;
-            OrderID = OrderId;
+            OrderID = orderId;
 
             SetProductName(productName);
             SetVariantName(variantName);
@@ -48,7 +54,7 @@ namespace DeliveryApp.Domain.Entities.Customers.Order
         //         Setters
         // -------------------------
 
-        private void SetProductName(string value)
+        private void SetProductName(string value) // إدخال اسم المنتج
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ProductNameSnapshot));
@@ -61,7 +67,7 @@ namespace DeliveryApp.Domain.Entities.Customers.Order
             ProductNameSnapshot = value;
         }
 
-        private void SetVariantName(string? value)
+        private void SetVariantName(string? value) // إدخال اسم التفصيل 
         {
             value = NormalizeOptional(value);
 
@@ -71,15 +77,15 @@ namespace DeliveryApp.Domain.Entities.Customers.Order
             VariantNameSnapshot = value;
         }
 
-        private void SetUnitPrice(decimal value)
+        private void SetUnitPrice(decimal value) // إدخال سعر الوحدة
         {
-            if (value < 0) throw new DomainValidationException
+            if (value <= 0) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(UnitPriceSnapshot));
 
             UnitPriceSnapshot = value;
         }
 
-        private void SetQuantity(int value)
+        private void SetQuantity(int value) // إدخال الكمية
         {
             if (value < 1) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(Quantity));
@@ -87,7 +93,7 @@ namespace DeliveryApp.Domain.Entities.Customers.Order
             Quantity = value;
         }
 
-        private void SetCustomerNote(string? value)
+        private void SetCustomerNote(string? value) // إدخال ملاحظة الزبون
         {
             value = NormalizeOptional(value);
 
@@ -97,6 +103,6 @@ namespace DeliveryApp.Domain.Entities.Customers.Order
             CustomerNote = value;
         }
 
-        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim(); // تنظيف النصوص
     }
 }
