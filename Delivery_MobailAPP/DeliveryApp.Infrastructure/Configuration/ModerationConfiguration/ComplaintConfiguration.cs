@@ -107,8 +107,9 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.OrderID); 
-            builder.HasIndex(x => new { x.TargetType, x.TargetID }); 
+
+            builder.HasIndex(x => new { x.TargetType, x.TargetID })
+                .HasDatabaseName("IX_Complaints_Target");
         }
     }
     

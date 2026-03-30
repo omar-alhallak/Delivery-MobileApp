@@ -55,9 +55,15 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration.Zones
             builder.HasMany(x => x.Polygons)
                 .WithOne()                     
                 .HasForeignKey("ZoneID")     
-                .OnDelete(DeleteBehavior.Cascade); 
+                .OnDelete(DeleteBehavior.Cascade);
 
+            // -------------------------
+            //          Indexes
+            // -------------------------
 
+            builder.HasIndex(x => x.ZoneName)
+                .IsUnique() 
+                .HasDatabaseName("IX_Zones_Name");
         }
     }
 }

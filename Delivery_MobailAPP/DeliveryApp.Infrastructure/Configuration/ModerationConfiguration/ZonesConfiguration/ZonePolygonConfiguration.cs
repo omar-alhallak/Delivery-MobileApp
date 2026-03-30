@@ -43,6 +43,13 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration.Zones
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
+
+            // -------------------------
+            //          Indexes
+            // -------------------------
+
+            builder.HasIndex("ZoneID") 
+                .HasDatabaseName("IX_ZonePolygons_ZoneID");
         }
     }
 }

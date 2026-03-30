@@ -118,8 +118,8 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.RelatedOrderID);
-            builder.HasIndex(x => new { x.EntityType, x.EntityID });
+            builder.HasIndex(x => new { x.EntityID, x.EntityType })
+                .HasDatabaseName("IX_AccountWarning_Entity_Type");
         }
 
     }
