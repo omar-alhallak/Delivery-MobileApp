@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DeliveryApp.Domain.Entities.Identity;
+﻿using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Entities.Moderation;
-using DeliveryApp.Domain.Entities.Moderation.Zones;
 using DeliveryApp.Domain.Entities.Orders;
 using DeliveryApp.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
 {
