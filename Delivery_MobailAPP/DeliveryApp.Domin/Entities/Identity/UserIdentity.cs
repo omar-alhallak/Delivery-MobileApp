@@ -1,8 +1,7 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
-using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 using DeliveryApp.Domain.Enums.IdentityEnums;
+using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {

@@ -18,7 +18,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         // -------------------------
 
         public OrderID OrderID { get; private set; } // الطلب المرتبط بهذا الإسناد
-        public UserID DriverID { get; private set; } // السائق الذي أُسند إليه الطلب
+        public UserID DriverID { get; private set; } // السائق الذي أسند إليه الطلب
 
         // -------------------------
         //           Dates
@@ -126,7 +126,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         //         Setters
         // -------------------------
 
-        private void SetRemoveReason(string value) // ضبط سبب الإزالة مع التحقق من صحته
+        private void SetRemoveReason(string value) // إدخال سبب الإزالة
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(RemoveReason));

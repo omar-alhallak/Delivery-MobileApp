@@ -7,28 +7,52 @@ using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {
-    public class User
+    public class User // يمثل المستخدمين داخل النظام
     {
-        public UserID ID { get; private set; }
-        public PublicCode? PublicID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public string? Email { get; private set; }
-        public string? FullName { get; private set; }
-        public string? Phone { get; private set; }
-        public string? PhotoUrl { get; private set; }
+        public UserID ID { get; private set; } // PK معرف المستخدم
+        public PublicCode? PublicID { get; private set; } // الكود الي بيظهر للمستخدم
 
-        public bool IsProfileComplete { get; private set; }
+        // -------------------------
+        //     Personal Information
+        // -------------------------
 
-        public UserRole RoleMask { get; private set; }
+        public string? Email { get; private set; } // البريد الإلكتروني
+        public string? FullName { get; private set; } // الاسم الكامل
+        public string? Phone { get; private set; } // رقم الهاتف
+        public string? PhotoUrl { get; private set; } // رابط الصورة الشخصية
 
-        public AccountStatus AccountStatus { get; private set; } = AccountStatus.Active;
-        public DateTimeOffset? SuspendedUntilUtc { get; private set; }
+        public bool IsProfileComplete { get; private set; } // هل الملف الشخصي مكتمل
 
-        public decimal CustomerAverageRating { get; private set; }
-        public int CustomerRatingsCount { get; private set; }
+        // -------------------------
+        //          Roles
+        // -------------------------
 
-        public DateTimeOffset CreatedAt { get; private set; }
-        public DateTimeOffset? LastLoginAt { get; private set; }
+        public UserRole RoleMask { get; private set; } // أدوار المستخدم داخل النظام
+
+        // -------------------------
+        //          Status
+        // -------------------------
+
+        public AccountStatus AccountStatus { get; private set; } = AccountStatus.Active; // حالة الحساب
+        public DateTimeOffset? SuspendedUntilUtc { get; private set; } // وقت انتهاء الإيقاف المؤقت إن وجد
+
+        // -------------------------
+        //          Rating
+        // -------------------------
+
+        public decimal CustomerAverageRating { get; private set; } // متوسط تقييم المستخدم كزبون
+        public int CustomerRatingsCount { get; private set; } // عدد تقييمات المستخدم كزبون
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء الحساب
+        public DateTimeOffset? LastLoginAt { get; private set; } // آخر وقت تسجيل دخول
 
         private User() { }
 
@@ -56,7 +80,7 @@ namespace DeliveryApp.Domain.Entities.Identity
         //     Personal Information
         // ----------------------------
 
-        public void AssignPublicID(PublicCode publicId)
+        public void AssignPublicID(PublicCode publicId) // تعيين الكود العام
         {
             if (PublicID is not null) throw new DomainConflictException
                     (UserErrors.PublicIdAlreadyAssignedCode, UserErrors.PublicIdAlreadyAssignedMessage);
@@ -64,7 +88,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             PublicID = publicId;
         }
 
-        public void UpdateProfile(string? email, string? phone, string? fullName, string? photoUrl)
+        public void UpdateProfile(string? email, string? phone, string? fullName, string? photoUrl) // تحديث بيانات الملف الشخصي
         {
             PreventModificationIfBanned();
 
@@ -73,31 +97,31 @@ namespace DeliveryApp.Domain.Entities.Identity
             FullName = Normalize(fullName);
             PhotoUrl = Normalize(photoUrl);
 
-            FieldLimits();
+            ValidateFieldLengths();
 
-            if (IsProfileComplete && !ProfileCompletionRules()) throw new DomainRuleViolationException
+            if (IsProfileComplete && !HasRequiredProfileFields()) throw new DomainRuleViolationException
                     (UserErrors.CantRemoveRequiredFieldCode, UserErrors.CantRemoveRequiredFieldMessage);
         }
 
-        public void ProfileComplete()
+        public void MarkProfileAsComplete() // جعل الملف الشخصي مكتمل
         {
             PreventModificationIfBanned();
 
-            if (!ProfileCompletionRules()) throw new DomainRuleViolationException
+            if (!HasRequiredProfileFields()) throw new DomainRuleViolationException
                     (UserErrors.ProfileFieldNotCompleteCode, UserErrors.ProfileFieldNotCompleteMessage);
 
             IsProfileComplete = true;
         }
 
-        public void ProfileNotComplete()
+        public void MarkProfileAsIncomplete() // إزالة حالة اكتمال من الملف الشخصي
         {
             PreventModificationIfBanned();
             IsProfileComplete = false;
         }
 
-        private bool ProfileCompletionRules() => Phone is not null && FullName is not null;
+        private bool HasRequiredProfileFields() => Phone is not null && FullName is not null; // التحقق من وجود الحقول المطلوبة لإكمال الملف الشخصي
 
-        private void FieldLimits()
+        private void ValidateFieldLengths() // التحقق من أطوال الحقول
         {
             if (Email is not null && Email.Length > 255) throw new DomainValidationException
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(Email));
@@ -113,12 +137,12 @@ namespace DeliveryApp.Domain.Entities.Identity
         }
 
         // -------------------------
-        //        Roles
+        //          Roles
         // -------------------------
 
-        public bool HasRole(UserRole role) => (RoleMask & role) == role;
+        public bool HasRole(UserRole role) => (RoleMask & role) == role; // التحقق هل المستخدم يملك دور معين
 
-        public void AddRoles(UserRole roles)
+        public void AddRoles(UserRole roles) // إضافة دور أو أكثر للمستخدم
         {
             PreventModificationIfBanned();
 
@@ -128,7 +152,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             }
         }
 
-        public void RemoveRole(UserRole role)
+        public void RemoveRole(UserRole role) // إزالة دور من المستخدم
         {
             PreventModificationIfBanned();
 
@@ -142,7 +166,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             CheckDriverIsCustomer();
         }
 
-        private void AddSingleRole(UserRole role)
+        private void AddSingleRole(UserRole role) // إضافة دور واحد
         {
             if (role == UserRole.None) return;
 
@@ -154,14 +178,14 @@ namespace DeliveryApp.Domain.Entities.Identity
             CheckDriverIsCustomer();
         }
 
-        private void CheckDriverIsCustomer()
+        private void CheckDriverIsCustomer() // التأكد أن السائق يملك دور الزبون
         {
             if (HasRole(UserRole.Driver) && !HasRole(UserRole.Customer))
                 RoleMask |= UserRole.Customer;
         }
 
-        private static IEnumerable<UserRole> SplitRoleMask(UserRole roles)
-        {
+        private static IEnumerable<UserRole> SplitRoleMask(UserRole roles) // تقسيم الـ                                                                         
+        {                                                                  // RoleMask إلى عدة أدوار
             foreach (UserRole r in Enum.GetValues(typeof(UserRole)))
             {
                 if (r == UserRole.None) continue;
@@ -170,18 +194,21 @@ namespace DeliveryApp.Domain.Entities.Identity
         }
 
         // -------------------------
-        //        Status
+        //          Status
         // -------------------------
 
-        public void Activate()
+        public void Activate() // تفعيل الحساب
         {
             AccountStatus = AccountStatus.Active;
             SuspendedUntilUtc = null;
         }
 
-        public void Suspend(DateTimeOffset? untilUtc, DateTimeOffset utcNow)
+        public void Suspend(DateTimeOffset? untilUtc, DateTimeOffset utcNow) // إيقاف الحساب مؤقتاً
         {
             PreventModificationIfBanned();
+
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
 
             if (untilUtc.HasValue && untilUtc <= utcNow) throw new DomainValidationException
                     (UserErrors.SuspensionMustBeFutureCode, UserErrors.SuspensionMustBeFutureMessage, nameof(untilUtc));
@@ -190,45 +217,52 @@ namespace DeliveryApp.Domain.Entities.Identity
             SuspendedUntilUtc = untilUtc;
         }
 
-        public void Ban()
+        public void Ban() // حظر الحساب نهائياً
         {
             AccountStatus = AccountStatus.Banned;
             SuspendedUntilUtc = null;
         }
 
-        public bool IsSuspensionExpired(DateTimeOffset utcNow) =>
-            AccountStatus == AccountStatus.Suspended &&
-            SuspendedUntilUtc.HasValue &&
-            utcNow >= SuspendedUntilUtc.Value;
+        public bool IsSuspensionExpired(DateTimeOffset utcNow) // التحقق من انتهاء مدة الإيقاف المؤقت
+        {
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
 
-        public void AutoActivateIfExpired(DateTimeOffset utcNow)
+            return AccountStatus == AccountStatus.Suspended &&
+                   SuspendedUntilUtc.HasValue &&
+                   utcNow >= SuspendedUntilUtc.Value;
+        }
+
+        public void AutoActivateIfExpired(DateTimeOffset utcNow) // إعادة التفعيل تلقائياً عند انتهاء مدة الإيقاف
         {
             if (IsSuspensionExpired(utcNow))
                 Activate();
         }
 
-        public void SetLastLogin(DateTimeOffset utcNow)
+        public void SetLastLogin(DateTimeOffset utcNow) // تحديث آخر وقت تسجيل دخول
         {
             if (utcNow == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
 
+            if (utcNow < CreatedAt) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(utcNow));
+
             LastLoginAt = utcNow;
         }
 
-        private void PreventModificationIfBanned()
+        private void PreventModificationIfBanned() // منع التعديل إذا كان الحساب محظور
         {
             if (AccountStatus == AccountStatus.Banned) throw new DomainRuleViolationException
                     (UserErrors.BannedCantBeModifiedCode, UserErrors.BannedCantBeModifiedMessage);
         }
 
-        private static string? Normalize(string? s) =>
-            string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim(); // تنظيف النصوص
 
         // -------------------------
-        //        Rating
+        //          Rating
         // -------------------------
 
-        public void AddCustomerRating(RatingStars stars)
+        public void AddCustomerRating(RatingStars stars) // إضافة تقييم جديد للمستخدم
         {
             ValidateRatingStars(stars);
 
@@ -238,7 +272,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             CustomerRatingsCount++;
         }
 
-        public void UpdateCustomerRating(RatingStars oldStars, RatingStars newStars)
+        public void UpdateCustomerRating(RatingStars oldStars, RatingStars newStars) // تعديل تقييم
         {
             ValidateRatingStars(oldStars);
             ValidateRatingStars(newStars);
@@ -252,7 +286,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             CustomerAverageRating = ((CustomerAverageRating * CustomerRatingsCount) - oldValue + newValue) / CustomerRatingsCount;
         }
 
-        private static void ValidateRatingStars(RatingStars stars)
+        private static void ValidateRatingStars(RatingStars stars) // التحقق من صحة التقييم (النجوم)د
         {
             if (!Enum.IsDefined(typeof(RatingStars), stars)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(stars));

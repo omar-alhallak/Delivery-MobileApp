@@ -14,7 +14,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         // -------------------------
 
         public OrderID ID { get; private set; } // PK معرف الطلب
-        public PublicCode? PublicID { get; private set; } // الكود الذي يظهر للمستخدم
+        public PublicCode? PublicID { get; private set; } // الكود الي بيظهر للمستخدم
 
         // -------------------------
         //            Type
@@ -27,7 +27,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         // -------------------------
 
         public UserID CustomerID { get; private set; } // الزبون
-        public MerchantID? MerchantID { get; private set; } // المطعم الذي تم التوصيل منه 
+        public MerchantID? MerchantID { get; private set; } // المطعم الي تم التوصيل منه
 
         // -------------------------
         //         Locations
@@ -76,7 +76,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         //       Cancellation
         // -------------------------
 
-        public CancelledByType? CancelledByType { get; private set; } // من ألغى
+        public CancelledByType? CancelledByType { get; private set; } // مين ألغى
         public UserID? CancelledById { get; private set; } // معرف الملغي
 
         // -------------------------
@@ -89,7 +89,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         public DateTimeOffset? DeliveredAt { get; private set; } // وقت التسليم
 
         // -------------------------
-        //           Items
+        //           Items          عناصر الطلب 
         // -------------------------
 
         private readonly List<OrderItem> items = new();
@@ -140,7 +140,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         }
 
         // ---------- Public ID ----------
-        public void AssignPublicID(PublicCode publicId) // تعيين الكود مرة واحدة
+        public void AssignPublicID(PublicCode publicId) // تعيين الكود الي بيظهر للمستخدمين
         {
             if (PublicID is not null) throw new DomainConflictException
                     (OrderErrors.PublicIdAlreadyAssignedCode, OrderErrors.PublicIdAlreadyAssignedMessage);

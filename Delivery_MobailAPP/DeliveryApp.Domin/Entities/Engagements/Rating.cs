@@ -1,35 +1,44 @@
 ﻿using DeliveryApp.Domain.DomainErrors;
-using DeliveryApp.Domain.DomainErrors.EngagementErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.EngagementEnums;
-using System;
+using DeliveryApp.Domain.DomainErrors.EngagementErrors;
 
 namespace DeliveryApp.Domain.Entities.Engagements
 {
-    public class Rating
+    public class Rating // يمثل تقييم حهة معينة
     {
-        public RatingID ID { get; private set; }
-        public OrderID OrderID { get; private set; }
-        public UserID RaterUserID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public RatedEntityType TargetType { get; private set; }
-        public Guid RatedEntityID { get; private set; }
+        public RatingID ID { get; private set; } // PK معرف التقييم
 
-        public RatingStars Stars { get; private set; }
-        public string? Comment { get; private set; }
+        // -------------------------
+        //         Relations
+        // -------------------------
 
-        public DateTimeOffset CreatedAt { get; private set; }
+        public OrderID OrderID { get; private set; } // الطلب المرتبط بالتقييم
+        public UserID RaterUserID { get; private set; } // المستخدم الي قام بالتقييم
+
+        public RatedEntityType TargetType { get; private set; } // الكيان الي تقيم
+        public Guid RatedEntityId { get; private set; } // معرف الكيان الي تقيم
+
+        // -------------------------
+        //         Content
+        // -------------------------
+
+        public RatingStars Stars { get; private set; } // عدد النجوم
+        public string? Comment { get; private set; } // تعليق اختياري
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء التقييم
 
         private Rating() { }
 
-        public Rating(
-            OrderID orderId,
-            UserID raterUserId,
-            Guid ratedEntityId,
-            RatingStars stars,
-            RatedEntityType targetType,
-            DateTimeOffset createdAtUtc,
-            string? comment = null)
+        public Rating(OrderID orderId, UserID raterUserId, Guid ratedEntityId, RatingStars stars, RatedEntityType targetType, DateTimeOffset createdAtUtc, string? comment = null)
         {
             if (orderId.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(orderId));
@@ -46,15 +55,15 @@ namespace DeliveryApp.Domain.Entities.Engagements
             if (!Enum.IsDefined(typeof(RatedEntityType), targetType)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(targetType));
 
-            if (raterUserId.Value == ratedEntityId) throw new DomainRuleViolationException
-                    (RatingErrors.SelfRatingCode, RatingErrors.SelfRatingMessage);
+            if ((targetType == RatedEntityType.Customer || targetType == RatedEntityType.Driver) && raterUserId.Value == ratedEntityId)
+                throw new DomainRuleViolationException (RatingErrors.SelfRatingCode, RatingErrors.SelfRatingMessage);
 
             ID = RatingID.New();
             OrderID = orderId;
             RaterUserID = raterUserId;
 
             TargetType = targetType;
-            RatedEntityID = ratedEntityId;
+            RatedEntityId = ratedEntityId;
 
             CreatedAt = createdAtUtc;
 
@@ -66,7 +75,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
         //         Behavior
         // -------------------------
 
-        public void Update(RatingStars newStars, string? newComment, DateTimeOffset utcNow)
+        public void Update(RatingStars newStars, string? newComment, DateTimeOffset utcNow) // تعديل التقييم
         {
             if (utcNow == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
@@ -85,7 +94,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
         //         Setters
         // -------------------------
 
-        private void SetStars(RatingStars value)
+        private void SetStars(RatingStars value) // إدخال عدد النجوم
         {
             if (!Enum.IsDefined(typeof(RatingStars), value)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(Stars));
@@ -93,7 +102,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
             Stars = value;
         }
 
-        private void SetComment(string? value)
+        private void SetComment(string? value) // إدخال التعليق
         {
             value = NormalizeOptional(value);
 
@@ -107,7 +116,6 @@ namespace DeliveryApp.Domain.Entities.Engagements
         //         Helpers
         // -------------------------
 
-        private static string? NormalizeOptional(string? value)
-            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim(); // تنظيف النص
     }
 }

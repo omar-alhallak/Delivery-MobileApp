@@ -19,7 +19,7 @@ namespace DeliveryApp.Domain.Entities.Customers
         //       Basic Info
         // -------------------------
 
-        public string? Label { get; private set; } //  اسم مختصر للعنوان منإضافة الزبون
+        public string? Label { get; private set; } //  اسم مختصر للعنوان من إضافة الزبون
         public AddressType? AddressType { get; private set; } // نوع العنوان
 
         // -------------------------

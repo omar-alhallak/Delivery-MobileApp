@@ -87,10 +87,10 @@ namespace DeliveryApp.Domain.Entities.Drivers
         }
 
         // ------------------------
-        //     Vehicle details
+        //     Vehicle details         إدخال بيانات الرخصة ولوحة المركبة
         // ------------------------
 
-        public void SetVehicleLicense(string licensePhotoUrl, string licenseNumber, string plateNumber) // إدخال بيانات الرخصة ولوحة المركبة
+        public void SetVehicleLicense(string licensePhotoUrl, string licenseNumber, string plateNumber) // للمركبات التي تحتاج رخصة
         {
             EnsurePending();
 
