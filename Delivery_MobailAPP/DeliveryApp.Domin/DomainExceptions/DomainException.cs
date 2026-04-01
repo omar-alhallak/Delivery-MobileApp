@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.DomainExceptions
+﻿namespace DeliveryApp.Domain.DomainExceptions
 {
-    public abstract class DomainException : Exception
+    public abstract class DomainException : Exception // الأب لكل الأخطاء
     {
         public string Code { get; }
 

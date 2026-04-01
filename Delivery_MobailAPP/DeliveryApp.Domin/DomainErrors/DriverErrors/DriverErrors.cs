@@ -1,16 +1,17 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.DomainErrors.DriverErrors
+﻿namespace DeliveryApp.Domain.DomainErrors.DriverErrors
 {
     public static class DriverErrors
     {
-        public const string DisabledCode = "driver.disabled";
+        // السائق موقف
+        public const string DisabledCode = "Driver.Disabled";
         public const string DisabledMessage = "Driver app access is disabled.";
 
-        public const string OfflineCode = "driver.offline";
+        // السائق غير متصل
+        public const string OfflineCode = "Driver.Offline";
         public const string OfflineMessage = "Driver must be online.";
 
-        public const string CantbeUnavailableWithActiveOrdersCode = "Driver.cannot_Go_Unavailable_With_Active_Orders";
-        public const string CantbeUnavailableWithActiveOrdersMessage = "Cannot go unavailable while having active orders.";
+        // إذا السائق كان يوصل طلب لا يمكن أن يجعل نفسه غير متوفر
+        public const string CantbeUnavailableWithActiveOrdersCode = "Driver.Cant_Go_Unavailable_With_Active_Orders";
+        public const string CantbeUnavailableWithActiveOrdersMessage = "Cant go unavailable while having active orders.";
     }
 }

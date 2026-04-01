@@ -1,51 +1,98 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.Enums.EngagementEnums;
 using DeliveryApp.Domain.DomainErrors.DriverErrors;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
-    public class Driver
+    public class Driver // يمثل سائق
     {
-        public UserID ID { get; private set; }
-        public VehicleTypeID VehicleTypeID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public bool IsEnabled { get; private set; } = true;
-        public UserID? DisabledByAdminID { get; private set; }
-        public DateTimeOffset? DisabledAt { get; private set; }
+        public UserID ID { get; private set; } // PK سائق هو يوزر
 
-        public bool IsAvailable { get; private set; }
-        public int ActiveOrdersCount { get; private set; }
+        // -------------------------
+        //          Vehicle
+        // -------------------------
 
-        public DateTimeOffset? LastSeenAt { get; private set; }
+        public VehicleTypeID VehicleTypeID { get; private set; } // نوع المركبة
 
-        public decimal? CurrentLat { get; private set; }
-        public decimal? CurrentLng { get; private set; }
-        public DateTimeOffset? LastLocationAt { get; private set; }
+        // -------------------------
+        //      Admin Control
+        // -------------------------
 
-        public UserID ApprovedByAdminID { get; private set; }
-        public DateTimeOffset ApprovedAt { get; private set; }
-        public DateTimeOffset CreatedAt { get; private set; }
+        public bool IsEnabled { get; private set; } = true; // هل السائق مفعل أو معطل
+        public UserID? DisabledByAdminID { get; private set; } // إذا معطل أي مشرف قام بتعطيله
+        public DateTimeOffset? DisabledAt { get; private set; } // متى تم تعطيل الحساب
+
+        // -------------------------
+        //       Availability
+        // -------------------------
+
+        public bool IsAvailable { get; private set; } // هل سائق متاح لاستقبال الطبيات
+        public int ActiveOrdersCount { get; private set; } // كم طلب نشط عند سائق
+
+        // -------------------------
+        //          Active
+        // -------------------------
+
+        public DateTimeOffset? LastSeenAt { get; private set; } // أخر وقت كان السائق نشط فيه
+
+        // -------------------------
+        //         Location
+        // -------------------------
+
+        public GeoPoint? CurrentLocation { get; private set; } // أخر موقع للسائق
+        public DateTimeOffset? LastLocationAt { get; private set; } // متى تم تحديث هذا الموقع
+
+        // -------------------------
+        //          Rating
+        // -------------------------
+
+        public decimal AverageRating { get; private set; } // متوسط تقييم السائق
+        public int RatingsCount { get; private set; } // عدد تقيمات
+
+        // -------------------------
+        //         Approval
+        // -------------------------
+
+        public UserID ApprovedByAdminID { get; private set; } // من المشرف الذي وافق على عمل سائق
+        public DateTimeOffset ApprovedAt { get; private set; } // وقت الموافقة
+
+        // -------------------------
+        //          Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء الحساب
 
         private Driver() { }
 
-        public Driver(UserID UserId, VehicleTypeID VehicleTypeId, UserID ApprovedByAdminId, DateTimeOffset ApprovedAtUtc)
+        public Driver(UserID userId, VehicleTypeID vehicleTypeId, UserID approvedByAdminId, DateTimeOffset approvedAtUtc)
         {
-            if (UserId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(UserId));
-            if (VehicleTypeId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(VehicleTypeId));
-            if (ApprovedByAdminId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(ApprovedByAdminId));
-            if (ApprovedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(ApprovedAtUtc));
+            if (userId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(userId));
 
-            ID = UserId;
-            VehicleTypeID = VehicleTypeId;
+            if (vehicleTypeId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(vehicleTypeId));
 
-            ApprovedByAdminID = ApprovedByAdminId;
-            ApprovedAt = ApprovedAtUtc;
-            CreatedAt = ApprovedAtUtc;
+            if (approvedByAdminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(approvedByAdminId));
+
+            if (approvedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(approvedAtUtc));
+
+            ID = userId;
+            VehicleTypeID = vehicleTypeId;
+
+            ApprovedByAdminID = approvedByAdminId;
+            ApprovedAt = approvedAtUtc;
+            CreatedAt = approvedAtUtc;
+
+            AverageRating = 0;
+            RatingsCount = 0;
 
             IsAvailable = false;
             ActiveOrdersCount = 0;
@@ -55,24 +102,28 @@ namespace DeliveryApp.Domain.Entities.Drivers
         // -------------------------------
         //      disable/enable driver
         // -------------------------------
-        public void Disable(UserID AdminId, DateTimeOffset UtcNow)
+
+        public void Disable(UserID adminId, DateTimeOffset utcNow) // تعطيل السائق من قبل المشرف
         {
-            if (AdminId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(AdminId));
+            if (adminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(adminId));
+
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
 
             if (!IsEnabled) return;
 
             IsEnabled = false;
             IsAvailable = false;
 
-            DisabledByAdminID = AdminId;
-            DisabledAt = UtcNow;
+            DisabledByAdminID = adminId;
+            DisabledAt = utcNow;
         }
 
-        public void Enable(UserID AdminId, DateTimeOffset UtcNow)
+        public void Enable(UserID adminId) // إعادة تفعيل السائق بعد تعطيله
         {
-            if (AdminId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(AdminId));
+            if (adminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(adminId));
 
             if (IsEnabled) return;
 
@@ -81,48 +132,66 @@ namespace DeliveryApp.Domain.Entities.Drivers
             DisabledAt = null;
         }
 
-        private void IsNotDisable()
+        private void EnsureEnabled() // التأكد أن السائق غير معطلة
         {
-            if (!IsEnabled) throw new DomainRuleViolationException(DriverErrors.DisabledCode, DriverErrors.DisabledMessage);
+            if (!IsEnabled) throw new DomainRuleViolationException
+                    (DriverErrors.DisabledCode, DriverErrors.DisabledMessage);
         }
 
         // ---------- Online ----------
-        public bool IsOnline(DateTimeOffset UtcNow, TimeSpan threshold)
-        {
-            if (threshold <= TimeSpan.Zero)
-                throw new DomainValidationException(ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, field: nameof(threshold));
 
-            return LastSeenAt.HasValue && (UtcNow - LastSeenAt.Value) <= threshold;
+        public bool IsOnline(DateTimeOffset utcNow, TimeSpan threshold) // التحقق هل السائق متصل حسب آخر نشاط
+        {
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
+
+            if (threshold <= TimeSpan.Zero) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(threshold));
+
+            return LastSeenAt.HasValue && (utcNow - LastSeenAt.Value) <= threshold;
         }
 
         // -------------------------
         //   Activity -- Location
         // -------------------------
-        public void Touch(DateTimeOffset UtcNow)
+
+        public void Touch(DateTimeOffset utcNow) // تحديث آخر ظهور للسائق بدون تغيير الموقع
         {
-            IsNotDisable();
-            LastSeenAt = UtcNow;
+            EnsureEnabled();
+
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
+
+            LastSeenAt = utcNow;
         }
 
-        public void UpdateLocation(decimal lat, decimal lng, DateTimeOffset UtcNow)
+        public void UpdateLocation(decimal lat, decimal lng, DateTimeOffset utcNow) // تحديث موقع السائق وآخر ظهور له
         {
-            IsNotDisable();
-            ValidateLocation(lat, lng);
+            EnsureEnabled();
 
-            CurrentLat = lat;
-            CurrentLng = lng;
-            LastLocationAt = UtcNow;
-            LastSeenAt = UtcNow;
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
+
+            CurrentLocation = GeoPoint.Create(lat, lng);
+            LastLocationAt = utcNow;
+            LastSeenAt = utcNow;
         }
 
         // ---------- Availability ----------
-        public void SetAvailable(bool available, DateTimeOffset UtcNow, TimeSpan onlineThreshold)
+
+        public void SetAvailable(bool available, DateTimeOffset utcNow, TimeSpan onlineThreshold) // تغيير حالة التوفر
         {
-            IsNotDisable();
+            EnsureEnabled();
+
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
+
+            if (onlineThreshold <= TimeSpan.Zero) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(onlineThreshold));
 
             if (available)
             {
-                if (!IsOnline(UtcNow, onlineThreshold)) throw new DomainRuleViolationException
+                if (!IsOnline(utcNow, onlineThreshold)) throw new DomainRuleViolationException
                         (DriverErrors.OfflineCode, DriverErrors.OfflineMessage);
             }
             else
@@ -135,39 +204,67 @@ namespace DeliveryApp.Domain.Entities.Drivers
         }
 
         // --------- Vehicle ---------
-        public void ChangeVehicle(VehicleTypeID NewVehicleTypeId)
+
+        public void ChangeVehicle(VehicleTypeID newVehicleTypeId) // تغيير نوع المركبة المستخدمة من السائق
         {
-            IsNotDisable();
+            EnsureEnabled();
 
-            if (NewVehicleTypeId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field: nameof(NewVehicleTypeId));
+            if (newVehicleTypeId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(newVehicleTypeId));
 
-            VehicleTypeID = NewVehicleTypeId;
+            VehicleTypeID = newVehicleTypeId;
         }
 
         // -------------------------
         //      Orders counter
         // -------------------------
-        public void AssignOrders()
+
+        public void AssignOrder() // زيادة عدد الطلبات النشطة عند إرسال طلب جديد للسائق
         {
-            IsNotDisable();
+            EnsureEnabled();
             ActiveOrdersCount++;
         }
 
-        public void CompletOrders()
+        public void CompleteOrder() // إنقاص عدد الطلبات النشطة عند إنتهاء الطلب
         {
-            IsNotDisable();
+            EnsureEnabled();
+
             if (ActiveOrdersCount <= 0) return;
             ActiveOrdersCount--;
         }
 
-        private static void ValidateLocation(decimal lat, decimal lng)
-        {
-            if (lat < -90 || lat > 90) throw new DomainValidationException
-                    (ValidationErrors.InvalidLatCode, ValidationErrors.InvalidLatMessage, field: nameof(lat));
+        // -------------------------
+        //         Rating
+        // -------------------------
 
-            if (lng < -180 || lng > 180) throw new DomainValidationException
-                    (ValidationErrors.InvalidLngCode, ValidationErrors.InvalidLngMessage, field: nameof(lng));
+        public void AddRating(RatingStars stars) // إضافة تقييم جديد
+        {
+            ValidateRatingStars(stars);
+
+            var value = (int)stars;
+
+            AverageRating = ((AverageRating * RatingsCount) + value) / (RatingsCount + 1);
+            RatingsCount++;
+        }
+
+        public void UpdateRating(RatingStars oldStars, RatingStars newStars) // تحديث تقييم
+        {
+            ValidateRatingStars(oldStars);
+            ValidateRatingStars(newStars);
+
+            if (RatingsCount <= 0) throw new DomainRuleViolationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
+
+            var oldValue = (int)oldStars;
+            var newValue = (int)newStars;
+
+            AverageRating = ((AverageRating * RatingsCount) - oldValue + newValue) / RatingsCount;
+        }
+
+        private static void ValidateRatingStars(RatingStars stars) // تحقق من صحة التقييم
+        {
+            if (!Enum.IsDefined(typeof(RatingStars), stars)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(stars));
         }
     }
 }

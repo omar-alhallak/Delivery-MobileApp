@@ -1,38 +1,89 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
-    public class Variant
+    public class Variant // (يمثل تفاصيل المنتجات مثل (الحجم أو سعة الخ
     {
-        [Key]
-        public Guid VariantID { get; set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        [Required]
-        public Guid ProductID { get; set; }
+        public VariantID ID { get; private set; } // PK معرف ال Variant
+        public ProductID ProductID { get; private set; } // المنتج المرتبط فيه
 
-        [Required]
-        [MaxLength(150)]
-        public string VariantName { get; set; } = string.Empty;
+        // -------------------------
+        //        Basic Info
+        // -------------------------
 
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal BasePrice { get; set; }
+        public CatalogName VariantName { get; private set; } = null!; // اسم ال Variant
+        public decimal BasePrice { get; private set; } // السعر الأساسي
 
-        public bool IsActive { get; set; }
+        // -------------------------
+        //          State
+        // -------------------------
 
-        public DateTimeOffset CreatedAt { get; set; }
+        public bool IsActive { get; private set; } // مفعل أو لاء
+        public DateTimeOffset CreatedAt { get; private set; } // وقت الإنشاء
 
-        public Variant()
+        private Variant() { }
+
+        public Variant(VariantID variantId, ProductID productId, string variantName, decimal basePrice, DateTimeOffset createdAtUtc)
         {
-            VariantID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
+            if (variantId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(variantId));
+
+            if (productId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(productId));
+
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
+
+            ID = variantId;
+            ProductID = productId;
+
+            SetName(variantName);
+            SetBasePrice(basePrice);
+
             IsActive = true;
+            CreatedAt = createdAtUtc;
+        }
+
+        // -------------------------
+        //          Behavior
+        // -------------------------
+
+        public void Rename(string name) => SetName(name); // تغيير اسم ال Variant
+
+        public void ChangePrice(decimal basePrice) => SetBasePrice(basePrice); // تغيير السعر
+
+        public void Activate() // تفعيل ال Variant
+        {
+            if (IsActive) return;
+
+            IsActive = true;
+        }
+
+        public void Deactivate() // تعطيل ال Variant
+        {
+            if (!IsActive) return;
+
+            IsActive = false;
+        }
+
+        // -------------------------
+        //           Setters
+        // -------------------------
+
+        private void SetName(string value) => VariantName = CatalogName.Create(value, 100, nameof(VariantName)); // إدخال اسم ال Variant
+        
+        private void SetBasePrice(decimal value) // إدخال السعر
+        {
+            if (value < 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(BasePrice));
+
+            BasePrice = value;
         }
     }
 }

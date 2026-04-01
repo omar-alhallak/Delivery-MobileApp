@@ -1,50 +1,202 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.DomainErrors.ModerationErrors;
+using DeliveryApp.Domain.Enums.ModerationEnums.AccountWarningEnums;
 
 namespace DeliveryApp.Domain.Entities.Moderation
 {
-    public class AccountWarning
+    public class AccountWarning // يمثل تحذير إداري على جهة معينة
     {
-        [Key]
-        public Guid WarningID { get; set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        [Required]
-        public int EntityType { get; set; }  
+        public AccountWarningID ID { get; private set; } // PK معرف التحذير
 
-        [Required]
-        public Guid EntityID { get; set; }
+        // -------------------------
+        //      Target Entity
+        // -------------------------
 
-        public Guid? RelatedOrderID { get; set; }
+        public WarningEntityType EntityType { get; private set; } // الجهة المستهدفة بالتحذير
+        public Guid EntityID { get; private set; } // معرف الجهة
 
-        [Required]
-        [MaxLength(1000)]
-        public string Reason { get; set; } = string.Empty;
+        // -------------------------
+        //        Relation
+        // -------------------------
 
-        [Required]
-        public int Severity { get; set; }  
+        public OrderID? RelatedOrderID { get; private set; } // الطلب المرتبط بالتحذير
 
-        [Required]
-        public Guid CreatedByAdminId { get; set; }
+        // -------------------------
+        //      Warning Details
+        // -------------------------
 
-        public int? Decision { get; set; }   
+        public WarningReason Reason { get; private set; } // سبب التحذير
+        public string ReasonDetails { get; private set; } = null!; // تفاصيل إضافية عن سبب التحذير
+        public WarningSeverity Severity { get; private set; } // شدة خطورة التحذير
 
-        public DateTimeOffset? ExpiresAt { get; set; }
+        // -------------------------
+        //         Decision
+        // -------------------------
 
-        [MaxLength(1000)]
-        public string? Notes { get; set; }
+        public WarningDecision Decision { get; private set; } // قرار التحذير (معلق، مؤكد، مرفوض)د
 
-        public DateTimeOffset CreatedAt { get; set; }
+        // -------------------------
+        //          Status
+        // -------------------------
 
-        public DateTimeOffset? DecidedAt { get; set; }
+        public bool IsActive { get; private set; } // هل التحذير ما يزال فعال
 
-        public AccountWarning()
+        // -------------------------
+        //         Expiry
+        // -------------------------
+
+        public DateTimeOffset? ExpiresAt { get; private set; } // وقت انتهاء صلاحية التحذير
+
+        // -------------------------
+        //         Moderation
+        // -------------------------
+
+        public UserID CreatedByAdminID { get; private set; } // المشرف الذي أنشأ التحذير
+        public UserID? DecidedByAdminID { get; private set; } // المشرف الذي حسم القرار
+
+        // -------------------------
+        //          Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء التحذير
+        public DateTimeOffset? DecidedAt { get; private set; } // وقت اتخاذ القرار
+
+        private AccountWarning() { }
+
+        public AccountWarning(AccountWarningID id, WarningEntityType entityType, Guid entityId, WarningReason reason, string reasonDetails,
+            WarningSeverity severity, UserID createdByAdminId, DateTimeOffset createdAtUtc, OrderID? relatedOrderId = null, DateTimeOffset? expiresAtUtc = null) // إنشاء تحذير جديد بحالة Pending
         {
-            WarningID = Guid.NewGuid();
-            CreatedAt = DateTimeOffset.UtcNow;
+            if (id.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
+
+            if (entityId == Guid.Empty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(entityId));
+
+            if (createdByAdminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdByAdminId));
+
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
+
+            if (!Enum.IsDefined(typeof(WarningEntityType), entityType)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(entityType));
+
+            if (!Enum.IsDefined(typeof(WarningReason), reason)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(reason));
+
+            if (!Enum.IsDefined(typeof(WarningSeverity), severity)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(severity));
+
+            if (expiresAtUtc.HasValue && expiresAtUtc.Value <= createdAtUtc) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(expiresAtUtc));
+
+            ID = id;
+
+            EntityType = entityType;
+            EntityID = entityId;
+
+            Reason = reason;
+            SetReasonDetails(reasonDetails);
+            Severity = severity;
+
+            CreatedByAdminID = createdByAdminId;
+            CreatedAt = createdAtUtc;
+
+            RelatedOrderID = relatedOrderId;
+            ExpiresAt = expiresAtUtc;
+
+            Decision = WarningDecision.Pending;
+            IsActive = true;
+        }
+
+        // ------------------------
+        //        Decisions
+        // ------------------------
+
+        public void Confirm(UserID adminId, DateTimeOffset decidedAtUtc) // تأكيد التحذير
+        {
+            EnsurePending();
+
+            if (adminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(adminId));
+
+            if (decidedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(decidedAtUtc));
+
+            if (decidedAtUtc < CreatedAt) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(decidedAtUtc));
+
+            Decision = WarningDecision.Confirmed;
+            DecidedByAdminID = adminId;
+            DecidedAt = decidedAtUtc;
+        }
+
+        public void Dismiss(UserID adminId, DateTimeOffset decidedAtUtc) // إيقاف التحذير
+        {
+            EnsurePending();
+
+            if (adminId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(adminId));
+
+            if (decidedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(decidedAtUtc));
+
+            if (decidedAtUtc < CreatedAt) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(decidedAtUtc));
+
+            Decision = WarningDecision.Dismissed;
+            DecidedByAdminID = adminId;
+            DecidedAt = decidedAtUtc;
+            IsActive = false;
+        }
+
+        public void Deactivate() // تعطيل التحذير
+        {
+            if (!IsActive) throw new DomainRuleViolationException
+                    (AccountWarningErrors.WarningAlreadyInactiveCode, AccountWarningErrors.WarningAlreadyInactiveMessage);
+
+            IsActive = false;
+        }
+
+        // -------------------------
+        //         Helpers
+        // -------------------------
+
+        public bool IsExpired(DateTimeOffset now) // التحقق هل انتهت صلاحية التحذير
+        {
+            if (now == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(now));
+
+            return ExpiresAt.HasValue && now >= ExpiresAt.Value;
+        }
+
+        private void EnsurePending() // التأكد أن التحذير ما زال بحالة Pending قبل حسمه
+        {
+            if (Decision != WarningDecision.Pending) throw new DomainRuleViolationException
+                    (AccountWarningErrors.WarningAlreadyDecidedCode, AccountWarningErrors.WarningAlreadyDecidedMessage);
+        }
+
+        private void SetReasonDetails(string value) // إدخال تفاصيل سبب التحذير والتحقق من صحتها
+        {
+            value = NormalizeRequired(value, nameof(ReasonDetails));
+
+            if (value.Length > 1000) throw new DomainValidationException
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ReasonDetails));
+
+            ReasonDetails = value;
+        }
+
+        private static string NormalizeRequired(string? value, string field) // تنظيف النص والتحقق من وجوده
+        {
+            if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, field);
+
+            return value.Trim();
         }
     }
 }

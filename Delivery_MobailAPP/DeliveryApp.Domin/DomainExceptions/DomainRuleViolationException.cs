@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.DomainExceptions
+﻿namespace DeliveryApp.Domain.DomainExceptions
 {
-    public sealed class DomainRuleViolationException : DomainException
+    public sealed class DomainRuleViolationException : DomainException // كسر قاعدة من القواعد الموضوعة
     {
         public DomainRuleViolationException(string code, string message) : base(code, message) { }
     }

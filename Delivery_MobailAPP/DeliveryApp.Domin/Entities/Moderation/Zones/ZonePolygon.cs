@@ -1,42 +1,76 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DeliveryApp.Domain.DomainErrors;
+using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Moderation.Zones
 {
-    public class ZonePolygon
+    public class ZonePolygon // يمثل نقطة ضمن حدود منطقة
     {
-        [Key]
-        public Guid ID { get; set; }
+        // -------------------------
+        //         Location
+        // -------------------------
 
-        [Required]
-        public Guid ZoneID { get; set; }
+        public GeoPoint Location { get; private set; } = null!; // إحداثيات النقطة
 
-        [Required]
-        public decimal Latitude { get; set; }
+        // -------------------------
+        //          Order
+        // -------------------------
 
-        [Required]
-        public decimal Longitude { get; set; }
+        public int SortOrder { get; private set; } // ترتيب النقطة ضمن الشكل
 
-        [Required]
-        public int SortOrder { get; set; }
+        // -------------------------
+        //          Dates
+        // -------------------------
 
-        [Required]
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء النقطة
 
-        private ZonePolygon() { } 
+        private ZonePolygon() { }
 
-        public ZonePolygon(Guid ZoneId, decimal latitude, decimal longitude, int sortOrder)
+        public ZonePolygon(GeoPoint location, int sortOrder, DateTimeOffset createdAtUtc)
         {
-            ID = Guid.NewGuid();
-            ZoneID = ZoneId;
-            Latitude = latitude;
-            Longitude = longitude;
-            SortOrder = sortOrder;
-            CreatedAt = DateTimeOffset.UtcNow;
+            if (location is null) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(location));
+
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
+
+            Location = location;
+            CreatedAt = createdAtUtc;
+
+            SetSortOrder(sortOrder);
+        }
+
+        // -------------------------
+        //         Behavior
+        // -------------------------
+
+        public void ChangeSortOrder(int sortOrder) // تغيير ترتيب النقطة داخل الشكل
+        {
+            if (SortOrder == sortOrder) return;
+
+            SetSortOrder(sortOrder);
+        }
+
+        public void ChangeLocation(GeoPoint location) // تغيير موقع النقطة
+        {
+            if (location is null) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(location));
+
+            if (Location.Equals(location)) return;
+
+            Location = location;
+        }
+
+        // -------------------------
+        //         Setters
+        // -------------------------
+
+        private void SetSortOrder(int value) // إدخال ترتيب النقطة
+        {
+            if (value <= 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(value));
+
+            SortOrder = value;
         }
     }
 }

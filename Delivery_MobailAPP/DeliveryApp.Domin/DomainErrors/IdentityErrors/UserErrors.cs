@@ -1,25 +1,29 @@
-﻿using System;
-
-namespace DeliveryApp.Domain.DomainErrors.IdentityErrors
+﻿namespace DeliveryApp.Domain.DomainErrors.IdentityErrors
 {
     public static class UserErrors
     {
-        public const string PublicIdAlreadyAssignedCode = "User.public_ID_Already_Assigned";
+        // تم إضافة المعرف مسبقاً
+        public const string PublicIdAlreadyAssignedCode = "User.Public_ID_Already_Assigned";
         public const string PublicIdAlreadyAssignedMessage = "Public ID is already assigned.";
 
-        public const string ProfileFieldNotCompleteCode = "User.profile_Field_NotComplete";
-        public const string ProfileFieldNotCompleteMessage = "Cannot complete The profile. Phone and FullName are required.";
+        // لا بمكنك إنشائ الحساب هناك حقول غير مكتملة
+        public const string ProfileFieldNotCompleteCode = "User.Profile_Field_NotComplete";
+        public const string ProfileFieldNotCompleteMessage = "Cant complete The profile. Phone and FullName are required.";
 
-        public const string CantRemoveRequiredFieldCode = "User.profile_Cannot_Remove_Required_Field";
-        public const string CantRemoveRequiredFieldMessage = "Profile is complete; Cannot remove a required field.";
+        // لا يمكنك حذف حقب مطلوب
+        public const string CantRemoveRequiredFieldCode = "User.Profile_Cant_Remove_Required_Field";
+        public const string CantRemoveRequiredFieldMessage = "Profile is complete; Cant remove a required field.";
 
-        public const string CantRemoveCustFromDrivCode = "User.cannot_Remove_Customer_From_Driver";
-        public const string CantRemoveCustFromDrivMessage = "Cannot remove Customer role from a Driver.";
+        // لا يمكنك إذالة صلاحية زبون من السائق
+        public const string CantRemoveCustFromDrivCode = "User.Cant_Remove_Customer_From_Driver";
+        public const string CantRemoveCustFromDrivMessage = "Cant remove Customer role from a Driver.";
 
-        public const string SuspensionMustBeFutureCode = "User.suspension_Must_be_Future";
+        // وقت التعليق الحساب يجب أن يكون في المستقبل
+        public const string SuspensionMustBeFutureCode = "User.Suspension_Must_Be_Future";
         public const string SuspensionMustBeFutureMessage = "Suspension time must be in the future.";
 
-        public const string BannedCannotBeModifiedCode = "User.banned_Cannot_be_Modified";
-        public const string BannedCannotBeModifiedMessage = "Banned user cannot be modified.";
+        // لا يمكنك تعديل حساب مبند
+        public const string BannedCantBeModifiedCode = "User.Banned_Cant_Be_Modified";
+        public const string BannedCantBeModifiedMessage = "Banned user cant be modified.";
     }
 }
