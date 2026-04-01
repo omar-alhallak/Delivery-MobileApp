@@ -1,60 +1,81 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.MerchantEnums;
 
 namespace DeliveryApp.Domain.Entities.Merchants
 {
-    public class MerchantUser
+    public class MerchantUser // جدول ربط بين المستخدمين والمطاعم وتحديد صلاحيات كل مستخدم داخل المطعم
     {
-        public MerchantID MerchantID { get; private set; }
-        public UserID UserID { get; private set; }
+        // -------------------------
+        //         Relations
+        // -------------------------
 
-        public MerchantUserRole Role { get; private set; }
+        public MerchantID MerchantID { get; private set; } // المطعم المرتبط
+        public UserID UserID { get; private set; } // المستخدم المرتبط
 
-        public bool IsActive { get; private set; }
+        // -------------------------
+        //          Access
+        // -------------------------
 
-        public DateTimeOffset CreatedAt { get; private set; }
+        public MerchantUserRole Role { get; private set; } // صلاحية المستخدم داخل المطعم
+
+        // -------------------------
+        //          State
+        // -------------------------
+
+        public bool IsActive { get; private set; } // هل العلاقة فعالة
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء الربط
 
         private MerchantUser() { }
 
-        public MerchantUser(MerchantID MerchantId, UserID UserId, MerchantUserRole role, DateTimeOffset CreatedAtUtc)
+        public MerchantUser(MerchantID merchantId, UserID userId, MerchantUserRole role, DateTimeOffset createdAtUtc)
         {
-            if (MerchantId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(MerchantId));
+            if (merchantId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(merchantId));
 
-            if (UserId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserId));
+            if (userId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(userId));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             if (!Enum.IsDefined(typeof(MerchantUserRole), role)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(role));
 
-            MerchantID = MerchantId;
-            UserID = UserId;
+            MerchantID = merchantId;
+            UserID = userId;
             Role = role;
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
             IsActive = true;
         }
 
-        public void ChangeRole(MerchantUserRole role)
+        // -------------------------
+        //         Behavior
+        // -------------------------
+
+        public void ChangeRole(MerchantUserRole role) // تغيير دور المستخدم داخل المطعم
         {
             if (!Enum.IsDefined(typeof(MerchantUserRole), role)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(role));
 
+            if (Role == role) return;
+
             Role = role;
         }
 
-        public void Activate()
+        public void Activate() // تفعيل العلاقة بين المستخدم والمطعم
         {
             if (IsActive) return;
 
             IsActive = true;
         }
 
-        public void Deactivate()
+        public void Deactivate() // تعطيل العلاقة بين المستخدم والمطعم
         {
             if (!IsActive) return;
 

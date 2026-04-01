@@ -1,37 +1,55 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.EngagementEnums;
 using DeliveryApp.Domain.DomainErrors.EngagementErrors;
 
 namespace DeliveryApp.Domain.Entities.Engagements
 {
-    public class Notification
+    public class Notification // يمثل الإشعار المرسل إلى المستخدم
     {
-        public NotificationID ID { get; private set; }
-        public UserID UserID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public string Title { get; private set; } = string.Empty;
-        public string Body { get; private set; } = string.Empty;
+        public NotificationID ID { get; private set; } // PK معرف الإشعار
+        public UserID UserID { get; private set; } // المستخدم صاحب الإشعار
 
-        public RelatedEntityType? RelatedEntityType { get; private set; }
-        public Guid? RelatedEntityID { get; private set; }
+        // -------------------------
+        //         Content
+        // -------------------------
 
-        public bool IsRead { get; private set; }
+        public string Title { get; private set; } = string.Empty; // عنوان الإشعار
+        public string Body { get; private set; } = string.Empty; // نص الإشعار
 
-        public DateTimeOffset CreatedAt { get; private set; }
-        public DateTimeOffset? ReadAt { get; private set; }
+        // -------------------------
+        //      Related Entity
+        // -------------------------
+
+        public RelatedEntityType? RelatedEntityType { get; private set; } // نوع الكيان المرتبط فيه الإشعار
+        public Guid? RelatedEntityID { get; private set; } // معرف الكيان المرتبط بالإشعار
+
+        // -------------------------
+        //          Status
+        // -------------------------
+
+        public bool IsRead { get; private set; } // هل تم قراءة الإشعار
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء الإشعار
+        public DateTimeOffset? ReadAt { get; private set; } // وقت قراءة الإشعار
 
         private Notification() { }
 
-        public Notification(UserID UserId, string title, string body, DateTimeOffset CreatedAtUtc,
-            Guid? relatedEntityId = null, RelatedEntityType? relatedEntityType = null)
+        public Notification(UserID userId, string title, string body, DateTimeOffset createdAtUtc, Guid? relatedEntityId = null, RelatedEntityType? relatedEntityType = null)
         {
-            if (UserId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserId));
+            if (userId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(userId));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             if (relatedEntityType.HasValue && !Enum.IsDefined(typeof(RelatedEntityType), relatedEntityType.Value)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(relatedEntityType));
@@ -39,7 +57,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
             ValidateRelatedEntity(relatedEntityId, relatedEntityType);
 
             ID = NotificationID.New();
-            UserID = UserId;
+            UserID = userId;
 
             RelatedEntityID = relatedEntityId;
             RelatedEntityType = relatedEntityType;
@@ -47,7 +65,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
             SetTitle(title);
             SetBody(body);
 
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
             IsRead = false;
         }
 
@@ -55,7 +73,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
         //         Behavior
         // -------------------------
 
-        public void MarkAsRead(DateTimeOffset readAtUtc)
+        public void MarkAsRead(DateTimeOffset readAtUtc) // تمت قراءة الإشعار 
         {
             if (IsRead) return;
 
@@ -73,8 +91,11 @@ namespace DeliveryApp.Domain.Entities.Engagements
         //        Validation
         // -------------------------
 
-        private static void ValidateRelatedEntity(Guid? relatedEntityId, RelatedEntityType? relatedEntityType)
+        private static void ValidateRelatedEntity(Guid? relatedEntityId, RelatedEntityType? relatedEntityType) // التحقق من صحة الربط بين الإشعار والكيان
         {
+            if (relatedEntityId.HasValue && relatedEntityId.Value == Guid.Empty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(relatedEntityId));
+
             if (relatedEntityId.HasValue && !relatedEntityType.HasValue) throw new DomainValidationException
                     (NotificationErrors.RelatedEntityRequiredCode, NotificationErrors.RelatedEntityRequiredMessage, nameof(relatedEntityType));
 
@@ -86,7 +107,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
         //         Setters
         // -------------------------
 
-        private void SetTitle(string value)
+        private void SetTitle(string value) // إدخال عنوان الإشعار
         {
             value = NormalizeRequired(value, nameof(Title));
 
@@ -96,7 +117,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
             Title = value;
         }
 
-        private void SetBody(string value)
+        private void SetBody(string value) // إدخال نص الإشعار
         {
             value = NormalizeRequired(value, nameof(Body));
 
@@ -110,7 +131,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
         //         Helpers
         // -------------------------
 
-        private static string NormalizeRequired(string? value, string fieldName)
+        private static string NormalizeRequired(string? value, string fieldName) // تنظيف النص
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, fieldName);

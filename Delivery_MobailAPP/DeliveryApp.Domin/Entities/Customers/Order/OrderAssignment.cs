@@ -1,47 +1,66 @@
-﻿using System;
-using DeliveryApp.Domain.Enums.OrderEnums;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Domain.Enums.OrderEnums;
 using DeliveryApp.Domain.DomainErrors.OrderErrors;
 
 namespace DeliveryApp.Domain.Entities.Orders
 {
-    public class OrderAssignment
+    public class OrderAssignment // يمثل إسناد طلب إلى سائق
     {
-        public Guid ID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public OrderID OrderID { get; private set; }
-        public UserID DriverID { get; private set; }
+        public Guid ID { get; private set; } // pk معرف الإسناد
 
-        public DateTimeOffset AssignedAt { get; private set; }
+        // -------------------------
+        //         Relations
+        // -------------------------
 
-        public OrderAssignmentStatus Status { get; private set; }
+        public OrderID OrderID { get; private set; } // الطلب المرتبط بهذا الإسناد
+        public UserID DriverID { get; private set; } // السائق الذي أسند إليه الطلب
 
-        public DateTimeOffset? RemovedAt { get; private set; }
-        public string? RemoveReason { get; private set; }
+        // -------------------------
+        //           Dates
+        // -------------------------
 
-        public bool IsRemoved => Status == OrderAssignmentStatus.Removed;
+        public DateTimeOffset AssignedAt { get; private set; } // وقت إنشاء الإسناد
+
+        // -------------------------
+        //          Status
+        // -------------------------
+
+        public OrderAssignmentStatus Status { get; private set; } // حالة الإسناد الحالية
+
+        // -------------------------
+        //          Remove
+        // -------------------------
+
+        public DateTimeOffset? RemovedAt { get; private set; } // وقت إزالة الإسناد
+        public string? RemoveReason { get; private set; } // سبب إزالة الإسناد
+
+        public bool IsRemoved => Status == OrderAssignmentStatus.Removed; // هل الإسناد تمت إزالته
 
         private OrderAssignment() { }
 
-        public OrderAssignment(Guid id, OrderID OrderId, UserID DriverId, DateTimeOffset AssignedAtUtc)
+        public OrderAssignment(Guid id, OrderID orderId, UserID driverId, DateTimeOffset assignedAtUtc)
         {
             if (id == Guid.Empty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (OrderId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(OrderId));
+            if (orderId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(orderId));
 
-            if (DriverId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(DriverId));
+            if (driverId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(driverId));
 
-            if (AssignedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(AssignedAtUtc));
+            if (assignedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(assignedAtUtc));
 
             ID = id;
-            OrderID = OrderId;
-            DriverID = DriverId;
-            AssignedAt = AssignedAtUtc;
+            OrderID = orderId;
+            DriverID = driverId;
+            AssignedAt = assignedAtUtc;
 
             Status = OrderAssignmentStatus.Pending;
         }
@@ -50,9 +69,9 @@ namespace DeliveryApp.Domain.Entities.Orders
         //         Behavior
         // -------------------------
 
-        public void Accept()
+        public void Accept() // قبول السائق
         {
-            CheckNotRemoved();
+            EnsureNotRemoved();
 
             if (Status == OrderAssignmentStatus.Accepted) throw new DomainRuleViolationException
                     (OrderAssignmentErrors.AssignmentAlreadyAcceptedCode, OrderAssignmentErrors.AssignmentAlreadyAcceptedMessage);
@@ -63,9 +82,9 @@ namespace DeliveryApp.Domain.Entities.Orders
             Status = OrderAssignmentStatus.Accepted;
         }
 
-        public void Reject()
+        public void Reject() // رفض السائق
         {
-            CheckNotRemoved();
+            EnsureNotRemoved();
 
             if (Status == OrderAssignmentStatus.Rejected) throw new DomainRuleViolationException
                     (OrderAssignmentErrors.AssignmentAlreadyRejectedCode, OrderAssignmentErrors.AssignmentAlreadyRejectedMessage);
@@ -76,17 +95,20 @@ namespace DeliveryApp.Domain.Entities.Orders
             Status = OrderAssignmentStatus.Rejected;
         }
 
-        public void Remove(string reason, DateTimeOffset RemovedAtUtc)
+        public void Remove(string reason, DateTimeOffset removedAtUtc) // إزالة الإسناد من الطلب
         {
             if (IsRemoved) throw new DomainRuleViolationException
                     (OrderAssignmentErrors.AssignmentAlreadyRemovedCode, OrderAssignmentErrors.AssignmentAlreadyRemovedMessage);
 
-            if (RemovedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(RemovedAtUtc));
+            if (removedAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(removedAtUtc));
+
+            if (removedAtUtc < AssignedAt) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(removedAtUtc));
 
             SetRemoveReason(reason);
 
-            RemovedAt = RemovedAtUtc;
+            RemovedAt = removedAtUtc;
             Status = OrderAssignmentStatus.Removed;
         }
 
@@ -94,7 +116,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         //        Validation
         // -------------------------
 
-        private void CheckNotRemoved()
+        private void EnsureNotRemoved() // التأكد أن الإسناد لم تتم إزالته
         {
             if (IsRemoved) throw new DomainRuleViolationException
                     (OrderAssignmentErrors.CantModifyRemovedAssignmentCode, OrderAssignmentErrors.CantModifyRemovedAssignmentMessage);
@@ -104,7 +126,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         //         Setters
         // -------------------------
 
-        private void SetRemoveReason(string value)
+        private void SetRemoveReason(string value) // إدخال سبب الإزالة
         {
             if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(RemoveReason));

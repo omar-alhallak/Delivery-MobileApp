@@ -4,7 +4,7 @@ using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Drivers
 {
-    public class DriverLocation // يمثل سجل موقع للسائق في وقت معين
+    public class DriverLocation // يمثل سجل موقع السائق في وقت معين
     {
         // -------------------------
         //            Key

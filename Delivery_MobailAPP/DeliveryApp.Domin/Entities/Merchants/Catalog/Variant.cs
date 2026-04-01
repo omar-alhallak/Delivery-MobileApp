@@ -1,64 +1,86 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
-    public class Variant
+    public class Variant // (يمثل تفاصيل المنتجات مثل (الحجم أو سعة الخ
     {
-        public VariantID ID { get; private set; }
-        public ProductID ProductID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public CatalogName VariantName { get; private set; } = null!;
+        public VariantID ID { get; private set; } // PK معرف ال Variant
+        public ProductID ProductID { get; private set; } // المنتج المرتبط فيه
 
-        public decimal BasePrice { get; private set; }
+        // -------------------------
+        //        Basic Info
+        // -------------------------
 
-        public bool IsActive { get; private set; }
-        public DateTimeOffset CreatedAt { get; private set; }
+        public CatalogName VariantName { get; private set; } = null!; // اسم ال Variant
+        public decimal BasePrice { get; private set; } // السعر الأساسي
+
+        // -------------------------
+        //          State
+        // -------------------------
+
+        public bool IsActive { get; private set; } // مفعل أو لاء
+        public DateTimeOffset CreatedAt { get; private set; } // وقت الإنشاء
 
         private Variant() { }
 
-        public Variant(VariantID Id, ProductID ProductId, string variantName, decimal basePrice, DateTimeOffset CreatedAtUtc)
+        public Variant(VariantID variantId, ProductID productId, string variantName, decimal basePrice, DateTimeOffset createdAtUtc)
         {
-            if (Id.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ID));
+            if (variantId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(variantId));
 
-            if (ProductId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ProductID));
+            if (productId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(productId));
 
-            ID = Id;
-            ProductID = ProductId;
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
+
+            ID = variantId;
+            ProductID = productId;
 
             SetName(variantName);
             SetBasePrice(basePrice);
 
             IsActive = true;
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
         }
 
         // -------------------------
         //          Behavior
         // -------------------------
 
-        public void Rename(string name) => SetName(name);
+        public void Rename(string name) => SetName(name); // تغيير اسم ال Variant
 
-        public void ChangePrice(decimal basePrice) => SetBasePrice(basePrice);
+        public void ChangePrice(decimal basePrice) => SetBasePrice(basePrice); // تغيير السعر
 
-        public void Activate() => IsActive = true;
+        public void Activate() // تفعيل ال Variant
+        {
+            if (IsActive) return;
 
-        public void Deactivate() => IsActive = false;
+            IsActive = true;
+        }
+
+        public void Deactivate() // تعطيل ال Variant
+        {
+            if (!IsActive) return;
+
+            IsActive = false;
+        }
 
         // -------------------------
         //           Setters
         // -------------------------
 
-        private void SetName(string value) =>
-            VariantName = CatalogName.Create(value, maxLength: 100, fieldName: nameof(VariantName));
-
-        private void SetBasePrice(decimal value)
+        private void SetName(string value) => VariantName = CatalogName.Create(value, 100, nameof(VariantName)); // إدخال اسم ال Variant
+        
+        private void SetBasePrice(decimal value) // إدخال السعر
         {
-            if (value <= 0) throw new DomainValidationException
+            if (value < 0) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(BasePrice));
 
             BasePrice = value;

@@ -132,7 +132,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
             DisabledAt = null;
         }
 
-        private void EnsureEnabled() // التأكد أن السائق غير معطل قبل أي عملية تشغيلية
+        private void EnsureEnabled() // التأكد أن السائق غير معطلة
         {
             if (!IsEnabled) throw new DomainRuleViolationException
                     (DriverErrors.DisabledCode, DriverErrors.DisabledMessage);

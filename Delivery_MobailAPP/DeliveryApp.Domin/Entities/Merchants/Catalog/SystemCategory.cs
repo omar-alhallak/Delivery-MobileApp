@@ -1,80 +1,111 @@
-﻿using System;
-using DeliveryApp.Domain.ValueObjects;
+﻿using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.MerchantEnums;
 
 namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
-    public class SystemCategory
+    public class SystemCategory // يمثل تصنيفات نظام مثل (مطاعم أو متاجر الخ)د
     {
-        public SystemCategoryID ID { get; private set; }
-        public MerchantType MerchantType { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public CatalogName CategoriesName { get; private set; } = null!;
-        public Slug Slug { get; private set; } = null!;
+        public SystemCategoryID ID { get; private set; } // PK معرف التصنيف 
+        public MerchantType MerchantType { get; private set; } // نوع التاجر الي قله هذا التصنيف
 
-        public string? ImageURL { get; private set; }
+        // -------------------------
+        //        Basic Info
+        // -------------------------
 
-        public int SortOrder { get; private set; }
-        public bool IsActive { get; private set; }
+        public CatalogName CategoryName { get; private set; } = null!; // اسم التصنيف
+        public Slug Slug { get; private set; } = null!; // الاسم المختصر المستخدم في الروابط
 
-        public DateTimeOffset CreatedAt { get; private set; }
+        public string? ImageUrl { get; private set; } // صورة التصنيف
+
+        // -------------------------
+        //         Display
+        // -------------------------
+
+        public int SortOrder { get; private set; } // ترتيب التصنيف في العرض
+        public bool IsActive { get; private set; } // هل التصنيف مفعل
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء التصنيف
 
         private SystemCategory() { }
 
-        public SystemCategory(SystemCategoryID id, MerchantType merchantType, string categoriesName,
-            string slug, string? imageUrl, int sortOrder, DateTimeOffset CreatedAtUtc)
+        public SystemCategory(SystemCategoryID id, MerchantType merchantType, string categoryName, string slug, string? imageUrl, int sortOrder, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ID));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
+
+            if (!Enum.IsDefined(typeof(MerchantType), merchantType)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(merchantType));
+
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             ID = id;
             MerchantType = merchantType;
 
-            SetName(categoriesName);
+            SetName(categoryName);
             SetSlug(slug);
             SetImageUrl(imageUrl);
             SetSortOrder(sortOrder);
 
             IsActive = true;
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
         }
 
         // -------------------------
         //         Behavior
         // -------------------------
-        public void Rename(string categoriesName) => SetName(categoriesName);
 
-        public void ChangeSlug(string slug) => SetSlug(slug);
+        public void Rename(string categoryName) => SetName(categoryName); // تغيير اسم التصنيف
 
-        public void ChangeImage(string? imageUrl) => SetImageUrl(imageUrl);
+        public void ChangeSlug(string slug) => SetSlug(slug); // تغيير الـ Slug
 
-        public void ChangeSortOrder(int sortOrder) => SetSortOrder(sortOrder);
+        public void ChangeImage(string? imageUrl) => SetImageUrl(imageUrl); // تغيير صورة التصنيف
 
-        public void Activate() => IsActive = true;
+        public void ChangeSortOrder(int sortOrder) => SetSortOrder(sortOrder); // تغيير ترتيب التصنيف
 
-        public void Deactivate() => IsActive = false;
+        public void Activate() // تفعيل التصنيف
+        {
+            if (IsActive) return;
+
+            IsActive = true;
+        }
+
+        public void Deactivate() // تعطيل التصنيف
+        {
+            if (!IsActive) return;
+
+            IsActive = false;
+        }
 
         // -------------------------
-        //           setters
+        //          Setters
         // -------------------------
-        private void SetName(string value) =>
-            CategoriesName = CatalogName.Create(value, 150, nameof(CategoriesName));
 
-        private void SetSlug(string value) => Slug = Slug.Create(value);
+        private void SetName(string value) => CategoryName = CatalogName.Create(value, 150, nameof(CategoryName)); // إدخال اسم التصنيف باستخدام
 
-        private void SetImageUrl(string? value)
+        private void SetSlug(string value) => Slug = Slug.Create(value); // إدخال ال Slug
+
+        private void SetImageUrl(string? value) // إدخال صورة التصنيف
         {
             value = NormalizeOptional(value);
 
             if (value is not null && value.Length > 500) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ImageURL));
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ImageUrl));
 
-            ImageURL = value;
+            ImageUrl = value;
         }
 
-        private void SetSortOrder(int value)
+        private void SetSortOrder(int value) // إدخال ترتيب العرض
         {
             if (value < 0) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(SortOrder));
@@ -82,6 +113,6 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
             SortOrder = value;
         }
 
-        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim(); // تنظيف النصوص
     }
 }

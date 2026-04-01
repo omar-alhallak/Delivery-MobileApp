@@ -1,48 +1,70 @@
-﻿using System;
-using DeliveryApp.Domain.ValueObjects;
+﻿using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
-using DeliveryApp.Domain.DomainErrors.MerchantErrors;
-using DeliveryApp.Domain.Enums.EngagementEnums;
 using DeliveryApp.Domain.Enums.MerchantEnums;
+using DeliveryApp.Domain.Enums.EngagementEnums;
+using DeliveryApp.Domain.DomainErrors.MerchantErrors;
 
 namespace DeliveryApp.Domain.Entities.Merchants
 {
-    public class Merchant
+    public class Merchant // يمثل التجار (مطاعم و متاجر)د
     {
-        public MerchantID ID { get; private set; }
-        public PublicCode? PublicID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public MerchantType MerchantType { get; private set; }
+        public MerchantID ID { get; private set; } // PK معرف التاجر
+        public PublicCode? PublicID { get; private set; } // الكود العام الي بيظهر للمستخدم
 
-        public string MerchantName { get; private set; } = null!;
-        public Slug Slug { get; private set; } = null!;
+        // -------------------------
+        //        Basic Info
+        // -------------------------
 
-        public string? Description { get; private set; }
-        public string? Phone { get; private set; }
+        public MerchantType MerchantType { get; private set; } // نوع التاجر
+        public CatalogName MerchantName { get; private set; } = null!; // اسم التاجر
+        public Slug Slug { get; private set; } = null!; // الاسم المختصر المستخدم في الروابط
 
-        public string? LogoUrl { get; private set; }
-        public string? CoverImageUrl { get; private set; }
+        public string? Description { get; private set; } // وصف التاجر
+        public string? Phone { get; private set; } // رقم هاتف التاجر
 
-        public GeoPoint Location { get; private set; } = null!;
+        public string? LogoUrl { get; private set; } // شعار التاجر
+        public string? CoverImageUrl { get; private set; } // صورة الغلاف
 
-        public decimal AverageRating { get; private set; }
-        public int RatingsCount { get; private set; }
+        // -------------------------
+        //         Location
+        // -------------------------
 
-        public bool IsActive { get; private set; }
+        public GeoPoint Location { get; private set; } = null!; // موقع التاجر
 
-        public DateTimeOffset CreatedAt { get; private set; }
+        // -------------------------
+        //          Rating
+        // -------------------------
+
+        public decimal AverageRating { get; private set; } // متوسط تقييم التاجر
+        public int RatingsCount { get; private set; } // عدد تقييمات التاجر
+
+        // -------------------------
+        //          State
+        // -------------------------
+
+        public bool IsActive { get; private set; } // هل التاجر مفعل
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء التاجر
 
         private Merchant() { }
 
-        public Merchant(MerchantID id, MerchantType merchantType, string merchantName, string slug, decimal lat, decimal lng,
-            string? description, string? phone, string? logoUrl, string? coverImageUrl, DateTimeOffset CreatedAtUtc)
+        public Merchant(MerchantID id, MerchantType merchantType, string merchantName, string slug, decimal lat, decimal lng, string? description,
+            string? phone, string? logoUrl, string? coverImageUrl, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             if (!Enum.IsDefined(typeof(MerchantType), merchantType)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(merchantType));
@@ -63,12 +85,15 @@ namespace DeliveryApp.Domain.Entities.Merchants
             AverageRating = 0;
             RatingsCount = 0;
 
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
             IsActive = false;
         }
 
-        // ------------ Public ID ------------
-        public void AssignPublicID(PublicCode publicId)
+        // -------------------------
+        //         Public ID
+        // -------------------------
+
+        public void AssignPublicID(PublicCode publicId) // تعيين الكود العام
         {
             if (PublicID is not null) throw new DomainConflictException
                     (MerchantErrors.PublicIdAlreadyAssignedCode, MerchantErrors.PublicIdAlreadyAssignedMessage);
@@ -80,36 +105,36 @@ namespace DeliveryApp.Domain.Entities.Merchants
         //         Behavior
         // -------------------------
 
-        public void Rename(string name) => SetName(name);
+        public void Rename(string name) => SetName(name); // تغيير اسم التاجر
 
-        public void ChangeSlug(string slug) => SetSlug(slug);
+        public void ChangeSlug(string slug) => SetSlug(slug); // تغيير ال Slug
 
-        public void ChangeDescription(string? description) => SetDescription(description);
+        public void ChangeDescription(string? description) => SetDescription(description); // تغيير وصف التاجر
 
-        public void ChangePhone(string? phone) => SetPhone(phone);
+        public void ChangePhone(string? phone) => SetPhone(phone); // تغيير رقم هاتف التاجر
 
-        public void ChangeLogo(string? logoUrl) => SetLogoUrl(logoUrl);
+        public void ChangeLogo(string? logoUrl) => SetLogoUrl(logoUrl); // تغيير شعار التاجر
 
-        public void ChangeCoverImage(string? coverImageUrl) => SetCoverImageUrl(coverImageUrl);
+        public void ChangeCoverImage(string? coverImageUrl) => SetCoverImageUrl(coverImageUrl); // تغيير صورة الغلاف
 
-        public void Relocate(decimal lat, decimal lng) => SetLocation(lat, lng);
+        public void Relocate(decimal lat, decimal lng) => SetLocation(lat, lng); // تغيير موقع التاجر
 
-        public void Deactivate()
+        public void Activate() // تفعيل التاجر
+        {
+            if (IsActive) return;
+
+            EnsureCanBeActivated();
+            IsActive = true;
+        }
+
+        public void Deactivate() // تعطيل التاجر
         {
             if (!IsActive) return;
 
             IsActive = false;
         }
 
-        public void Activate()
-        {
-            if (IsActive) return;
-
-            CheckCanBeActivated();
-            IsActive = true;
-        }
-
-        public void AddRating(RatingStars stars)
+        public void AddRating(RatingStars stars) // إضافة تقييم جديد للتاجر
         {
             ValidateRatingStars(stars);
 
@@ -119,7 +144,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
             RatingsCount++;
         }
 
-        public void UpdateRating(RatingStars oldStars, RatingStars newStars)
+        public void UpdateRating(RatingStars oldStars, RatingStars newStars) // تعديل تقييم موجود للتاجر
         {
             ValidateRatingStars(oldStars);
             ValidateRatingStars(newStars);
@@ -137,9 +162,9 @@ namespace DeliveryApp.Domain.Entities.Merchants
         //        Validation
         // -------------------------
 
-        private void CheckCanBeActivated()
+        private void EnsureCanBeActivated() // التأكد أن التاجر يملك البيانات المطلوبة قبل التفعيل
         {
-            if (string.IsNullOrWhiteSpace(MerchantName)) throw new DomainRuleViolationException
+            if (string.IsNullOrWhiteSpace(MerchantName.Value)) throw new DomainRuleViolationException
                     (MerchantErrors.CantActivateWithoutNameCode, MerchantErrors.CantActivateWithoutNameMessage);
 
             if (string.IsNullOrWhiteSpace(LogoUrl)) throw new DomainRuleViolationException
@@ -149,7 +174,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
                     (MerchantErrors.CantActivateWithoutCoverImageCode, MerchantErrors.CantActivateWithoutCoverImageMessage);
         }
 
-        private static void ValidateRatingStars(RatingStars stars)
+        private static void ValidateRatingStars(RatingStars stars) // التحقق من صحة تقييم
         {
             if (!Enum.IsDefined(typeof(RatingStars), stars)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(stars));
@@ -159,24 +184,13 @@ namespace DeliveryApp.Domain.Entities.Merchants
         //         Setters
         // -------------------------
 
-        private void SetName(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(MerchantName));
+        private void SetName(string value) => MerchantName = CatalogName.Create(value, 150, nameof(MerchantName)); // إدخال اسم التاجر
 
-            value = value.Trim();
+        private void SetSlug(string value)  =>  Slug = Slug.Create(value); // إدخال ال Slug
 
-            if (value.Length > 150) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(MerchantName));
+        private void SetLocation(decimal lat, decimal lng) => Location = GeoPoint.Create(lat, lng); // إدخال موقع التاجر
 
-            MerchantName = value;
-        }
-
-        private void SetSlug(string value) => Slug = Slug.Create(value);
-
-        private void SetLocation(decimal lat, decimal lng) => Location = GeoPoint.Create(lat, lng);
-
-        private void SetDescription(string? value)
+        private void SetDescription(string? value) // إدخال وصف التاجر
         {
             value = NormalizeOptional(value);
 
@@ -186,7 +200,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
             Description = value;
         }
 
-        private void SetPhone(string? value)
+        private void SetPhone(string? value) // إدخال رقم هاتف التاجر
         {
             value = NormalizeOptional(value);
 
@@ -196,7 +210,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
             Phone = value;
         }
 
-        private void SetLogoUrl(string? value)
+        private void SetLogoUrl(string? value) // إدخال شعار التاجر
         {
             value = NormalizeOptional(value);
 
@@ -206,7 +220,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
             LogoUrl = value;
         }
 
-        private void SetCoverImageUrl(string? value)
+        private void SetCoverImageUrl(string? value) // إدخال صورة الغلاف
         {
             value = NormalizeOptional(value);
 
@@ -216,6 +230,6 @@ namespace DeliveryApp.Domain.Entities.Merchants
             CoverImageUrl = value;
         }
 
-        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim(); // تنظيف النصوص
     }
 }

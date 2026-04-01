@@ -1,96 +1,117 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
-using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 using DeliveryApp.Domain.Enums.IdentityEnums;
+using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {
-    public class UserIdentity
+    public class UserIdentity // يمثل وسائل تسجيل الدخول المرتبطة بالمستخدم
     {
-        public UserIdentityID ID { get; private set; }
-        public UserID UserID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public AuthProvider Provider { get; private set; }
-        public string? ProviderUserId { get; private set; }
+        public UserIdentityID ID { get; private set; } // PK معرف الهوية
+        public UserID UserID { get; private set; } // المستخدم المرتبط بهذه الهوية
 
-        public string? PasswordHash { get; private set; }
+        // -------------------------
+        //        Provider Info
+        // -------------------------
 
-        public DateTimeOffset CreatedAt { get; private set; }
+        public AuthProvider Provider { get; private set; } // مزود تسجيل الدخول
+        public string? ProviderUserId { get; private set; } // معرف المستخدم من جهة تسجيل
+
+        public string? PasswordHash { get; private set; } // كلمة المرور المشفرة
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء الهوية
 
         private UserIdentity() { }
 
-        private UserIdentity(UserIdentityID id, UserID UserId, AuthProvider provider, string? providerUserId,
-            string? passwordHash, DateTimeOffset CreatedAtUtc)
+        private UserIdentity(UserIdentityID id, UserID userId, AuthProvider provider, string? providerUserId, string? passwordHash, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (UserId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserId));
+            if (userId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(userId));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
+
+            if (!Enum.IsDefined(typeof(AuthProvider), provider)) throw new DomainValidationException
+                    (UserIdentityErrors.UnsupportedProviderCode, UserIdentityErrors.UnsupportedProviderMessage, nameof(provider));
 
             ID = id;
-            UserID = UserId;
+            UserID = userId;
             Provider = provider;
 
             ProviderUserId = Normalize(providerUserId);
             PasswordHash = Normalize(passwordHash);
 
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
 
             ValidateInvariants();
         }
 
         // -------------------------
-        //         Identity
+        //          Identity
         // -------------------------
 
-        public static UserIdentity CreateLocal(UserIdentityID id, UserID UserId, string passwordHash, DateTimeOffset CreatedAtUtc)
+        public static UserIdentity CreateLocal(UserIdentityID id, UserID userId, string passwordHash, DateTimeOffset createdAtUtc) // إنشاء طريقة تسجيل محلية
         {
             if (string.IsNullOrWhiteSpace(passwordHash)) throw new DomainValidationException
                     (UserIdentityErrors.PasswordRequiredForLocalCode, UserIdentityErrors.PasswordRequiredForLocalMessage, nameof(passwordHash));
 
-            return new UserIdentity(id: id, UserId: UserId, provider: AuthProvider.Local, providerUserId: null,
-                passwordHash: passwordHash, CreatedAtUtc: CreatedAtUtc);
+            return new UserIdentity(
+                id: id,
+                userId: userId,
+                provider: AuthProvider.Local,
+                providerUserId: null,
+                passwordHash: passwordHash,
+                createdAtUtc: createdAtUtc);
         }
 
-        public static UserIdentity CreateGoogle(UserIdentityID id, UserID UserId, string googleSub, DateTimeOffset CreatedAtUtc)
+        public static UserIdentity CreateGoogle(UserIdentityID id, UserID userId, string googleSub, DateTimeOffset createdAtUtc) // إنشاء طريقة تسجيل Google
         {
             if (string.IsNullOrWhiteSpace(googleSub)) throw new DomainValidationException
                     (UserIdentityErrors.GoogleSubRequiredCode, UserIdentityErrors.GoogleSubRequiredMessage, nameof(googleSub));
 
-            return new UserIdentity(id: id, UserId: UserId, provider: AuthProvider.Google, providerUserId: googleSub,
-                passwordHash: null, CreatedAtUtc: CreatedAtUtc);
+            return new UserIdentity(
+                id: id,
+                userId: userId,
+                provider: AuthProvider.Google,
+                providerUserId: googleSub,
+                passwordHash: null,
+                createdAtUtc: createdAtUtc);
         }
 
-        public void ChangeLocalPasswordHash(string NewPasswordHash)
+        public void ChangeLocalPasswordHash(string newPasswordHash) // تغيير كلمة المرور
         {
             if (Provider != AuthProvider.Local) throw new DomainRuleViolationException
                     (UserIdentityErrors.PasswordChangeOnlyForLocalCode, UserIdentityErrors.PasswordChangeOnlyForLocalMessage);
 
-            if (string.IsNullOrWhiteSpace(NewPasswordHash)) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(NewPasswordHash));
+            if (string.IsNullOrWhiteSpace(newPasswordHash)) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(newPasswordHash));
 
-            PasswordHash = Normalize(NewPasswordHash);
+            PasswordHash = Normalize(newPasswordHash);
 
             ValidateInvariants();
         }
 
         // -------------------------
-        //         Validaion
+        //         Validation
         // -------------------------
 
-        private void ValidateInvariants()
+        private void ValidateInvariants() // التحقق من القواعد حسب طريقة التسجيل
         {
-            if (ProviderUserId is not null && ProviderUserId.Length > 128)
-                throw new DomainValidationException
+            if (ProviderUserId is not null && ProviderUserId.Length > 128) throw new DomainValidationException
                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ProviderUserId));
 
-            if (PasswordHash is not null && PasswordHash.Length > 300)
-                throw new DomainValidationException
+            if (PasswordHash is not null && PasswordHash.Length > 300) throw new DomainValidationException
                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(PasswordHash));
 
             switch (Provider)
@@ -108,17 +129,20 @@ namespace DeliveryApp.Domain.Entities.Identity
                     if (string.IsNullOrWhiteSpace(ProviderUserId)) throw new DomainRuleViolationException
                             (UserIdentityErrors.GoogleSubRequiredCode, UserIdentityErrors.GoogleSubRequiredMessage);
 
-
                     if (!string.IsNullOrWhiteSpace(PasswordHash)) throw new DomainRuleViolationException
                             (UserIdentityErrors.GoogleCantBeHavePasswordHashCode, UserIdentityErrors.GoogleCantBeHavePasswordHashMessage);
+
                     break;
 
                 default:
-                    throw new DomainValidationException
-                            (UserIdentityErrors.UnsupportedProviderCode, UserIdentityErrors.UnsupportedProviderMessage, field: nameof(Provider));
+                    throw new DomainValidationException(UserIdentityErrors.UnsupportedProviderCode, UserIdentityErrors.UnsupportedProviderMessage, nameof(Provider));
             }
         }
 
-        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+        // -------------------------
+        //          Helpers
+        // -------------------------
+
+        private static string? Normalize(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim(); // تنظيف النصوص
     }
 }
