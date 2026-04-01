@@ -129,7 +129,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
             MaxOrdersToBatch = maxOrdersToBatch;
         }
 
-        private void SetCommission(int commissionPercent) // ضبط نسبة العمولة 
+        private void SetCommission(int commissionPercent) // إدخال نسبة العمولة 
         {
             if (commissionPercent < 0 || commissionPercent > 100) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(CommissionPercent));

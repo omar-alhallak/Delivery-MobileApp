@@ -116,7 +116,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         //        Validation
         // -------------------------
 
-        private void EnsureNotRemoved() // التأكد أن الإسناد لم تتم إزالته قبل التعديل عليه
+        private void EnsureNotRemoved() // التأكد أن الإسناد لم تتم إزالته
         {
             if (IsRemoved) throw new DomainRuleViolationException
                     (OrderAssignmentErrors.CantModifyRemovedAssignmentCode, OrderAssignmentErrors.CantModifyRemovedAssignmentMessage);

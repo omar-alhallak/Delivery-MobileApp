@@ -228,15 +228,12 @@ namespace DeliveryApp.Domain.Entities.Identity
             if (utcNow == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
 
-            return AccountStatus == AccountStatus.Suspended &&
-                   SuspendedUntilUtc.HasValue &&
-                   utcNow >= SuspendedUntilUtc.Value;
+            return AccountStatus == AccountStatus.Suspended && SuspendedUntilUtc.HasValue && utcNow >= SuspendedUntilUtc.Value;
         }
 
         public void AutoActivateIfExpired(DateTimeOffset utcNow) // إعادة التفعيل تلقائياً عند انتهاء مدة الإيقاف
         {
-            if (IsSuspensionExpired(utcNow))
-                Activate();
+            if (IsSuspensionExpired(utcNow)) Activate();
         }
 
         public void SetLastLogin(DateTimeOffset utcNow) // تحديث آخر وقت تسجيل دخول

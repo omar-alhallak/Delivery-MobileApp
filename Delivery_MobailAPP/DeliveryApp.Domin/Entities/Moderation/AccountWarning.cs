@@ -181,7 +181,7 @@ namespace DeliveryApp.Domain.Entities.Moderation
                     (AccountWarningErrors.WarningAlreadyDecidedCode, AccountWarningErrors.WarningAlreadyDecidedMessage);
         }
 
-        private void SetReasonDetails(string value) // ضبط تفاصيل سبب التحذير والتحقق من صحتها
+        private void SetReasonDetails(string value) // إدخال تفاصيل سبب التحذير والتحقق من صحتها
         {
             value = NormalizeRequired(value, nameof(ReasonDetails));
 

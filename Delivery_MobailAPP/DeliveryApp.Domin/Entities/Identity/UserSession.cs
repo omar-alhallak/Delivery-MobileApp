@@ -5,135 +5,193 @@ using DeliveryApp.Domain.DomainErrors.IdentityErrors;
 
 namespace DeliveryApp.Domain.Entities.Identity
 {
-    public class UserSession
+    // -------------------------
+    //         شرح توكين
+    // -------------------------
+        // عند تسجيل الدخول نظام يعطي المستخدم شيئين :
+        // Access Tocen : قصير العمر للطلبات اليومية
+        // Refresh Token : طويل العمر يستخدم لتوليد أكسس توكين بدل من تسجيل الدخول كل مرة
+
+        // HMACSHA256 : طريقة تشفير متل الهاش لكن أمن أكثر وأسرع يستخدم خصيصا مع توكين
+
+    public class UserSession // يمثل جلسة تسجيل دخول واحدة للمستخدم على كل تطبيق من المنصة
     {
-        private const int RefreshHashLength = 32;    // HMACSHA256 = 32
-        private const int MaxDeviceIdLength = 100;
+        // -------------------------
+        //         Constants
+        // -------------------------
 
-        public UserSessionID ID { get; private set; }
-        public UserID UserID { get; private set; }
-        public ClientType ClientType { get; private set; }
-        public string DeviceID { get; private set; } = null!;
+        private const int RefreshHashLength = 32; // HMACSHA256
+        private const int MaxDeviceIdLength = 100; // أقصى طول لمعرف جهاز
 
-        private byte[] refreshTokenHash = Array.Empty<byte>();
-        public ReadOnlyMemory<byte> RefreshTokenHash => refreshTokenHash;
+        // -------------------------
+        //            Key 
+        // -------------------------
 
-        public DateTimeOffset CreatedAt { get; private set; }
-        public DateTimeOffset LastSeenAt { get; private set; }
-        public DateTimeOffset ExpiresAt { get; private set; }
-        public DateTimeOffset? RevokedAt { get; private set; }
-        public bool IsRevoked => RevokedAt.HasValue;
+        public UserSessionID ID { get; private set; } // معرف الجلسة
+        public UserID UserID { get; private set; } // صاحب الجلسة
+
+        // -------------------------
+        //        Client Info
+        // -------------------------
+        public ClientType ClientType { get; private set; } // نوع التطبيق الي تابعة له جلسة
+        public string DeviceID { get; private set; } = null!; // صاحب الجلسة
+
+        // -------------------------
+        //    Refresh Token Hash
+        // -------------------------
+
+        private byte[] refreshTokenHash = Array.Empty<byte>(); // الهاش داخلي ل Refresh token
+        public ReadOnlyMemory<byte> RefreshTokenHash => refreshTokenHash; // عرض الهاش للقراءة فقط
+
+        // -------------------------
+        //           Dates 
+        // -------------------------
+        
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء الجلسة
+        public DateTimeOffset LastSeenAt { get; private set; } // آخر وقت كانت الجلسة فيه نشطة
+        public DateTimeOffset ExpiresAt { get; private set; } // وقت انتهاء الجلسة
+
+        public DateTimeOffset? RevokedAt { get; private set; } // وقت إلغاء الجلسة
+        public bool IsRevoked => RevokedAt.HasValue; // هل جلسة ملغاة
 
         private UserSession() { }
 
-        private UserSession(UserSessionID id, UserID UserId, ClientType clientType, string DeviceId, byte[] refreshTokenHash,
-            DateTimeOffset CreatedAtUtc, DateTimeOffset ExpiresAtUtc)
+        private UserSession(UserSessionID id, UserID userId, ClientType clientType, string deviceId, byte[] refreshTokenHash, DateTimeOffset createdAtUtc, DateTimeOffset expiresAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (UserId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(UserId));
+            if (userId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(userId));
 
             if (!Enum.IsDefined(typeof(ClientType), clientType)) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(clientType));
 
-            if (CreatedAtUtc == default) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAtUtc));
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
-            if (ExpiresAtUtc <= CreatedAtUtc) throw new DomainValidationException
-                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(ExpiresAtUtc));
+            if (expiresAtUtc <= createdAtUtc) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(expiresAtUtc));
 
             ID = id;
-            UserID = UserId;
+            UserID = userId;
             ClientType = clientType;
 
-            DeviceID = NormalizeAndValidateDeviceId(DeviceId);
+            DeviceID = NormalizeAndValidateDeviceId(deviceId);
             StoreRefreshTokenHash(refreshTokenHash);
 
-            CreatedAt = CreatedAtUtc;
-            LastSeenAt = CreatedAtUtc;
-            ExpiresAt = ExpiresAtUtc;
+            CreatedAt = createdAtUtc;
+            LastSeenAt = createdAtUtc; 
+            ExpiresAt = expiresAtUtc;
 
             ValidateState();
         }
 
-        public static UserSession Create(UserSessionID id, UserID userId, ClientType clientType, string deviceId, byte[] refreshTokenHash,
-            DateTimeOffset utcNow, TimeSpan lifetime)
+        // -------------------------
+        //          Factory
+        // -------------------------
+
+        public static UserSession Create(UserSessionID id, UserID userId, ClientType clientType, string deviceId, byte[] refreshTokenHash, DateTimeOffset utcNow, TimeSpan lifetime) // إنشاء جلسة جديدة
         {
             if (lifetime <= TimeSpan.Zero) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(lifetime));
 
-            return new UserSession(id: id, UserId: userId, clientType: clientType, DeviceId: deviceId, refreshTokenHash: refreshTokenHash,
-                CreatedAtUtc: utcNow, ExpiresAtUtc: utcNow.Add(lifetime));
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
+
+            return new UserSession(
+                id: id,
+                userId: userId,
+                clientType: clientType,
+                deviceId: deviceId,
+                refreshTokenHash: refreshTokenHash,
+                createdAtUtc: utcNow,
+                expiresAtUtc: utcNow.Add(lifetime));
         }
 
-        // -------------------------  
-        //        Device Rule   
-        // -------------------------  
+        // -------------------------
+        //        Device Rule
+        // -------------------------
 
-        public void JustSameDevice(string DeviceId)
+        public void EnsureSameDevice(string deviceId) // تأكد من أن العملية تمت من نفس جهاز
         {
-            var normalized = NormalizeAndValidateDeviceId(DeviceId);
+            var normalized = NormalizeAndValidateDeviceId(deviceId);
 
-            if (!string.Equals(DeviceID, normalized, StringComparison.Ordinal))
-                throw new DomainConflictException
+            if (!string.Equals(DeviceID, normalized, StringComparison.Ordinal)) throw new DomainConflictException
                     (UserSessionErrors.DeviceMismatchCode, UserSessionErrors.DeviceMismatchMessage);
         }
 
-        // ------------------------
-        //          Expiry  
-        // ------------------------
+        // -------------------------
+        //          Expiry
+        // -------------------------
 
-        public void Refresh(string DeviceId, byte[] newRefreshTokenHash, DateTimeOffset UtcNow, TimeSpan lifetime)
+        public void Refresh(string deviceId, byte[] newRefreshTokenHash, DateTimeOffset utcNow, TimeSpan lifetime) // تحديث الجلسة
         {
-            JustSameDevice(DeviceId);
-            SureActive(UtcNow);
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
+
+            EnsureSameDevice(deviceId);
+            EnsureActive(utcNow);
 
             if (lifetime <= TimeSpan.Zero) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(lifetime));
 
             StoreRefreshTokenHash(newRefreshTokenHash);
 
-            LastSeenAt = UtcNow;
-            ExpiresAt = UtcNow.Add(lifetime); // Sliding 
+            LastSeenAt = utcNow;
+            ExpiresAt = utcNow.Add(lifetime); // Sliding expiration: كل refresh يمدد الجلسة
 
             ValidateState();
         }
 
-        public void Revoke(DateTimeOffset UtcNow) // إلغاء للأدمن
+        public void Revoke(DateTimeOffset utcNow) // إلغاء جلسة نهائياً
         {
             if (IsRevoked) return;
 
-            if (UtcNow < CreatedAt) throw new DomainValidationException
-                    (UserSessionErrors.RevokedAtBeforeCreatedAtCode, UserSessionErrors.RevokedAtBeforeCreatedAtMessage, nameof(UtcNow));
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
 
-            RevokedAt = UtcNow;
-            LastSeenAt = UtcNow;
+            if (utcNow < CreatedAt) throw new DomainValidationException
+                    (UserSessionErrors.RevokedAtBeforeCreatedAtCode, UserSessionErrors.RevokedAtBeforeCreatedAtMessage, nameof(utcNow));
+
+            RevokedAt = utcNow;
+            LastSeenAt = utcNow;
         }
 
-        // -------------------------  
-        //           State  
-        // -------------------------  
+        // -------------------------
+        //           State
+        // -------------------------
 
-        public bool IsExpired(DateTimeOffset UtcNow) => UtcNow >= ExpiresAt;
+        public bool IsExpired(DateTimeOffset utcNow) // هل إنتهى صلاحية الجلسة
+        {
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
 
-        public bool IsActive(DateTimeOffset UtcNow) => !IsRevoked && !IsExpired(UtcNow);
+            return utcNow >= ExpiresAt;
+        }
 
-        private void SureActive(DateTimeOffset UtcNow)
+        public bool IsActive(DateTimeOffset utcNow) // هل جلسة ما تزال فعالة
+        {
+            if (utcNow == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(utcNow));
+
+            return !IsRevoked && !IsExpired(utcNow);
+        }
+
+        private void EnsureActive(DateTimeOffset utcNow) // تأكد أن جلسة ما تزال فعالة
         {
             if (IsRevoked) throw new DomainRuleViolationException
                     (UserSessionErrors.SessionRevokedCode, UserSessionErrors.SessionRevokedMessage);
 
-            if (IsExpired(UtcNow)) throw new DomainRuleViolationException
+            if (IsExpired(utcNow)) throw new DomainRuleViolationException
                     (UserSessionErrors.SessionExpiredCode, UserSessionErrors.SessionExpiredMessage);
         }
 
-        // -------------------------  
-        //          Helpers  
-        // -------------------------  
+        // -------------------------
+        //          Helpers
+        // -------------------------
 
-        private void StoreRefreshTokenHash(byte[] hash)
+        private void StoreRefreshTokenHash(byte[] hash) // تخزين هاش لل Refresh token
         {
             if (hash is null) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(hash));
@@ -144,7 +202,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             refreshTokenHash = (byte[])hash.Clone();
         }
 
-        private static string NormalizeAndValidateDeviceId(string deviceId)
+        private static string NormalizeAndValidateDeviceId(string deviceId) // تنظيف وتحقق من معرف جهاز
         {
             if (string.IsNullOrWhiteSpace(deviceId)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(deviceId));
@@ -157,7 +215,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             return deviceId;
         }
 
-        private void ValidateState()
+        private void ValidateState() // التأكد أن حالة الجلسة صحيحة
         {
             if (CreatedAt == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(CreatedAt));
@@ -166,7 +224,7 @@ namespace DeliveryApp.Domain.Entities.Identity
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
 
             if (ExpiresAt <= CreatedAt) throw new DomainRuleViolationException
-                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);
 
             if (refreshTokenHash.Length != RefreshHashLength) throw new DomainRuleViolationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage);

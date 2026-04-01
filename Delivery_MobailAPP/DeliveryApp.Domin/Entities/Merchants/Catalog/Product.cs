@@ -1,39 +1,61 @@
-﻿using System;
-using DeliveryApp.Domain.DomainErrors;
+﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 {
-    public class Product
+    public class Product // يمثل المنتجات
     {
-        public ProductID ID { get; private set; }
+        // -------------------------
+        //            Key
+        // -------------------------
 
-        public MerchantCategoryID MerchantCategoryID { get; private set; }
+        public ProductID ID { get; private set; } // PK معرف المنتج
 
-        public CatalogName ProductName { get; private set; } = null!;
+        // -------------------------
+        //         Relations
+        // -------------------------
 
-        public string? Description { get; private set; }
-        public string? ImageURL { get; private set; }
+        public MerchantCategoryID MerchantCategoryID { get; private set; } // التصنيف الي له المنتج
 
-        public decimal? BasePrice { get; private set; }
+        // -------------------------
+        //        Basic Info
+        // -------------------------
 
-        public bool IsActive { get; private set; }
-        public DateTimeOffset CreatedAt { get; private set; }
+        public CatalogName ProductName { get; private set; } = null!; // اسم المنتج
+        public string? Description { get; private set; } // وصف المنتج
+        public string? ImageUrl { get; private set; } // صورة المنتج
+
+        // ملاحظة: السعر في حال عدم وجود للمنتج Variant
+        public decimal? BasePrice { get; private set; } // السعر الأساسي للمنتج
+
+        // -------------------------
+        //          State
+        // -------------------------
+
+        public bool IsActive { get; private set; } // هل المنتج مفعل
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
+        public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء المنتج
 
         private Product() { }
 
-        public Product(ProductID id, MerchantCategoryID MerchantCategoryId, string productName, string? description,
-            string? imageUrl, DateTimeOffset CreatedAtUtc, decimal? basePrice = null)
+        public Product(ProductID id, MerchantCategoryID merchantCategoryId, string productName, string? description, string? imageUrl, DateTimeOffset createdAtUtc, decimal? basePrice = null)
         {
             if (id.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(ID));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
 
-            if (MerchantCategoryId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(MerchantCategoryID));
+            if (merchantCategoryId.IsEmpty) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(merchantCategoryId));
+
+            if (createdAtUtc == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
 
             ID = id;
-            MerchantCategoryID = MerchantCategoryId;
+            MerchantCategoryID = merchantCategoryId;
 
             SetName(productName);
             SetDescription(description);
@@ -41,41 +63,51 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
             SetBasePrice(basePrice);
 
             IsActive = true;
-            CreatedAt = CreatedAtUtc;
+            CreatedAt = createdAtUtc;
         }
 
         // -------------------------
         //         Behavior
         // -------------------------
 
-        public void Rename(string name) => SetName(name);
+        public void Rename(string name) => SetName(name); // تغيير اسم المنتج
 
-        public void ChangeDescription(string? description) => SetDescription(description);
+        public void ChangeDescription(string? description) => SetDescription(description); // تغيير وصف المنتج
 
-        public void ChangeImage(string? imageUrl) => SetImageUrl(imageUrl);
+        public void ChangeImage(string? imageUrl) => SetImageUrl(imageUrl); // تغيير صورة المنتج
 
-        public void ChangeBasePrice(decimal? basePrice) => SetBasePrice(basePrice);
+        public void ChangeBasePrice(decimal? basePrice) => SetBasePrice(basePrice); // تغيير السعر الأساسي للمنتج
 
-        public void MoveToCategory(MerchantCategoryID newMerchantCategoryId)
+        public void MoveToCategory(MerchantCategoryID newMerchantCategoryId) // نقل المنتج إلى تصنيف آخر
         {
             if (newMerchantCategoryId.IsEmpty) throw new DomainValidationException
-                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(MerchantCategoryID));
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(newMerchantCategoryId));
 
             MerchantCategoryID = newMerchantCategoryId;
         }
 
-        public void Activate() => IsActive = true;
+        public void Activate() // تفعيل المنتج
+        {
+            if (IsActive) return;
 
-        public void Deactivate() => IsActive = false;
+            IsActive = true;
+        }
+
+        public void Deactivate() // تعطيل المنتج
+        {
+            if (!IsActive) return;
+
+            IsActive = false;
+        }
 
         // -------------------------
         //           Setters
         // -------------------------
 
-        private void SetName(string value) =>
-            ProductName = CatalogName.Create(value, maxLength: 150, fieldName: nameof(ProductName));
+        private void SetName(string value) => ProductName = CatalogName.Create(value, 150, nameof(ProductName)); // إدخال اسم المنتج
+        
 
-        private void SetDescription(string? value)
+        private void SetDescription(string? value) // إدخال وصف المنتج
         {
             value = NormalizeOptional(value);
 
@@ -85,17 +117,17 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
             Description = value;
         }
 
-        private void SetImageUrl(string? value)
+        private void SetImageUrl(string? value) // إدخال صورة المنتج
         {
             value = NormalizeOptional(value);
 
             if (value is not null && value.Length > 500) throw new DomainValidationException
-                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ImageURL));
+                    (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(ImageUrl));
 
-            ImageURL = value;
+            ImageUrl = value;
         }
 
-        private void SetBasePrice(decimal? value)
+        private void SetBasePrice(decimal? value) // إدخال السعر الأساسي للمنتج
         {
             if (value.HasValue && value.Value <= 0) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(BasePrice));
@@ -103,6 +135,6 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
             BasePrice = value;
         }
 
-        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim(); // تنظيف النصوص
     }
 }

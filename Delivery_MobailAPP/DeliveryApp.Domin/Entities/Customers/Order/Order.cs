@@ -160,7 +160,7 @@ namespace DeliveryApp.Domain.Entities.Orders
 
         public void ApproveByMerchant(DateTimeOffset confirmedAtUtc) // المطعم وافق
         {
-            CheckStatus(OrderStatus.AwaitingMerchantApproval);
+            EnsureStatus(OrderStatus.AwaitingMerchantApproval);
 
             if (confirmedAtUtc == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(confirmedAtUtc));
@@ -180,7 +180,7 @@ namespace DeliveryApp.Domain.Entities.Orders
 
         public void MarkDelivered(DateTimeOffset deliveredAtUtc) // تم التسليم
         {
-            CheckStatus(OrderStatus.OnTheWay);
+            EnsureStatus(OrderStatus.OnTheWay);
 
             if (deliveredAtUtc == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(deliveredAtUtc));
@@ -198,14 +198,14 @@ namespace DeliveryApp.Domain.Entities.Orders
 
         public void RejectByMerchant(OrderIssueReason issueReason, string? issueNote) // رفض من المطعم
         {
-            CheckRejectableByMerchant();
+            EnsureRejectableByMerchant();
             SetIssue(issueReason, issueNote);
             Status = OrderStatus.DeliveryFailed;
         }
 
         public void RejectByAdmin(OrderIssueReason issueReason, string? issueNote) // رفض من المشرف
         {
-            CheckRejectableByAdmin();
+            EnsureRejectableByAdmin();
             SetIssue(issueReason, issueNote);
             Status = OrderStatus.DeliveryFailed;
         }
@@ -216,7 +216,7 @@ namespace DeliveryApp.Domain.Entities.Orders
 
         public void Cancel(CancelledByType cancelledByType, UserID cancelledById, OrderIssueReason issueReason, string? issueNote, DateTimeOffset cancelledAtUtc) // إلغاء الطلب
         {
-            CheckCancellable();
+            EnsureCancellable();
             ValidateCancelledByType(cancelledByType);
 
             if (cancelledById.IsEmpty) throw new DomainValidationException
@@ -270,26 +270,26 @@ namespace DeliveryApp.Domain.Entities.Orders
         //        Validation
         // -------------------------
 
-        private void CheckStatus(OrderStatus expectedStatus) // تحقق من صحة الحالة قبل تنفيذها
+        private void EnsureStatus(OrderStatus expectedStatus) // تحقق من صحة الحالة قبل تنفيذها
         {
             if (Status != expectedStatus) throw new DomainRuleViolationException
                     (OrderErrors.InvalidStatusTransitionCode, OrderErrors.InvalidStatusTransitionMessage);
         }
 
-        private void CheckRejectableByMerchant() // تحقق من أن المطعم يستطيع الرفض
+        private void EnsureRejectableByMerchant() // تحقق من أن المطعم يستطيع الرفض
         {
             if (Status != OrderStatus.Draft && Status != OrderStatus.SearchingDrivers && Status != OrderStatus.DriversConfirmed
                 && Status != OrderStatus.AwaitingMerchantApproval && Status != OrderStatus.Preparing && Status != OrderStatus.ReadyForPickup)
                 throw new DomainRuleViolationException(OrderErrors.MerchantCantCancelAfterPickupCode, OrderErrors.MerchantCantCancelAfterPickupMessage);
         }
 
-        private void CheckRejectableByAdmin() // تحقق من أن المشرف يستطيع الرفض
+        private void EnsureRejectableByAdmin() // تحقق من أن المشرف يستطيع الرفض
         {
             if (IsFinal()) throw new DomainRuleViolationException
                     (OrderErrors.CantModifyTerminalOrderCode, OrderErrors.CantModifyTerminalOrderMessage);
         }
 
-        private void CheckCancellable() // التحقق من أن الطلب لسا قابل للإلغاء
+        private void EnsureCancellable() // التحقق من أن الطلب لسا قابل للإلغاء
         {
             if (Status != OrderStatus.Draft && Status != OrderStatus.SearchingDrivers && Status != OrderStatus.DriversConfirmed
                 && Status != OrderStatus.AwaitingMerchantApproval) throw new DomainRuleViolationException

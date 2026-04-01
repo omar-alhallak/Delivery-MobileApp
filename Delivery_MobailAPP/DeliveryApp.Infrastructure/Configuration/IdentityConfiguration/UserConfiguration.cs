@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.ToTable("Users");
+            builder.ToTable("Users", "identity");
 
             // -------------------------
             //            Key
@@ -88,6 +88,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
 
             builder.Property(x => x.CustomerAverageRating)
                 .HasPrecision(3, 2)
+                .HasDefaultValue(0m)
                 .IsRequired();
 
             builder.Property(x => x.CustomerRatingsCount)

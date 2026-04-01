@@ -147,7 +147,7 @@ namespace DeliveryApp.Domain.Entities.Customers
         //        Validation
         // -------------------------
 
-        private void EnsureTemporary() // التأكد أن العنوان ما زال مؤقتاً قبل تغيير موقعه أو إكماله
+        private void EnsureTemporary() // التأكد أن العنوان ما زال مؤقتاً
         {
             if (!IsTemporary) throw new DomainRuleViolationException
                     (AddressErrors.CompletedAddressLocationCantBeChangedCode, AddressErrors.CompletedAddressLocationCantBeChangedMessage);
@@ -163,10 +163,7 @@ namespace DeliveryApp.Domain.Entities.Customers
         //         Setters
         // -------------------------
 
-        private void SetLocation(decimal lat, decimal lng) // إدخال موقع العنوان
-        {
-            Location = GeoPoint.Create(lat, lng);
-        }
+        private void SetLocation(decimal lat, decimal lng) => Location = GeoPoint.Create(lat, lng); // إدخال موقع العنوان
 
         private void SetLabel(string value) // إدخال اسم مختصر للعنوان
         {
