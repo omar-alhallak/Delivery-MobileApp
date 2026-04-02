@@ -23,7 +23,7 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration.Zones
                 .ValueGeneratedNever();
 
             // -------------------------
-            //    Personal Information
+            //       restrictions
             // -------------------------
 
             builder.Property(x => x.ZoneName)

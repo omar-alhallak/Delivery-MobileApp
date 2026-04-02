@@ -26,7 +26,7 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
                 .ValueGeneratedNever();
 
             // -------------------------
-            //    Personal Information
+            //       restrictions
             // -------------------------
 
             builder.Property(x => x.ReasonDetails)
@@ -37,6 +37,34 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
             // -------------------------
             //      ForeignKey
             // -------------------------
+
+            builder.Property(x => x.RelatedOrderID)
+                .HasConversion(
+                    id => id!.Value.Value,  
+                    value => StrongID<OrderTag>.From(value))
+                .IsRequired();
+
+            builder.Property(x => x.EntityID)
+               .HasConversion(
+                    id => id,
+                    value => value
+                )
+              .IsRequired(false);
+
+            builder.Property(x => x.CreatedByAdminID)
+              .HasConversion(
+                  id => id.Value,
+                  value => StrongID<UserTag>.From(value))
+              .IsRequired();
+
+            builder.Property(x => x.DecidedByAdminID)
+              .HasConversion(
+                  id => id!.Value.Value,
+                  value => StrongID<UserTag>.From(value))
+              .IsRequired();
+
+
+
 
             builder.HasOne<Order>()
                 .WithMany()

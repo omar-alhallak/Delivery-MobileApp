@@ -61,6 +61,45 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
             // -------------------------
             //      ForeignKey
             // -------------------------
+            builder.Property(x => x.OrderID)
+               .HasConversion(
+                   id => id!.Value,
+                   value => StrongID<OrderTag>.From(value))
+               .IsRequired();
+
+            builder.Property(x => x.TargetID)
+               .HasConversion(
+                    id => id,
+                    value => value
+                )
+              .IsRequired(false);
+
+            builder.Property(x => x.CreatedByUserID)
+              .HasConversion(
+                  id => id.Value,
+                  value => StrongID<UserTag>.From(value))
+              .IsRequired();
+
+            builder.Property(x => x.ReviewedByAdminID)
+              .HasConversion(
+                  id => id!.Value.Value,
+                  value => StrongID<UserTag>.From(value))
+              .IsRequired();
+
+
+
+
+            builder.HasOne<Order>()
+                .WithMany()
+                .HasForeignKey(x => x.OrderID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.TargetID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<User>()
               .WithMany()
@@ -74,17 +113,7 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
              .IsRequired(false)
              .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne<Order>()
-             .WithMany()
-             .HasForeignKey(x => x.OrderID) 
-             .IsRequired(false)
-             .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne<User>()
-                .WithMany()
-                .HasForeignKey(x => x.TargetID) 
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
             //           Dates

@@ -28,6 +28,10 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration.Zones
             });
 
 
+            // -------------------------
+            //       restrictions
+            // -------------------------
+
             builder.Property(x => x.SortOrder)
                 .IsRequired();
 
