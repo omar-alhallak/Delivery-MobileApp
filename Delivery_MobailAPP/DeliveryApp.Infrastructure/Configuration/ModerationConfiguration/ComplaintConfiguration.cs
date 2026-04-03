@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using DeliveryApp.Domain.Entities.Orders;
 
-namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
+namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
 {
     public sealed class ComplaintConfiguration : IEntityTypeConfiguration<Complaint>
     {
@@ -23,40 +23,6 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
                     id => id.Value,
                     value => StrongID<ComplaintTag>.From(value))
                 .ValueGeneratedNever();
-
-            // -------------------------
-            //         Target
-            // -------------------------
-
-            builder.Property(x => x.TargetType)
-                .HasConversion<int>()
-                .IsRequired();
-
-            // -------------------------
-            //      Complaint Details
-            // -------------------------
-
-            builder.Property(x => x.Reason)
-                .HasConversion<int>()
-                .IsRequired();
-
-            builder.Property(x => x.Message)
-                .HasMaxLength(2000)
-                .IsUnicode(true)
-                .IsRequired();
-
-            // -------------------------
-            //          Review
-            // -------------------------
-
-            builder.Property(x => x.Status)
-                .HasConversion<int>()
-                .IsRequired(); 
-
-            builder.Property(x => x.AdminResponse)
-                .HasMaxLength(2000)
-                .IsUnicode(true)
-                .IsRequired(false);
 
             // -------------------------
             //      ForeignKey
@@ -87,33 +53,67 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
               .IsRequired();
 
 
-
-
             builder.HasOne<Order>()
                 .WithMany()
                 .HasForeignKey(x => x.OrderID)
-                .IsRequired(false)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.TargetID)
-                .IsRequired(false)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<User>()
-              .WithMany()
-              .HasForeignKey(x => x.CreatedByUserID) 
-              .IsRequired(false)
-              .OnDelete(DeleteBehavior.Restrict);
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByUserID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<User>()
-             .WithMany()
-             .HasForeignKey(x => x.ReviewedByAdminID) 
-             .IsRequired(false)
-             .OnDelete(DeleteBehavior.Restrict);
+                .WithMany()
+                .HasForeignKey(x => x.ReviewedByAdminID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
 
+            // -------------------------
+            //         Target
+            // -------------------------
 
+            builder.Property(x => x.TargetType)
+                .HasConversion<int>()
+                .IsRequired();
+
+            // -------------------------
+            //          Enums
+            // -------------------------
+
+            builder.Property(x => x.Status)
+                .HasConversion<int>()
+                .IsRequired();
+
+            builder.Property(x => x.Reason)
+                .HasConversion<int>()
+                .IsRequired();
+
+            // -------------------------
+            //      Complaint Details
+            // -------------------------
+
+            builder.Property(x => x.Message)
+                .HasMaxLength(1000)
+                .IsUnicode(true)
+                .IsRequired();
+
+            // -------------------------
+            //          Review
+            // -------------------------
+
+            builder.Property(x => x.AdminResponse)
+                .HasMaxLength(500)
+                .IsUnicode(true)
+                .IsRequired(false);
 
             // -------------------------
             //           Dates
@@ -130,7 +130,6 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
             // -------------------------
             //          Indexes
             // -------------------------
-
 
             builder.HasIndex(x => new { x.TargetType, x.TargetID })
                 .HasDatabaseName("IX_Complaints_Target");

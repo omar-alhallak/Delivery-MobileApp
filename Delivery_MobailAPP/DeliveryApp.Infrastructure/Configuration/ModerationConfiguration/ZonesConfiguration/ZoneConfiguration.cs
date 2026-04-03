@@ -3,7 +3,7 @@ using DeliveryApp.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration.ZonesConfiguration
+namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.ZonesConfiguration
 {
     public sealed class ZoneConfiguration :IEntityTypeConfiguration<Zone>
     {
@@ -20,7 +20,8 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration.Zones
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<ZoneTag>.From(value))
-                .ValueGeneratedNever();
+                .ValueGeneratedNever()
+                .IsRequired();
 
             // -------------------------
             //       restrictions

@@ -5,7 +5,7 @@ using DeliveryApp.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
+namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
 {
     public sealed class AccountWarningConfiguration : IEntityTypeConfiguration<AccountWarning>
     {
@@ -23,15 +23,7 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<AccountWarningTag>.From(value))
-                .ValueGeneratedNever();
-
-            // -------------------------
-            //       restrictions
-            // -------------------------
-
-            builder.Property(x => x.ReasonDetails)
-                .HasMaxLength(1000)   
-                .IsUnicode(true)      
+                .ValueGeneratedNever()
                 .IsRequired();
 
             // -------------------------
@@ -40,7 +32,7 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
 
             builder.Property(x => x.RelatedOrderID)
                 .HasConversion(
-                    id => id!.Value.Value,  
+                    id => id!.Value.Value,
                     value => StrongID<OrderTag>.From(value))
                 .IsRequired();
 
@@ -49,7 +41,7 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
                     id => id,
                     value => value
                 )
-              .IsRequired(false);
+              .IsRequired();
 
             builder.Property(x => x.CreatedByAdminID)
               .HasConversion(
@@ -64,30 +56,28 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
               .IsRequired();
 
 
-
-
             builder.HasOne<Order>()
                 .WithMany()
                 .HasForeignKey(x => x.RelatedOrderID)
-                .IsRequired(false)           
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<User>()
                 .WithMany()
-                .HasForeignKey(x => x.EntityID) 
-                .IsRequired(false)
+                .HasForeignKey(x => x.EntityID)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<User>()
                 .WithMany()
-                .HasForeignKey(x => x.CreatedByAdminID) 
-                .IsRequired(false)
+                .HasForeignKey(x => x.CreatedByAdminID)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<User>()
                .WithMany()
-               .HasForeignKey(x => x.DecidedByAdminID) 
-               .IsRequired(false)
+               .HasForeignKey(x => x.DecidedByAdminID)
+               .IsRequired()
                .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
@@ -110,13 +100,20 @@ namespace DeliveryApp.Infrastructure.Configuration.ModerationConfiguration
                 .HasConversion<int>() 
                 .IsRequired();
 
-
             // -------------------------
             //         Decision
             // -------------------------
 
             builder.Property(x => x.Decision)
                 .HasConversion<int>() 
+                .IsRequired();
+            // -------------------------
+            //       restrictions
+            // -------------------------
+
+            builder.Property(x => x.ReasonDetails)
+                .HasMaxLength(1000)
+                .IsUnicode(true)
                 .IsRequired();
 
             // -------------------------
