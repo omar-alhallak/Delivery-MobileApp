@@ -24,7 +24,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
                 .ValueGeneratedNever();
 
             // -------------------------
-            //        Public Code
+            //         Public ID
             // -------------------------
 
             builder.Property(x => x.PublicID)
@@ -33,11 +33,25 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
                     value => string.IsNullOrWhiteSpace(value) ? null : PublicCode.From(value))
                 .HasMaxLength(12)
                 .IsUnicode(false)
-                .IsRequired(false);        
+                .IsRequired(false);
 
             // -------------------------
-            //    Personal Information
+            //           Enums
             // -------------------------
+
+            builder.Property(x => x.RoleMask)
+                .HasConversion<int>()
+                .IsRequired();
+
+            builder.Property(x => x.AccountStatus)
+                .HasConversion<byte>()
+                .IsRequired();
+
+            // -------------------------
+            //           Fields
+            // -------------------------
+
+            // -------- Personal Information --------
 
             builder.Property(x => x.Email)
                 .HasMaxLength(255)
@@ -62,41 +76,22 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             builder.Property(x => x.IsProfileComplete)
                 .IsRequired();
 
-            // -------------------------
-            //           Roles
-            // -------------------------
-
-            builder.Property(x => x.RoleMask)
-                .HasConversion<int>()
-                .IsRequired();
-
-            // -------------------------
-            //           Status
-            // -------------------------
-
-            builder.Property(x => x.AccountStatus)
-                .HasConversion<byte>()
-                .IsRequired();
+            // -------- Status --------
 
             builder.Property(x => x.SuspendedUntilUtc)
                 .HasColumnType("datetimeoffset")
                 .IsRequired(false);
 
-            // -------------------------
-            //           Rating
-            // -------------------------
+            // -------- Rating --------
 
             builder.Property(x => x.CustomerAverageRating)
                 .HasPrecision(3, 2)
-                .HasDefaultValue(0m)
                 .IsRequired();
 
             builder.Property(x => x.CustomerRatingsCount)
                 .IsRequired();
 
-            // -------------------------
-            //           Dates
-            // -------------------------
+            // -------- Dates --------
 
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
@@ -116,7 +111,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
 
             builder.HasIndex(x => x.Email)
                 .IsUnique()
-                .HasFilter("[Email] IS NOT NULL");    
+                .HasFilter("[Email] IS NOT NULL");
         }
     }
 }
