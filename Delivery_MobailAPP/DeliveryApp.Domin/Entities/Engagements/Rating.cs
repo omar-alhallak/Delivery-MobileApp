@@ -21,7 +21,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
         public UserID RaterUserID { get; private set; } // المستخدم الي قام بالتقييم
 
         public RatedEntityType TargetType { get; private set; } // الكيان الي تقيم
-        public Guid RatedEntityId { get; private set; } // معرف الكيان الي تقيم
+        public Guid RatedEntityID { get; private set; } // معرف الكيان الي تقيم
 
         // -------------------------
         //         Content
@@ -63,7 +63,7 @@ namespace DeliveryApp.Domain.Entities.Engagements
             RaterUserID = raterUserId;
 
             TargetType = targetType;
-            RatedEntityId = ratedEntityId;
+            RatedEntityID = ratedEntityId;
 
             CreatedAt = createdAtUtc;
 
