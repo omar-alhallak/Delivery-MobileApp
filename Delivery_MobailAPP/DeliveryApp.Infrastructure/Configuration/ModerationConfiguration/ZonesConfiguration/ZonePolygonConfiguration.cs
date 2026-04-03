@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+
 namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.ZonesConfiguration
 {
     public sealed class ZonePolygonConfiguration : IEntityTypeConfiguration<ZonePolygon>
@@ -11,7 +12,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.Zone
         {
             builder.ToTable("ZonePolygons");
 
-            builder.HasKey("Id");
+            builder.HasKey("ZoneID", nameof(ZonePolygon.SortOrder));
 
             // -------------------------
             //         Location
@@ -48,8 +49,11 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.Zone
             //          Indexes
             // -------------------------
 
-            builder.HasIndex("ZoneID") 
-                .HasDatabaseName("IX_ZonePolygons_ZoneID");
+
+            builder.HasIndex("ZoneID", nameof(ZonePolygon.SortOrder))
+                .IsUnique()
+                .HasDatabaseName("UX_ZonePolygon_Zone_Order");
+
         }
     }
 }

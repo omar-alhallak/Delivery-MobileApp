@@ -22,7 +22,8 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<ComplaintTag>.From(value))
-                .ValueGeneratedNever();
+                .ValueGeneratedNever()
+                .IsRequired();
 
             // -------------------------
             //      ForeignKey
@@ -33,6 +34,13 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
                    value => StrongID<OrderTag>.From(value))
                .IsRequired();
 
+            builder.HasOne<Order>()
+               .WithMany()
+               .HasForeignKey(x => x.OrderID)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Restrict);
+            // ------------------------------
+
             builder.Property(x => x.TargetID)
                .HasConversion(
                     id => id,
@@ -40,36 +48,31 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
                 )
               .IsRequired(false);
 
+            builder.HasOne<User>()
+               .WithMany()
+               .HasForeignKey(x => x.TargetID)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Restrict);
+            // -------------------------------
+
             builder.Property(x => x.CreatedByUserID)
               .HasConversion(
                   id => id.Value,
                   value => StrongID<UserTag>.From(value))
               .IsRequired();
 
-            builder.Property(x => x.ReviewedByAdminID)
-              .HasConversion(
-                  id => id!.Value.Value,
-                  value => StrongID<UserTag>.From(value))
-              .IsRequired();
-
-
-            builder.HasOne<Order>()
-                .WithMany()
-                .HasForeignKey(x => x.OrderID)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne<User>()
-                .WithMany()
-                .HasForeignKey(x => x.TargetID)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-
             builder.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.CreatedByUserID)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+            // -------------------------------
+
+            builder.Property(x => x.ReviewedByAdminID)
+              .HasConversion(
+                  id => id!.Value.Value,
+                  value => StrongID<UserTag>.From(value))
+              .IsRequired();
 
             builder.HasOne<User>()
                 .WithMany()
@@ -113,7 +116,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
             builder.Property(x => x.AdminResponse)
                 .HasMaxLength(500)
                 .IsUnicode(true)
-                .IsRequired(false);
+                .IsRequired();
 
             // -------------------------
             //           Dates
@@ -133,6 +136,10 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
 
             builder.HasIndex(x => new { x.TargetType, x.TargetID })
                 .HasDatabaseName("IX_Complaints_Target");
+
+            builder.HasIndex(x => x.CreatedByUserID)
+                .HasDatabaseName("IX_Complaint_CreatorUser");
+
         }
     }
     

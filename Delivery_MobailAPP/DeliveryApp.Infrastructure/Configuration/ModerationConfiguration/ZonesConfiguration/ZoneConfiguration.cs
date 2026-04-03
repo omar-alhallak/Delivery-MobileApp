@@ -56,9 +56,9 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.Zone
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.ZoneName)
-                .IsUnique() 
-                .HasDatabaseName("IX_Zones_Name");
+            builder.HasIndex(x => new { x.IsActive, x.IsServiceable })
+               .HasFilter("[IsActive] = 1 AND [IsServiceable] = 1")
+               .HasDatabaseName("IX_Zone_OperatingOnly");
         }
     }
 }
