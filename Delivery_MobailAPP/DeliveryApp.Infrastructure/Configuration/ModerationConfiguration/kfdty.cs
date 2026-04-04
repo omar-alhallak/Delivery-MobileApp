@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
 {
-    public sealed class AccountWarningConfiguration : IEntityTypeConfiguration<AccountWarning>
+    public sealed class kfdty : IEntityTypeConfiguration<AccountWarning>
     {
         public void Configure(EntityTypeBuilder<AccountWarning> builder)
         {

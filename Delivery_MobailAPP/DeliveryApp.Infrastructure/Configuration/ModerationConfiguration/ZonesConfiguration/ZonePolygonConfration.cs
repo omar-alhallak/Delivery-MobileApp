@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.ZonesConfiguration
 {
-    public sealed class ZonePolygonConfiguration : IEntityTypeConfiguration<ZonePolygon>
+    public sealed class ZonePolygonConfration : IEntityTypeConfiguration<ZonePolygon>
     {
 
         public void Configure(EntityTypeBuilder<ZonePolygon> builder)

@@ -1,11 +1,11 @@
-﻿using DeliveryApp.Domain.Entities.Moderation.Zones;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Moderation.Zones;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.ZonesConfiguration
 {
-    public sealed class ZoneConfiguration :IEntityTypeConfiguration<Zone>
+    public sealed class ZoneConfigution :IEntityTypeConfiguration<Zone>
     {
         public void Configure(EntityTypeBuilder<Zone> builder)
         {

@@ -7,7 +7,7 @@ using DeliveryApp.Domain.Entities.Orders;
 
 namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
 {
-    public sealed class ComplaintConfiguration : IEntityTypeConfiguration<Complaint>
+    public sealed class ComplaintConfration : IEntityTypeConfiguration<Complaint>
     {
         public void Configure(EntityTypeBuilder<Complaint> builder)
         {
