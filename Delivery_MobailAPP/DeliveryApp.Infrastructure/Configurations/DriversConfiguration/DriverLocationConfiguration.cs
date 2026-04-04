@@ -67,7 +67,11 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => new { x.DriverID, x.RecordedAt });
+            builder.HasIndex(x => new 
+            { 
+                x.DriverID, 
+                x.RecordedAt 
+            });
         }
     }
 }

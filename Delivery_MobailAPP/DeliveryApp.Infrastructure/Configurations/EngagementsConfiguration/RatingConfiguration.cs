@@ -97,7 +97,12 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
 
             builder.HasIndex(x => x.RaterUserID);
 
-            builder.HasIndex(x => new { x.TargetType, x.RatedEntityID, x.CreatedAt });
+            builder.HasIndex(x => new 
+            { 
+                x.TargetType, 
+                x.RatedEntityID, 
+                x.CreatedAt 
+            });
         }
     }
 }
