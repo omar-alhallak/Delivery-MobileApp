@@ -1,21 +1,20 @@
-﻿using DeliveryApp.Domain.Entities.Customers.Order;
-using DeliveryApp.Domain.Entities.Identity;
-using DeliveryApp.Domain.Entities.Merchants;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.Entities.Orders;
+using DeliveryApp.Domain.Entities.Identity;
+using DeliveryApp.Domain.Entities.Merchants;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderConfiguration
+namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.OrderConfiguration
 {
     public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
     {
         public void Configure(EntityTypeBuilder<Order> builder)
         {
-            builder.ToTable("Orders", "Customers");
+            builder.ToTable("Orders", "customers");
 
             // -------------------------
-            //            Key
+            //           Key
             // -------------------------
 
             builder.HasKey(x => x.ID);
@@ -27,7 +26,7 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                 .ValueGeneratedNever();
 
             // -------------------------
-            //        Public Code
+            //         Public ID
             // -------------------------
 
             builder.Property(x => x.PublicID)
@@ -39,12 +38,8 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                 .IsRequired(false);
 
             // -------------------------
-            //       Order Details
+            //       Foreign Keys
             // -------------------------
-
-            builder.Property(x => x.OrderType)
-                .HasConversion<byte>()
-                .IsRequired();
 
             builder.Property(x => x.CustomerID)
                 .HasConversion(
@@ -52,15 +47,70 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                     value => StrongID<UserTag>.From(value))
                 .IsRequired();
 
+            builder.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.CustomerID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // -------------------------
+
             builder.Property(x => x.MerchantID)
                 .HasConversion(
                     id => id.HasValue ? id.Value.Value : (Guid?)null,
                     value => value.HasValue ? StrongID<MerchantTag>.From(value.Value) : null)
                 .IsRequired(false);
 
+            builder.HasOne<Merchant>()
+                .WithMany()
+                .HasForeignKey(x => x.MerchantID)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // -------------------------
-            //         Locations
+
+            builder.Property(x => x.CancelledById)
+                .HasConversion(
+                    id => id.HasValue ? id.Value.Value : (Guid?)null,
+                    value => value.HasValue ? StrongID<UserTag>.From(value.Value) : null)
+                .IsRequired(false);
+
+            builder.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.CancelledById)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // -------------------------
+            //            Enums
+            // -------------------------
+
+            builder.Property(x => x.OrderType)
+                .HasConversion<byte>()
+                .IsRequired();
+
+            builder.Property(x => x.PaymentMethod)
+                .HasConversion<byte>()
+                .IsRequired();
+
+            builder.Property(x => x.PaymentStatus)
+                .HasConversion<byte>()
+                .IsRequired();
+
+            builder.Property(x => x.Status)
+                .HasConversion<byte>()
+                .IsRequired();
+
+            builder.Property(x => x.IssueReason)
+                .HasConversion<byte>()
+                .IsRequired();
+
+            builder.Property(x => x.CancelledByType)
+                .HasConversion<byte>()
+                .IsRequired(false);
+
+            // -------------------------
+            //           Fields
+            // -------------------------
+
+            // -------- Locations --------
 
             builder.OwnsOne(x => x.PickupLocation, location =>
             {
@@ -88,9 +138,7 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                     .IsRequired();
             });
 
-            // -------------------------
-            //         Snapshots
-            // -------------------------
+            // -------- Snapshots --------
 
             builder.Property(x => x.DistanceKmSnapshot)
                 .HasPrecision(9, 2)
@@ -112,59 +160,19 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                 .HasPrecision(18, 2)
                 .IsRequired();
 
-            // -------------------------
-            //          Payment
-            // -------------------------
-
-            builder.Property(x => x.PaymentMethod)
-                .HasConversion<byte>()
-                .IsRequired();
-
-            builder.Property(x => x.PaymentStatus)
-                .HasConversion<byte>()
-                .IsRequired();
-
-            // -------------------------
-            //          Status
-            // -------------------------
-
-            builder.Property(x => x.Status)
-                .HasConversion<byte>()
-                .IsRequired();
+            // -------- Drivers --------
 
             builder.Property(x => x.RequiredDriversCount)
                 .IsRequired();
 
-            // -------------------------
-            //           Issue
-            // -------------------------
-
-            builder.Property(x => x.IssueReason)
-                .HasConversion<byte>()
-                .IsRequired();
+            // -------- Issue --------
 
             builder.Property(x => x.IssueNote)
                 .HasMaxLength(500)
                 .IsUnicode(true)
                 .IsRequired(false);
 
-            // -------------------------
-            //       Cancellation
-            // -------------------------
-
-            builder.Property(x => x.CancelledByType)
-                .HasConversion<byte>()
-                .IsRequired(false);
-
-            builder.Property(x => x.CancelledById)
-                .HasConversion(
-                    id => id.HasValue ? id.Value.Value : (Guid?)null,
-                    value => value.HasValue ? StrongID<UserTag>.From(value.Value) : null)
-                .IsRequired(false);
-
-            // -------------------------
-            //           Dates
-            // -------------------------
+            // -------- Dates --------
 
             builder.Property(x => x.CancelledAt)
                 .HasColumnType("datetimeoffset")
@@ -183,26 +191,7 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                 .IsRequired(false);
 
             // -------------------------
-            //       Relationships
-            // -------------------------
-
-            builder.HasOne<User>()
-                .WithMany()
-                .HasForeignKey(x => x.CustomerID)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne<Merchant>()
-                .WithMany()
-                .HasForeignKey(x => x.MerchantID)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne<User>()
-                .WithMany()
-                .HasForeignKey(x => x.CancelledById)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // -------------------------
-            //          Items
+            //            Items
             // -------------------------
 
             builder.Metadata.FindNavigation(nameof(Order.Items))!
@@ -216,13 +205,23 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                 .IsUnique()
                 .HasFilter("[PublicID] IS NOT NULL");
 
-            builder.HasIndex(x => x.CustomerID);
+            builder.HasIndex(x => new 
+            { 
+                x.CustomerID, 
+                x.CreatedAt 
+            });
 
-            builder.HasIndex(x => x.MerchantID);
+            builder.HasIndex(x => new 
+            { 
+                x.MerchantID,
+                x.Status 
+            })  .HasFilter("[MerchantID] IS NOT NULL");
 
-            builder.HasIndex(x => x.Status);
-
-            builder.HasIndex(x => x.CreatedAt);
+            builder.HasIndex(x => new 
+            { 
+                x.Status, 
+                x.CreatedAt 
+            });
         }
     }
 }

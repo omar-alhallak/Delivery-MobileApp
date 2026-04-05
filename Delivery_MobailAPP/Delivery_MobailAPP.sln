@@ -11,9 +11,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeliveryApp.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeliveryApp.Infrastructure", "DeliveryApp.Infrastructure\DeliveryApp.Infrastructure.csproj", "{D6BC6BD9-007F-4411-9898-9AD2485C3043}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "🛠 src", "🛠 src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4A902EF2-9683-4038-9648-398B2D823A38}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "🧪 tests", "🧪 tests", "{4A902EF2-9683-4038-9648-398B2D823A38}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeliveryApp.Domain.Tests", "DeliveryApp.Domain.Tests\DeliveryApp.Domain.Tests.csproj", "{1C606970-7815-4882-9B9A-D30AB8384FFD}"
 EndProject

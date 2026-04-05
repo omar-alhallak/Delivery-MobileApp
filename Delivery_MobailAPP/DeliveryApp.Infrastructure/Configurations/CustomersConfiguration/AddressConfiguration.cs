@@ -1,16 +1,16 @@
-﻿using DeliveryApp.Domain.Entities.Customers;
-using DeliveryApp.Domain.Entities.Identity;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Identity;
+using DeliveryApp.Domain.Entities.Customers;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration
+namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration
 {
     public sealed class AddressConfiguration : IEntityTypeConfiguration<Address>
     {
         public void Configure(EntityTypeBuilder<Address> builder)
         {
-            builder.ToTable("Addresses", "Customers");
+            builder.ToTable("Addresses", "customers");
 
             // -------------------------
             //            Key
@@ -25,7 +25,7 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration
                 .ValueGeneratedNever();
 
             // -------------------------
-            //         Relations
+            //        Foreign Keys
             // -------------------------
 
             builder.Property(x => x.UserID)
@@ -34,22 +34,31 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration
                     value => StrongID<UserTag>.From(value))
                 .IsRequired();
 
-            // -------------------------
-            //           Info
-            // -------------------------
+            builder.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserID)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Property(x => x.Label)
-                .HasMaxLength(100)
-                .IsUnicode(true)
-                .IsRequired(false);
+            // -------------------------
+            //            Enums
+            // -------------------------
 
             builder.Property(x => x.AddressType)
                 .HasConversion<byte>()
                 .IsRequired(false);
 
             // -------------------------
-            //         Location
+            //           Fields
             // -------------------------
+
+            // -------- Basic Info --------
+
+            builder.Property(x => x.Label)
+                .HasMaxLength(100)
+                .IsUnicode(true)
+                .IsRequired(false);
+
+            // -------- Location --------
 
             builder.OwnsOne(x => x.Location, location =>
             {
@@ -64,9 +73,7 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration
                     .IsRequired();
             });
 
-            // -------------------------
-            //         Details
-            // -------------------------
+            // -------- Details --------
 
             builder.Property(x => x.BuildingName)
                 .HasMaxLength(150)
@@ -88,9 +95,7 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration
                 .IsUnicode(true)
                 .IsRequired(false);
 
-            // -------------------------
-            //         Flags
-            // -------------------------
+            // -------- Flags --------
 
             builder.Property(x => x.IsDefault)
                 .IsRequired();
@@ -101,36 +106,23 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration
             builder.Property(x => x.IsActive)
                 .IsRequired();
 
-            // -------------------------
-            //           Dates
-            // -------------------------
+            // -------- Dates --------
 
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
 
             // -------------------------
-            //       Relationships
-            // -------------------------
-
-            builder.HasOne<User>()
-                .WithMany()
-                .HasForeignKey(x => x.UserID)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // -------------------------
             //          Indexes
             // -------------------------
 
-            //هدول لتنين غالبا مالن داعي بس شات صار يقلي خطيرين ولازم ومابعرف شو 
             builder.HasIndex(x => x.UserID);
-            // هدول لانو ممكن يكون عندي اكتر من عنوان بنفس الاسم بس لمستخدمين مختلفين
-            builder.HasIndex(x => new { x.UserID, x.Label })
-                .IsUnique()
-                .HasFilter("[Label] IS NOT NULL");
-            //مافينو مستخدم ممكن يكون عنده اكتر من عنوان افتراضي بس ممكن يكون عنده عنوان افتراضي واحد
-            builder.HasIndex(x => new { x.UserID, x.IsDefault })
-                .IsUnique()
+
+            builder.HasIndex(x => new 
+            { 
+                x.UserID,
+                x.IsDefault
+            })  .IsUnique()
                 .HasFilter("[IsDefault] = 1");
         }
     }
