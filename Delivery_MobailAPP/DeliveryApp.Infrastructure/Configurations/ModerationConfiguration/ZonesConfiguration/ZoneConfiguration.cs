@@ -59,6 +59,13 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.Zone
                 .IsRequired();
 
             // -------------------------
+            //           Items
+            // -------------------------
+
+            builder.Metadata.FindNavigation(nameof(Zone.Polygons))!
+                .SetPropertyAccessMode(PropertyAccessMode.Field);
+
+            // -------------------------
             //          Indexes
             // -------------------------
 

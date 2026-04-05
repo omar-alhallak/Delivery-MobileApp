@@ -1,16 +1,16 @@
-﻿using DeliveryApp.Domain.Entities.Customers.Order;
-using DeliveryApp.Domain.Entities.Orders;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Orders;
+using DeliveryApp.Domain.Entities.Customers.Order;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderConfiguration
+namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.OrderConfiguration
 {
     public sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
     {
         public void Configure(EntityTypeBuilder<OrderItem> builder)
         {
-            builder.ToTable("OrderItems", "Customers");
+            builder.ToTable("OrderItems", "customers");
 
             // -------------------------
             //            Key
@@ -25,7 +25,7 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                 .ValueGeneratedNever();
 
             // -------------------------
-            //         Relations
+            //        Foreign Keys
             // -------------------------
 
             builder.Property(x => x.OrderID)
@@ -34,9 +34,16 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                     value => StrongID<OrderTag>.From(value))
                 .IsRequired();
 
+            builder.HasOne<Order>()
+                .WithMany()
+                .HasForeignKey(x => x.OrderID)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // -------------------------
-            //         Snapshots
+            //           Fields
             // -------------------------
+
+            // -------- Snapshots --------
 
             builder.Property(x => x.ProductNameSnapshot)
                 .HasMaxLength(150)
@@ -63,15 +70,6 @@ namespace DeliveryApp.Infrastructure.Configuration.CustomersConfiguration.OrderC
                 .HasMaxLength(500)
                 .IsUnicode(true)
                 .IsRequired(false);
-
-            // -------------------------
-            //       Relationships
-            // -------------------------
-
-            builder.HasOne<Order>()
-                .WithMany("items")
-                .HasForeignKey(x => x.OrderID)
-                .OnDelete(DeleteBehavior.Cascade);
 
             // -------------------------
             //          Indexes
