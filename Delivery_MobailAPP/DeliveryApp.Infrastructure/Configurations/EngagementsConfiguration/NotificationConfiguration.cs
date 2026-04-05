@@ -90,7 +90,11 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
 
             builder.HasIndex(x => x.UserID);
 
-            builder.HasIndex(x => new { x.RelatedEntityType, x.RelatedEntityID });
+            builder.HasIndex(x => new 
+            { 
+                x.RelatedEntityType, 
+                x.RelatedEntityID
+            });
         }
     }
 }
