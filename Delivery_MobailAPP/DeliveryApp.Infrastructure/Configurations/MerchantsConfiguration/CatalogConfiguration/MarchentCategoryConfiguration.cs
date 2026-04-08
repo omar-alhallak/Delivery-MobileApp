@@ -31,6 +31,15 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .IsRequired();
 
             // -------------------------
+            //       Relationships
+            // -------------------------
+
+            builder.HasOne<Merchant>()
+                .WithMany()
+                .HasForeignKey(x => x.MerchantID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // -------------------------
             //       Basic Info
             // -------------------------
 
@@ -70,14 +79,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
 
-            // -------------------------
-            //       Relationships
-            // -------------------------
-
-            builder.HasOne<Merchant>()
-                .WithMany()
-                .HasForeignKey(x => x.MerchantID)
-                .OnDelete(DeleteBehavior.Cascade);
+            
 
             // -------------------------
             //          Indexes

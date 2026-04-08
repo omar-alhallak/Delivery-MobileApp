@@ -19,20 +19,30 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             builder.HasKey(x => new { x.MerchantID, x.SystemCategoryID });
 
             // -------------------------
-            //         Relations
+            //       Relationships
             // -------------------------
-
             builder.Property(x => x.MerchantID)
-                .HasConversion(
-                    id => id.Value,
-                    value => StrongID<MerchantTag>.From(value))
-                .IsRequired();
+               .HasConversion(
+                   id => id.Value,
+                   value => StrongID<MerchantTag>.From(value))
+               .IsRequired();
+
+            builder.HasOne<Merchant>()
+                .WithMany()
+                .HasForeignKey(x => x.MerchantID)
+                .OnDelete(DeleteBehavior.Cascade);
+            //---------------------------- 
 
             builder.Property(x => x.SystemCategoryID)
-                .HasConversion(
-                    id => id.Value,
-                    value => StrongID<SystemCategoryTag>.From(value))
-                .IsRequired();
+               .HasConversion(
+                   id => id.Value,
+                   value => StrongID<SystemCategoryTag>.From(value))
+               .IsRequired();
+
+            builder.HasOne<SystemCategory>()
+                .WithMany()
+                .HasForeignKey(x => x.SystemCategoryID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
             //           Dates
@@ -42,19 +52,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
 
-            // -------------------------
-            //       Relationships
-            // -------------------------
-
-            builder.HasOne<Merchant>()
-                .WithMany()
-                .HasForeignKey(x => x.MerchantID)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasOne<SystemCategory>()
-                .WithMany()
-                .HasForeignKey(x => x.SystemCategoryID)
-                .OnDelete(DeleteBehavior.Restrict);
+            
 
             // -------------------------
             //          Indexes

@@ -24,7 +24,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .ValueGeneratedNever();
 
             // -------------------------
-            //         Relations
+            //       Relationships
             // -------------------------
 
             builder.Property(x => x.ProductID)
@@ -32,6 +32,12 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                     id => id.Value,
                     value => StrongID<ProductTag>.From(value))
                 .IsRequired();
+
+            builder.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductID)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // -------------------------
             //        Basic Info
@@ -60,14 +66,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
 
-            // -------------------------
-            //       Relationships
-            // -------------------------
-
-            builder.HasOne<Product>()
-                .WithMany()
-                .HasForeignKey(x => x.ProductID)
-                .OnDelete(DeleteBehavior.Restrict);
+           
 
             // -------------------------
             //          Indexes

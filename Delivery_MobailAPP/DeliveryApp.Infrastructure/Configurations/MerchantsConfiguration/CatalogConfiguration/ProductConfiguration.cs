@@ -24,14 +24,20 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .ValueGeneratedNever();
 
             // -------------------------
-            //         Relations
+            //       Relationships
             // -------------------------
 
             builder.Property(x => x.MerchantCategoryID)
-                .HasConversion(
-                    id => id.Value,
-                    value => StrongID<MerchantCategoryTag>.From(value))
-                .IsRequired();
+               .HasConversion(
+                   id => id.Value,
+                   value => StrongID<MerchantCategoryTag>.From(value))
+               .IsRequired();
+
+            builder.HasOne<MerchantCategory>()
+                .WithMany()
+                .HasForeignKey(x => x.MerchantCategoryID)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // -------------------------
             //        Basic Info
@@ -74,14 +80,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
 
-            // -------------------------
-            //       Relationships
-            // -------------------------
-
-            builder.HasOne<MerchantCategory>()
-                .WithMany()
-                .HasForeignKey(x => x.MerchantCategoryID)
-                .OnDelete(DeleteBehavior.Restrict);
+            
 
             // -------------------------
             //          Indexes
