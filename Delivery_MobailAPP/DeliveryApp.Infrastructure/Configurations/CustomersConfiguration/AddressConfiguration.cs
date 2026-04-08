@@ -64,12 +64,12 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration
             {
                 location.Property(p => p.Latitude)
                     .HasColumnName("Latitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired();
 
                 location.Property(p => p.Longitude)
                     .HasColumnName("Longitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired();
             });
 

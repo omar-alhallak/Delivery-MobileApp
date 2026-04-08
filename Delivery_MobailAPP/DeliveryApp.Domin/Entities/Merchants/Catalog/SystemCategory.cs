@@ -18,7 +18,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         //        Basic Info
         // -------------------------
 
-        public CatalogName CategoryName { get; private set; } = null!; // اسم التصنيف
+        public DisplayName CategoryName { get; private set; } = null!; // اسم التصنيف
         public Slug Slug { get; private set; } = null!; // الاسم المختصر المستخدم في الروابط
 
         public string? ImageUrl { get; private set; } // صورة التصنيف
@@ -91,7 +91,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         //          Setters
         // -------------------------
 
-        private void SetName(string value) => CategoryName = CatalogName.Create(value, 150, nameof(CategoryName)); // إدخال اسم التصنيف باستخدام
+        private void SetName(string value) => CategoryName = DisplayName.Create(value, 150, nameof(CategoryName)); // إدخال اسم التصنيف باستخدام
 
         private void SetSlug(string value) => Slug = Slug.Create(value); // إدخال ال Slug
 

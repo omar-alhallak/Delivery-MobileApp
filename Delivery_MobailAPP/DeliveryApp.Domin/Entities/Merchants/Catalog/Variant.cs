@@ -17,7 +17,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         //        Basic Info
         // -------------------------
 
-        public CatalogName VariantName { get; private set; } = null!; // اسم ال Variant
+        public DisplayName VariantName { get; private set; } = null!; // اسم ال Variant
         public decimal BasePrice { get; private set; } // السعر الأساسي
 
         // -------------------------
@@ -76,7 +76,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         //           Setters
         // -------------------------
 
-        private void SetName(string value) => VariantName = CatalogName.Create(value, 100, nameof(VariantName)); // إدخال اسم ال Variant
+        private void SetName(string value) => VariantName = DisplayName.Create(value, 100, nameof(VariantName)); // إدخال اسم ال Variant
         
         private void SetBasePrice(decimal value) // إدخال السعر
         {

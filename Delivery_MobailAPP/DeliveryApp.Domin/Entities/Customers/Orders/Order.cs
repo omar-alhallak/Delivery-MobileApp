@@ -3,7 +3,7 @@ using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.OrderEnums;
 using DeliveryApp.Domain.DomainErrors.OrderErrors;
-using DeliveryApp.Domain.Entities.Customers.Order;
+using DeliveryApp.Domain.Entities.Customers.Orders;
 
 namespace DeliveryApp.Domain.Entities.Orders
 {
@@ -40,7 +40,7 @@ namespace DeliveryApp.Domain.Entities.Orders
         //         Snapshots
         // -------------------------
 
-        public decimal DistanceKmSnapshot { get; private set; } // المسافة تبع الطلب
+        public double DistanceKmSnapshot { get; private set; } // المسافة تبع الطلب
         public decimal ItemsTotalSnapshot { get; private set; } // مجموع العناصر
         public decimal DeliveryFeeSnapshot { get; private set; } // رسوم التوصيل
         public decimal TipAmountSnapshot { get; private set; } // البقشيش
@@ -97,8 +97,8 @@ namespace DeliveryApp.Domain.Entities.Orders
 
         private Order() { }
 
-        public Order(OrderID id, OrderType orderType, UserID customerId, MerchantID? merchantId, decimal pickupLat, decimal pickupLng,
-            decimal dropoffLat, decimal dropoffLng, decimal distanceKmSnapshot, decimal itemsTotalSnapshot, decimal deliveryFeeSnapshot,
+        public Order(OrderID id, OrderType orderType, UserID customerId, MerchantID? merchantId, double pickupLat, double pickupLng,
+            double dropoffLat, double dropoffLng, double distanceKmSnapshot, decimal itemsTotalSnapshot, decimal deliveryFeeSnapshot,
             decimal tipAmountSnapshot, decimal totalAmountSnapshot, PaymentMethod paymentMethod, PaymentStatus paymentStatus,
             int requiredDriversCount, IEnumerable<OrderItem> orderItems, DateTimeOffset createdAtUtc)
         {
@@ -338,11 +338,11 @@ namespace DeliveryApp.Domain.Entities.Orders
         //         Setters
         // -------------------------
 
-        private void SetPickupLocation(decimal lat, decimal lng) => PickupLocation = GeoPoint.Create(lat, lng); // إدخال موقع الإستلام
+        private void SetPickupLocation(double lat, double lng) => PickupLocation = GeoPoint.Create(lat, lng); // إدخال موقع الإستلام
 
-        private void SetDropoffLocation(decimal lat, decimal lng) => DropoffLocation = GeoPoint.Create(lat, lng); // إدخال موقع التسليم
+        private void SetDropoffLocation(double lat, double lng) => DropoffLocation = GeoPoint.Create(lat, lng); // إدخال موقع التسليم
 
-        private void SetSnapshots(decimal distanceKm, decimal itemsTotal, decimal deliveryFee, decimal tipAmount, decimal totalAmount) // إدخال القيم المالية
+        private void SetSnapshots(double distanceKm, decimal itemsTotal, decimal deliveryFee, decimal tipAmount, decimal totalAmount) // إدخال القيم المالية
         {
             if (distanceKm < 0) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(DistanceKmSnapshot));

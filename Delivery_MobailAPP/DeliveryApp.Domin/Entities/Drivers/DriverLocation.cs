@@ -32,7 +32,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
 
         private DriverLocation() { }
 
-        public DriverLocation(UserID driverId, decimal latitude, decimal longitude, DateTimeOffset recordedAtUtc) 
+        public DriverLocation(UserID driverId, double latitude, double longitude, DateTimeOffset recordedAtUtc) 
         {
             if (driverId.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(driverId));

@@ -3,13 +3,13 @@ using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Domain.ValueObjects
 {
-    public sealed class CatalogName // فرض قواعد على أسماء الموجودة ب Catalog
+    public sealed class DisplayName // فرض قواعد على أسماء الموجودة ب Catalog
     {
         public string Value { get; } // القيمة بعد التنظيف
 
-        private CatalogName(string value) => Value = value; // لمنع إنشاء الصف إلا عن طريق Create
+        private DisplayName(string value) => Value = value; // لمنع إنشاء الصف إلا عن طريق Create
 
-        public static CatalogName Create(string? input, int maxLength, string fieldName) // تتحقق و تنظف و تنشأ الأسم
+        public static DisplayName Create(string? input, int maxLength, string fieldName) // تتحقق و تنظف و تنشأ الأسم
         {
             if (string.IsNullOrWhiteSpace(fieldName)) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(fieldName));   
@@ -27,7 +27,7 @@ namespace DeliveryApp.Domain.ValueObjects
 
             LettersDigitsSpacesOnly(value, fieldName); 
 
-            return new CatalogName(value); 
+            return new DisplayName(value); 
         }
 
         public override string ToString() => Value; // لتحويل الكلاس لنص
@@ -85,7 +85,7 @@ namespace DeliveryApp.Domain.ValueObjects
         }
 
         // لمقارنة القيم المدخلة من دونه لا يمكن المقارنة لان كل قيمة تعتبر مختلفة بذاكرة
-        public override bool Equals(object? obj) => obj is CatalogName other && string.Equals(Value, other.Value, StringComparison.Ordinal);
+        public override bool Equals(object? obj) => obj is DisplayName other && string.Equals(Value, other.Value, StringComparison.Ordinal);
 
         // تعطي رقم يمثل القيمة للمقارنة
         public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
