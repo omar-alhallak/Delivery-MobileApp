@@ -22,7 +22,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         //        Basic Info
         // -------------------------
 
-        public CatalogName ProductName { get; private set; } = null!; // اسم المنتج
+        public DisplayName ProductName { get; private set; } = null!; // اسم المنتج
         public string? Description { get; private set; } // وصف المنتج
         public string? ImageUrl { get; private set; } // صورة المنتج
 
@@ -104,7 +104,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         //           Setters
         // -------------------------
 
-        private void SetName(string value) => ProductName = CatalogName.Create(value, 150, nameof(ProductName)); // إدخال اسم المنتج
+        private void SetName(string value) => ProductName = DisplayName.Create(value, 150, nameof(ProductName)); // إدخال اسم المنتج
         
 
         private void SetDescription(string? value) // إدخال وصف المنتج

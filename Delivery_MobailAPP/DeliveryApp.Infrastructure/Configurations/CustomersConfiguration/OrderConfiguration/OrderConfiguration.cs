@@ -116,12 +116,12 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
             {
                 location.Property(p => p.Latitude)
                     .HasColumnName("PickupLatitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired();
 
                 location.Property(p => p.Longitude)
                     .HasColumnName("PickupLongitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired();
             });
 
@@ -129,19 +129,19 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
             {
                 location.Property(p => p.Latitude)
                     .HasColumnName("DropoffLatitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired();
 
                 location.Property(p => p.Longitude)
                     .HasColumnName("DropoffLongitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired();
             });
 
             // -------- Snapshots --------
 
             builder.Property(x => x.DistanceKmSnapshot)
-                .HasPrecision(9, 2)
+                .HasColumnType("float")
                 .IsRequired();
 
             builder.Property(x => x.ItemsTotalSnapshot)

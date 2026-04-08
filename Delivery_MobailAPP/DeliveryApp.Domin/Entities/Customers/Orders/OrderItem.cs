@@ -1,7 +1,7 @@
 ﻿using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 
-namespace DeliveryApp.Domain.Entities.Customers.Order
+namespace DeliveryApp.Domain.Entities.Customers.Orders
 {
     public class OrderItem // يمثل عنصر داخل الطلب (Line Item)
     {

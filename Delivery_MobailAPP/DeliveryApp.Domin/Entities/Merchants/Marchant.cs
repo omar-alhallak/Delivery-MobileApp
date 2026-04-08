@@ -21,7 +21,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
         // -------------------------
 
         public MerchantType MerchantType { get; private set; } // نوع التاجر
-        public CatalogName MerchantName { get; private set; } = null!; // اسم التاجر
+        public DisplayName MerchantName { get; private set; } = null!; // اسم التاجر
         public Slug Slug { get; private set; } = null!; // الاسم المختصر المستخدم في الروابط
 
         public string? Description { get; private set; } // وصف التاجر
@@ -57,7 +57,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
 
         private Merchant() { }
 
-        public Merchant(MerchantID id, MerchantType merchantType, string merchantName, string slug, decimal lat, decimal lng, string? description,
+        public Merchant(MerchantID id, MerchantType merchantType, string merchantName, string slug, double lat, double lng, string? description,
             string? phone, string? logoUrl, string? coverImageUrl, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
@@ -117,7 +117,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
 
         public void ChangeCoverImage(string? coverImageUrl) => SetCoverImageUrl(coverImageUrl); // تغيير صورة الغلاف
 
-        public void Relocate(decimal lat, decimal lng) => SetLocation(lat, lng); // تغيير موقع التاجر
+        public void Relocate(double lat, double lng) => SetLocation(lat, lng); // تغيير موقع التاجر
 
         public void Activate() // تفعيل التاجر
         {
@@ -184,11 +184,11 @@ namespace DeliveryApp.Domain.Entities.Merchants
         //         Setters
         // -------------------------
 
-        private void SetName(string value) => MerchantName = CatalogName.Create(value, 150, nameof(MerchantName)); // إدخال اسم التاجر
+        private void SetName(string value) => MerchantName = DisplayName.Create(value, 150, nameof(MerchantName)); // إدخال اسم التاجر
 
         private void SetSlug(string value)  =>  Slug = Slug.Create(value); // إدخال ال Slug
 
-        private void SetLocation(decimal lat, decimal lng) => Location = GeoPoint.Create(lat, lng); // إدخال موقع التاجر
+        private void SetLocation(double lat, double lng) => Location = GeoPoint.Create(lat, lng); // إدخال موقع التاجر
 
         private void SetDescription(string? value) // إدخال وصف التاجر
         {

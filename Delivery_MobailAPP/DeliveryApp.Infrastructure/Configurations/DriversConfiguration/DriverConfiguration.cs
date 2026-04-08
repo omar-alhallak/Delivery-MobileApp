@@ -107,12 +107,12 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
             {
                 location.Property(p => p.Latitude)
                     .HasColumnName("CurrentLatitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired(false);
 
                 location.Property(p => p.Longitude)
                     .HasColumnName("CurrentLongitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired(false);
             });
 
