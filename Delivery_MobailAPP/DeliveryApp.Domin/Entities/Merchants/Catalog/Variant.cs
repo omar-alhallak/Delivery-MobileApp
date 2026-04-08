@@ -25,6 +25,11 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         // -------------------------
 
         public bool IsActive { get; private set; } // مفعل أو لاء
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
         public DateTimeOffset CreatedAt { get; private set; } // وقت الإنشاء
 
         private Variant() { }
@@ -73,7 +78,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         }
 
         // -------------------------
-        //           Setters
+        //          Setters
         // -------------------------
 
         private void SetName(string value) => VariantName = DisplayName.Create(value, 100, nameof(VariantName)); // إدخال اسم ال Variant

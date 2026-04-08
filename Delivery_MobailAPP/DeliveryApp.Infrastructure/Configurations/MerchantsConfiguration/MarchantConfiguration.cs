@@ -1,6 +1,6 @@
-﻿using DeliveryApp.Domain.Entities.Merchants;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Merchants;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
     {
         public void Configure(EntityTypeBuilder<Merchant> builder)
         {
-            builder.ToTable("Merchants", "Merchant");
+            builder.ToTable("Merchants", "merchants");
 
             // -------------------------
             //            Key
@@ -36,40 +36,38 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
                 .IsRequired(false);
 
             // -------------------------
-            //           Enums
+            //            Enums
             // -------------------------
 
-            builder.Property(x =>x.MerchantType)
-                .HasConversion<int>()
+            builder.Property(x => x.MerchantType)
+                .HasConversion<byte>()
                 .IsRequired();
 
             // -------------------------
             //           Fields
             // -------------------------
 
-            // ----------- Basic Info ----------
+            // -------- Basic Info --------
 
-            builder.OwnsOne(x => x.MerchantName, name =>
-            {
-                name.Property(p => p.Value)
-                    .HasColumnName("MerchantName") 
-                    .HasMaxLength(150)             
-                    .IsRequired()
-                    .IsUnicode(true);              
-            });
+            builder.Property(x => x.MerchantName)
+                .HasConversion(
+                    value => value.Value,
+                    value => DisplayName.Create(value, 150, nameof(Merchant.MerchantName)))
+                .HasMaxLength(150)
+                .IsUnicode(true)
+                .IsRequired();
 
-            builder.OwnsOne(x => x.Slug, slug =>
-            {
-                slug.Property(s => s.Value)
-                    .HasColumnName("Slug")      
-                    .HasMaxLength(80)          
-                    .IsRequired()
-                    .IsUnicode(false);          
-            });
+            builder.Property(x => x.Slug)
+                .HasConversion(
+                    value => value.Value,
+                    value => Slug.Create(value))
+                .HasMaxLength(80)
+                .IsUnicode(false)
+                .IsRequired();
 
             builder.Property(x => x.Description)
                 .HasMaxLength(2000)
-                .IsUnicode(true)
+                .IsUnicode(false)
                 .IsRequired(false);
 
             builder.Property(x => x.Phone)
@@ -77,32 +75,32 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
                 .IsUnicode(false)
                 .IsRequired(false);
 
-            builder.Property(x=>x.LogoUrl)
+            builder.Property(x => x.LogoUrl)
                 .HasMaxLength(500)
-                .IsUnicode (true)
+                .IsUnicode(false)
                 .IsRequired(false);
 
-            builder.Property(x=>x.CoverImageUrl)
-                .HasMaxLength (500)
-                .IsUnicode(true)
+            builder.Property(x => x.CoverImageUrl)
+                .HasMaxLength(500)
+                .IsUnicode(false)
                 .IsRequired(false);
 
-            // ------------- Location -----------
+            // -------- Location --------
 
             builder.OwnsOne(x => x.Location, location =>
             {
                 location.Property(p => p.Latitude)
                     .HasColumnName("Latitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired();
 
                 location.Property(p => p.Longitude)
                     .HasColumnName("Longitude")
-                    .HasPrecision(9, 6)
+                    .HasColumnType("float")
                     .IsRequired();
             });
 
-            // ------------ Rating --------------
+            // -------- Rating --------
 
             builder.Property(x => x.AverageRating)
                 .HasPrecision(3, 2)
@@ -111,12 +109,12 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
             builder.Property(x => x.RatingsCount)
                 .IsRequired();
 
-            // ----------- State ----------------
+            // -------- State --------
 
-            builder.Property(x=>x.IsActive)
+            builder.Property(x => x.IsActive)
                 .IsRequired();
 
-            // ----------- Dates ----------------
+            // -------- Dates --------
 
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
@@ -130,14 +128,14 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
                 .IsUnique()
                 .HasFilter("[PublicID] IS NOT NULL");
 
-            builder.HasIndex(x => new { x.MerchantType, x.IsActive })
-                .HasFilter("[IsActive] = 1")
-                .HasDatabaseName("IX_Merchant_Type_Active");
-
             builder.HasIndex(x => x.Slug)
-                .IsUnique()
-                .HasDatabaseName("UX_Merchant_Slug");
+                .IsUnique();
 
+            builder.HasIndex(x => new
+            {
+                x.MerchantType,
+                x.IsActive
+            }).HasFilter("[IsActive] = 1");
         }
     }
 }

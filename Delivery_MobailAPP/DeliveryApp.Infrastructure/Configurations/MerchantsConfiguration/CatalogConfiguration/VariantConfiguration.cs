@@ -1,6 +1,6 @@
-﻿using DeliveryApp.Domain.Entities.Merchants.Catalog;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Merchants.Catalog;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
     {
         public void Configure(EntityTypeBuilder<Variant> builder)
         {
-            builder.ToTable("Variants", "Merchants");
+            builder.ToTable("Variants", "merchants");
 
             // -------------------------
             //            Key
@@ -24,7 +24,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .ValueGeneratedNever();
 
             // -------------------------
-            //       Relationships
+            //        Foreign Keys
             // -------------------------
 
             builder.Property(x => x.ProductID)
@@ -38,15 +38,16 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .HasForeignKey(x => x.ProductID)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // -------------------------
+            //           Fields
+            // -------------------------
 
-            // -------------------------
-            //        Basic Info
-            // -------------------------
+            // -------- Basic Info --------
 
             builder.Property(x => x.VariantName)
                 .HasConversion(
                     value => value.Value,
-                    value => CatalogName.Create(value, 100, nameof(Variant.VariantName)))
+                    value => DisplayName.Create(value, 100, nameof(Variant.VariantName)))
                 .HasMaxLength(100)
                 .IsUnicode(true)
                 .IsRequired();
@@ -55,18 +56,16 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .HasPrecision(18, 2)
                 .IsRequired();
 
-            // -------------------------
-            //          State
-            // -------------------------
+            // -------- State --------
 
             builder.Property(x => x.IsActive)
                 .IsRequired();
 
+            // -------- Dates --------
+
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
-
-           
 
             // -------------------------
             //          Indexes
@@ -74,8 +73,17 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
 
             builder.HasIndex(x => x.ProductID);
 
-            builder.HasIndex(x => new { x.ProductID, x.VariantName })
-                .IsUnique();
+            builder.HasIndex(x => new
+            {
+                x.ProductID,
+                x.VariantName
+            }).IsUnique();
+
+            builder.HasIndex(x => new
+            {
+                x.ProductID,
+                x.IsActive
+            }).HasFilter("[IsActive] = 1");
         }
     }
 }

@@ -1,7 +1,7 @@
-﻿using DeliveryApp.Domain.Entities.Merchants;
-using DeliveryApp.Domain.Entities.Merchants.Catalog;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Merchants;
+using DeliveryApp.Domain.Entities.Merchants.Catalog;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
     {
         public void Configure(EntityTypeBuilder<MerchantSystemCategory> builder)
         {
-            builder.ToTable("MerchantSystemCategories","Merchants");
+            builder.ToTable("MerchantSystemCategories", "merchants");
 
             // -------------------------
             //            Key
@@ -19,25 +19,27 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             builder.HasKey(x => new { x.MerchantID, x.SystemCategoryID });
 
             // -------------------------
-            //       Relationships
+            //        Foreign Keys
             // -------------------------
+
             builder.Property(x => x.MerchantID)
-               .HasConversion(
-                   id => id.Value,
-                   value => StrongID<MerchantTag>.From(value))
-               .IsRequired();
+                .HasConversion(
+                    id => id.Value,
+                    value => StrongID<MerchantTag>.From(value))
+                .ValueGeneratedNever();
 
             builder.HasOne<Merchant>()
                 .WithMany()
                 .HasForeignKey(x => x.MerchantID)
                 .OnDelete(DeleteBehavior.Cascade);
-            //---------------------------- 
+
+            // -------------------------
 
             builder.Property(x => x.SystemCategoryID)
-               .HasConversion(
-                   id => id.Value,
-                   value => StrongID<SystemCategoryTag>.From(value))
-               .IsRequired();
+                .HasConversion(
+                    id => id.Value,
+                    value => StrongID<SystemCategoryTag>.From(value))
+                .ValueGeneratedNever();
 
             builder.HasOne<SystemCategory>()
                 .WithMany()
@@ -45,14 +47,14 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
-            //           Dates
+            //           Fields
             // -------------------------
+
+            // -------- Dates --------
 
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
-
-            
 
             // -------------------------
             //          Indexes

@@ -1,6 +1,6 @@
-﻿using DeliveryApp.Domain.Entities.Merchants.Catalog;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Merchants.Catalog;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
     {
         public void Configure(EntityTypeBuilder<SystemCategory> builder)
         {
-            builder.ToTable("SystemCategories", "Merchants");
+            builder.ToTable("SystemCategories", "merchants");
 
             // -------------------------
             //            Key
@@ -23,18 +23,24 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                     value => StrongID<SystemCategoryTag>.From(value))
                 .ValueGeneratedNever();
 
+            // -------------------------
+            //           Enums
+            // -------------------------
+
             builder.Property(x => x.MerchantType)
                 .HasConversion<byte>()
                 .IsRequired();
 
             // -------------------------
-            //        Basic Info
+            //           Fields
             // -------------------------
+
+            // -------- Basic Info --------
 
             builder.Property(x => x.CategoryName)
                 .HasConversion(
                     value => value.Value,
-                    value => CatalogName.Create(value, 150, nameof(SystemCategory.CategoryName)))
+                    value => DisplayName.Create(value, 150, nameof(SystemCategory.CategoryName)))
                 .HasMaxLength(150)
                 .IsUnicode(true)
                 .IsRequired();
@@ -52,9 +58,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .IsUnicode(false)
                 .IsRequired(false);
 
-            // -------------------------
-            //         Display
-            // -------------------------
+            // -------- Display --------
 
             builder.Property(x => x.SortOrder)
                 .IsRequired();
@@ -62,9 +66,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             builder.Property(x => x.IsActive)
                 .IsRequired();
 
-            // -------------------------
-            //           Dates
-            // -------------------------
+            // -------- Dates --------
 
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
@@ -74,13 +76,27 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //          Indexes
             // -------------------------
 
-            // Slug unique داخل نفس نوع التاجر
-            builder.HasIndex(x => new { x.MerchantType, x.Slug })
-                .IsUnique();
+            builder.HasIndex(x => new
+            {
+                x.MerchantType,
+                x.Slug
+            })
+            .IsUnique();
 
-            // منع تكرار الاسم داخل نفس النوع
-            builder.HasIndex(x => new { x.MerchantType, x.CategoryName })
-                .IsUnique();
+            builder.HasIndex(x => new
+            {
+                x.MerchantType,
+                x.CategoryName
+            })
+            .IsUnique();
+
+            builder.HasIndex(x => new
+            {
+                x.MerchantType,
+                x.IsActive,
+                x.SortOrder
+            })
+            .HasFilter("[IsActive] = 1");
         }
     }
 }

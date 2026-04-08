@@ -1,6 +1,7 @@
-﻿using DeliveryApp.Domain.Entities.Merchants;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Merchants;
+using DeliveryApp.Domain.Entities.Identity;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
@@ -9,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
     {
         public void Configure(EntityTypeBuilder<MerchantUser> builder)
         {
-            builder.ToTable("MerchantUsers","merchant");
+            builder.ToTable("MerchantUsers", "merchants");
 
             // -------------------------
             //            Key
@@ -17,11 +18,22 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
 
             builder.HasKey(x => new { x.MerchantID, x.UserID });
 
+            // -------------------------
+            //        Foreign Keys
+            // -------------------------
+
             builder.Property(x => x.MerchantID)
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<MerchantTag>.From(value))
                 .ValueGeneratedNever();
+
+            builder.HasOne<Merchant>()
+                .WithMany()
+                .HasForeignKey(x => x.MerchantID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // -------------------------
 
             builder.Property(x => x.UserID)
                 .HasConversion(
@@ -29,24 +41,29 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
                     value => StrongID<UserTag>.From(value))
                 .ValueGeneratedNever();
 
+            builder.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserID)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // -------------------------
-            //           Enums
+            //            Enums
             // -------------------------
 
             builder.Property(x => x.Role)
-                .HasConversion<int>()
+                .HasConversion<byte>()
                 .IsRequired();
 
             // -------------------------
             //           Fields
             // -------------------------
 
-            // ----------- State ----------------
+            // -------- State --------
 
             builder.Property(x => x.IsActive)
                 .IsRequired();
 
-            // ----------- Dates ----------------
+            // -------- Dates --------
 
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
@@ -56,9 +73,7 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => new { x.UserID, x.MerchantID, x.Role })
-                .HasFilter("[IsActive] = 1")
-                .HasDatabaseName("IX_MerchantUser_ActiveAccess");
+            builder.HasIndex(x => x.UserID);
         }
     }
 }

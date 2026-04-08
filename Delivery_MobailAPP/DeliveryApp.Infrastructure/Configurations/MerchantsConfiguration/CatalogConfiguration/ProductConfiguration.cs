@@ -1,6 +1,6 @@
-﻿using DeliveryApp.Domain.Entities.Merchants.Catalog;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Merchants.Catalog;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
     {
         public void Configure(EntityTypeBuilder<Product> builder)
         {
-            builder.ToTable("Products", "Merchants");
+            builder.ToTable("Products", "merchants");
 
             // -------------------------
             //            Key
@@ -24,29 +24,30 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .ValueGeneratedNever();
 
             // -------------------------
-            //       Relationships
+            //        Foreign Keys
             // -------------------------
 
             builder.Property(x => x.MerchantCategoryID)
-               .HasConversion(
-                   id => id.Value,
-                   value => StrongID<MerchantCategoryTag>.From(value))
-               .IsRequired();
+                .HasConversion(
+                    id => id.Value,
+                    value => StrongID<MerchantCategoryTag>.From(value))
+                .IsRequired();
 
             builder.HasOne<MerchantCategory>()
                 .WithMany()
                 .HasForeignKey(x => x.MerchantCategoryID)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // -------------------------
+            //           Fields
+            // -------------------------
 
-            // -------------------------
-            //        Basic Info
-            // -------------------------
+            // -------- Basic Info --------
 
             builder.Property(x => x.ProductName)
                 .HasConversion(
                     value => value.Value,
-                    value => CatalogName.Create(value, 150, nameof(Product.ProductName)))
+                    value => DisplayName.Create(value, 150, nameof(Product.ProductName)))
                 .HasMaxLength(150)
                 .IsUnicode(true)
                 .IsRequired();
@@ -65,22 +66,16 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .HasPrecision(18, 2)
                 .IsRequired(false);
 
-            // -------------------------
-            //          State
-            // -------------------------
+            // -------- State --------
 
             builder.Property(x => x.IsActive)
                 .IsRequired();
 
-            // -------------------------
-            //           Dates
-            // -------------------------
+            // -------- Dates --------
 
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
-
-            
 
             // -------------------------
             //          Indexes
@@ -88,8 +83,17 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
 
             builder.HasIndex(x => x.MerchantCategoryID);
 
-            builder.HasIndex(x => new { x.MerchantCategoryID, x.ProductName })
-                .IsUnique();
+            builder.HasIndex(x => new
+            {
+                x.MerchantCategoryID,
+                x.ProductName
+            }).IsUnique();
+
+            builder.HasIndex(x => new
+            {
+                x.MerchantCategoryID,
+                x.IsActive
+            }).HasFilter("[IsActive] = 1");
         }
     }
 }
