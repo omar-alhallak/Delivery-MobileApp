@@ -1,12 +1,89 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration.CatalogConfiguration
+namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
 {
-    internal class VariantConfiguration
+    public sealed class VariantConfiguration : IEntityTypeConfiguration<Variant>
     {
+        public void Configure(EntityTypeBuilder<Variant> builder)
+        {
+            builder.ToTable("Variants", "merchants");
+
+            // -------------------------
+            //            Key
+            // -------------------------
+
+            builder.HasKey(x => x.ID);
+
+            builder.Property(x => x.ID)
+                .HasConversion(
+                    id => id.Value,
+                    value => StrongID<VariantTag>.From(value))
+                .ValueGeneratedNever();
+
+            // -------------------------
+            //        Foreign Keys
+            // -------------------------
+
+            builder.Property(x => x.ProductID)
+                .HasConversion(
+                    id => id.Value,
+                    value => StrongID<ProductTag>.From(value))
+                .IsRequired();
+
+            builder.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // -------------------------
+            //           Fields
+            // -------------------------
+
+            // -------- Basic Info --------
+
+            builder.Property(x => x.VariantName)
+                .HasConversion(
+                    value => value.Value,
+                    value => DisplayName.Create(value, 100, nameof(Variant.VariantName)))
+                .HasMaxLength(100)
+                .IsUnicode(true)
+                .IsRequired();
+
+            builder.Property(x => x.BasePrice)
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            // -------- State --------
+
+            builder.Property(x => x.IsActive)
+                .IsRequired();
+
+            // -------- Dates --------
+
+            builder.Property(x => x.CreatedAt)
+                .HasColumnType("datetimeoffset")
+                .IsRequired();
+
+            // -------------------------
+            //          Indexes
+            // -------------------------
+
+            builder.HasIndex(x => x.ProductID);
+
+            builder.HasIndex(x => new
+            {
+                x.ProductID,
+                x.VariantName
+            }).IsUnique();
+
+            builder.HasIndex(x => new
+            {
+                x.ProductID,
+                x.IsActive
+            }).HasFilter("[IsActive] = 1");
+        }
     }
 }

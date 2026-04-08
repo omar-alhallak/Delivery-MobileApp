@@ -55,17 +55,17 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
 
             builder.Property(x => x.Email)
                 .HasMaxLength(255)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .IsRequired(false);
 
             builder.Property(x => x.FullName)
                 .HasMaxLength(150)
-                .IsUnicode(true)
+                .IsUnicode(false)
                 .IsRequired(false);
 
             builder.Property(x => x.Phone)
                 .HasMaxLength(16)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .IsRequired(false);
 
             builder.Property(x => x.PhotoUrl)
