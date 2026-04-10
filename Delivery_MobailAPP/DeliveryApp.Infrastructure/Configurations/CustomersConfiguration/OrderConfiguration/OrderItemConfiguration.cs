@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
     {
         public void Configure(EntityTypeBuilder<OrderItem> builder)
         {
-            builder.ToTable("OrderItems", "customers");
+            builder.ToTable("OrderItem", "customers");
 
             // -------------------------
             //            Key
@@ -28,7 +28,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.OrderID)
+            builder.Property(x => x.OrderID) // One(Order) -----> Many(OrderItem) || لأي طلب تابع هاد العنصر
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<OrderTag>.From(value))
@@ -75,7 +75,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.OrderID);
+            builder.HasIndex(x => x.OrderID); // جلب عناصر طلب معين
         }
     }
 }

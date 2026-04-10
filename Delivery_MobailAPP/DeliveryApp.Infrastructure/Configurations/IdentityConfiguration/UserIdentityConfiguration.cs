@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.ValueObjects;
-using DeliveryApp.Domain.Enums.IdentityEnums;
+using DeliveryApp.Domain.Entities.Identity;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
 {
@@ -25,7 +24,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
                 .ValueGeneratedNever();
 
             // -------------------------
-            //         Relations
+            //        Foreign Keys
             // -------------------------
 
             builder.Property(x => x.UserID)
@@ -37,7 +36,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             builder.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.UserID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
             //           Enums
@@ -51,6 +50,8 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             //           Fields
             // -------------------------
 
+            // -------- Provider Info --------
+
             builder.Property(x => x.ProviderUserId)
                 .HasMaxLength(128)
                 .IsUnicode(false)
@@ -61,6 +62,8 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
                 .IsUnicode(false)
                 .IsRequired(false);
 
+            // -------- Dates --------
+
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
@@ -69,14 +72,18 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             //          Indexes
             // -------------------------
 
-            // منع تكرار نفس الحساب من نفس المزود
-            builder.HasIndex(x => new { x.Provider, x.ProviderUserId })
-                .IsUnique()
-                .HasFilter("[ProviderUserId] IS NOT NULL");
+            builder.HasIndex(x => new
+            {
+                x.Provider,
+                x.ProviderUserId
+            }).IsUnique()
+            .HasFilter("[ProviderUserId] IS NOT NULL");
 
-            // ممكن مستخدم عنده مزود واحد مرة وحدة
-            builder.HasIndex(x => new { x.UserID, x.Provider })
-                .IsUnique();
+            builder.HasIndex(x => new
+            {
+                x.UserID,
+                x.Provider
+            }).IsUnique();
         }
     }
 }

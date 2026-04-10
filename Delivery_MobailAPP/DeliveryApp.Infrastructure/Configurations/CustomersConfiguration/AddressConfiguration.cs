@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration
     {
         public void Configure(EntityTypeBuilder<Address> builder)
         {
-            builder.ToTable("Addresses", "customers");
+            builder.ToTable("Address", "customers");
 
             // -------------------------
             //            Key
@@ -28,7 +28,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.UserID)
+            builder.Property(x => x.UserID) // One(User) -----> Many(Address) || لأي مستخدم تابع هاد العنوان
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -116,10 +116,10 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.UserID);
+            builder.HasIndex(x => x.UserID); // جلب عناوين مستخدم معين
 
-            builder.HasIndex(x => new 
-            { 
+            builder.HasIndex(x => new // منع وجود أكتر من عنوان افتراضي لنفس المستخدم
+            {
                 x.UserID,
                 x.IsDefault
             })  .IsUnique()

@@ -11,7 +11,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
     {
         public void Configure(EntityTypeBuilder<Order> builder)
         {
-            builder.ToTable("Orders", "customers");
+            builder.ToTable("Order", "customers");
 
             // -------------------------
             //           Key
@@ -41,7 +41,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
             //       Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.CustomerID)
+            builder.Property(x => x.CustomerID) // One(User) -----> Many(Order) || لأي مستخدم تابع هاد الطلب
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -54,7 +54,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
 
             // -------------------------
 
-            builder.Property(x => x.MerchantID)
+            builder.Property(x => x.MerchantID) // One(Merchant) -----> Many(Order) || طلب من أي مطعم
                 .HasConversion(
                     id => id.HasValue ? id.Value.Value : (Guid?)null,
                     value => value.HasValue ? StrongID<MerchantTag>.From(value.Value) : null)
@@ -67,7 +67,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
 
             // -------------------------
 
-            builder.Property(x => x.CancelledById)
+            builder.Property(x => x.CancelledById) // One(User) -----> Many(Order) || أي مشرف رفض الطلب
                 .HasConversion(
                     id => id.HasValue ? id.Value.Value : (Guid?)null,
                     value => value.HasValue ? StrongID<UserTag>.From(value.Value) : null)
@@ -201,27 +201,27 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.PublicID)
+            builder.HasIndex(x => x.PublicID) // جلب الطلب من PublicID
                 .IsUnique()
                 .HasFilter("[PublicID] IS NOT NULL");
 
-            builder.HasIndex(x => new 
+            builder.HasIndex(x => new // عرض الطلبات مرتبة حسب التاريخ
             { 
                 x.CustomerID, 
                 x.CreatedAt 
             });
 
-            builder.HasIndex(x => new 
+            builder.HasIndex(x => new // جلب طلبات المطعم حسب الحالة
             { 
                 x.MerchantID,
                 x.Status 
-            })  .HasFilter("[MerchantID] IS NOT NULL");
+            })     .HasFilter("[MerchantID] IS NOT NULL");
 
-            builder.HasIndex(x => new 
-            { 
-                x.Status, 
-                x.CreatedAt 
-            });
+            builder.HasIndex(x => new // جلب الطلبات حسب الحالة
+            {         
+                x.Status,
+                x.CreatedAt
+            })     .HasFilter("[Status] = 2");
         }
     }
 }

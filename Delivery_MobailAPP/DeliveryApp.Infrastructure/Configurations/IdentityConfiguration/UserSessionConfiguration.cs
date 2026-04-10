@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.ValueObjects;
-using DeliveryApp.Domain.Enums.IdentityEnums;
 
 namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
 {
@@ -25,7 +24,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
                 .ValueGeneratedNever();
 
             // -------------------------
-            //         Relations
+            //        Foreign Keys
             // -------------------------
 
             builder.Property(x => x.UserID)
@@ -37,10 +36,10 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             builder.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.UserID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
-            //           Enums
+            //            Enums
             // -------------------------
 
             builder.Property(x => x.ClientType)
@@ -51,15 +50,23 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             //           Fields
             // -------------------------
 
+            // -------- Client Info --------
+
             builder.Property(x => x.DeviceID)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .IsRequired();
 
+            // -------- Refresh Token Hash --------
+
             builder.Property(x => x.RefreshTokenHash)
-                .HasColumnName("RefreshTokenHash")
+                .HasConversion(
+                    value => value.ToArray(),
+                    value => new ReadOnlyMemory<byte>(value))
                 .HasColumnType("varbinary(32)")
                 .IsRequired();
+
+            // -------- Dates --------
 
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
@@ -86,9 +93,11 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             builder.HasIndex(x => new
             {
                 x.UserID,
-                x.ClientType,
-                x.DeviceID
-            });
+                x.ClientType
+            }).IsUnique();
+
+            builder.HasIndex(x => x.RefreshTokenHash)
+                .IsUnique();
 
             builder.HasIndex(x => x.ExpiresAt);
         }

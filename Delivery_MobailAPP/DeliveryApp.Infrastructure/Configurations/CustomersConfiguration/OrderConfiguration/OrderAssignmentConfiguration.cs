@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
     {
         public void Configure(EntityTypeBuilder<OrderAssignment> builder)
         {
-            builder.ToTable("OrderAssignments", "customers");
+            builder.ToTable("OrderAssignment", "customers");
 
             // -------------------------
             //            Key
@@ -25,7 +25,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.OrderID)
+            builder.Property(x => x.OrderID) // One(Order) -----> Many(OrderAssignment) || لأي طلب تابع هاد الإسناد
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<OrderTag>.From(value))
@@ -38,7 +38,7 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
 
             // -------------------------
 
-            builder.Property(x => x.DriverID)
+            builder.Property(x => x.DriverID) // One(User) -----> Many(OrderAssignment) || لأي سائق تابع هاد الإسناد
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -82,12 +82,22 @@ namespace DeliveryApp.Infrastructure.Configurations.CustomersConfiguration.Order
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.DriverID);
+            builder.HasIndex(x => new // منع إضافة نفس السائق أكتر من مرة لنفس الطلب
+            {           
+                x.OrderID,
+                x.DriverID
+            })     .IsUnique();
 
-            builder.HasIndex(x => new 
-            { 
-                x.OrderID, 
-                x.Status 
+            builder.HasIndex(x => new // جلب الطلبات المسندة إلا سائق معين حسب الحالة
+            {
+                x.DriverID,
+                x.Status
+            });
+
+            builder.HasIndex(x => new // جلب السائقين المسند إليهم طلب معين حسب الحالة
+            {
+                x.OrderID,
+                x.Status
             });
         }
     }
