@@ -18,6 +18,8 @@ global using AddressID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Do
 
 global using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;
 
+global using MerchantWorkingHourID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantWorkingHourTag>;
+
 // -------------------------
 //          Catalog
 // -------------------------

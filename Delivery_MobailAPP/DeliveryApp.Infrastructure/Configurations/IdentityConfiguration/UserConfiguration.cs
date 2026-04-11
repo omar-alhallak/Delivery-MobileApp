@@ -76,6 +76,10 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             builder.Property(x => x.IsProfileComplete)
                 .IsRequired();
 
+            builder.Property(x => x.BirthDate)
+                 .HasColumnType("date")
+                 .IsRequired(false);
+
             // -------- Status --------
 
             builder.Property(x => x.SuspendedUntilUtc)

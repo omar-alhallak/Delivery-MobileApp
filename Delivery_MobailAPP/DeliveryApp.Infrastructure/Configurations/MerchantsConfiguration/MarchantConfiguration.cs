@@ -85,6 +85,10 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
                 .IsUnicode(false)
                 .IsRequired(false);
 
+            builder.Property(x => x.DefaultPreparationTime)
+                 .HasColumnType("time")
+                .IsRequired();
+
             // -------- Location --------
 
             builder.OwnsOne(x => x.Location, location =>

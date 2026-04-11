@@ -30,6 +30,8 @@ namespace DeliveryApp.Domain.Entities.Merchants
         public string? LogoUrl { get; private set; } // شعار التاجر
         public string? CoverImageUrl { get; private set; } // صورة الغلاف
 
+        public TimeSpan DefaultPreparationTime { get; private set; } // الوقت الافتراضي لتحضير الطلب
+
         // -------------------------
         //         Location
         // -------------------------
@@ -58,7 +60,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
         private Merchant() { }
 
         public Merchant(MerchantID id, MerchantType merchantType, string merchantName, string slug, double lat, double lng, string? description,
-            string? phone, string? logoUrl, string? coverImageUrl, DateTimeOffset createdAtUtc)
+            string? phone, string? logoUrl, string? coverImageUrl,TimeSpan defaultPreparingTime , DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
@@ -81,6 +83,8 @@ namespace DeliveryApp.Domain.Entities.Merchants
 
             SetLogoUrl(logoUrl);
             SetCoverImageUrl(coverImageUrl);
+
+            SetDefaultPreparingTime(defaultPreparingTime);
 
             AverageRating = 0;
             RatingsCount = 0;
@@ -119,6 +123,22 @@ namespace DeliveryApp.Domain.Entities.Merchants
 
         public void Relocate(double lat, double lng) => SetLocation(lat, lng); // تغيير موقع التاجر
 
+        private void SetDefaultPreparingTime(TimeSpan value)// إضافة الوقت الافتراضي لتحضير الطلب
+        {
+            
+
+            if (value.TotalMinutes < 1) throw new DomainValidationException
+                    (MerchantErrors.PreparingTimeTooSmallCode, MerchantErrors.PreparingTimeTooSmallMessage, nameof(DefaultPreparationTime));
+
+            if (value.TotalHours > 5) throw new DomainValidationException
+                    (MerchantErrors.PreparingTimeTooLargeCode, MerchantErrors.PreparingTimeTooLargeMessage, nameof(DefaultPreparationTime));
+
+            DefaultPreparationTime = value;
+        }
+        public void ChangeDefaultPreparingTime(TimeSpan value) // تعديل وقت التحضير الافتراضي
+        {
+            SetDefaultPreparingTime(value);
+        }
         public void Activate() // تفعيل التاجر
         {
             if (IsActive) return;
@@ -223,7 +243,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
         private void SetCoverImageUrl(string? value) // إدخال صورة الغلاف
         {
             value = NormalizeOptional(value);
-
+                
             if (value is not null && value.Length > 500) throw new DomainValidationException
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(CoverImageUrl));
 

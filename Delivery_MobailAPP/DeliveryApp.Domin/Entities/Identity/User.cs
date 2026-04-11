@@ -24,6 +24,7 @@ namespace DeliveryApp.Domain.Entities.Identity
         public string? FullName { get; private set; } // الاسم الكامل
         public string? Phone { get; private set; } // رقم الهاتف
         public string? PhotoUrl { get; private set; } // رابط الصورة الشخصية
+        public DateOnly? BirthDate { get; private set; } // تاريخ ميلاد المستخدم
 
         public bool IsProfileComplete { get; private set; } // هل الملف الشخصي مكتمل
 
@@ -119,7 +120,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             IsProfileComplete = false;
         }
 
-        private bool HasRequiredProfileFields() => Phone is not null && FullName is not null; // التحقق من وجود الحقول المطلوبة لإكمال الملف الشخصي
+        private bool HasRequiredProfileFields() => Phone is not null && FullName is not null && BirthDate is not null; // التحقق من وجود الحقول المطلوبة لإكمال الملف الشخصي
 
         private void ValidateFieldLengths() // التحقق من أطوال الحقول
         {
@@ -136,6 +137,24 @@ namespace DeliveryApp.Domain.Entities.Identity
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(PhotoUrl));
         }
 
+        public void ChagneBirthDate(DateOnly birthDate, DateOnly today)
+        {
+            PreventModificationIfBanned();
+
+            if (birthDate == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(birthDate));
+
+            if (today == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(today));
+
+            if (birthDate > today) throw new DomainValidationException
+                    (UserErrors.BirthDateCannotBeFutureCode, UserErrors.BirthDateCannotBeFutureMessage, nameof(birthDate));
+
+            if (birthDate < new DateOnly(1900, 1, 1)) throw new DomainValidationException
+                    (UserErrors.BirthDateOutOfRangeCode, UserErrors.BirthDateOutOfRangeMessage, nameof(birthDate));
+
+            BirthDate = birthDate;
+        }
         // -------------------------
         //          Roles
         // -------------------------

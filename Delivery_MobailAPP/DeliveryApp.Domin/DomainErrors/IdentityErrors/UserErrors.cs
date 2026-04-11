@@ -25,5 +25,11 @@
         // لا يمكنك تعديل حساب مبند
         public const string BannedCantBeModifiedCode = "User.Banned_Cant_Be_Modified";
         public const string BannedCantBeModifiedMessage = "Banned user cant be modified.";
+        //لا يمكن اضافة تاريخ ميلاد في المستقبل
+        public const string BirthDateCannotBeFutureCode = "User.BirthDateCannotBeFuture";
+        public const string BirthDateCannotBeFutureMessage = "Birth date cannot be in the future.";
+        // لا يمكن اضافة تاريخ ميلاد خارج النطاق المسموح
+        public const string BirthDateOutOfRangeCode = "User.BirthDateOutOfRange";
+        public const string BirthDateOutOfRangeMessage = "Birth date is out of allowed range.";
     }
 }
