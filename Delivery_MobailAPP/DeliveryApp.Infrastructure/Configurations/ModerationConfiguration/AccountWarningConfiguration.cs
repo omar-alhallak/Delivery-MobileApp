@@ -11,7 +11,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
     {
         public void Configure(EntityTypeBuilder<AccountWarning> builder)
         {
-            builder.ToTable("AccountWarnings", "moderation");
+            builder.ToTable("AccountWarning", "moderation");
 
             // -------------------------
             //            Key
@@ -23,14 +23,13 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<AccountWarningTag>.From(value))
-                .ValueGeneratedNever()
-                .IsRequired();
+                .ValueGeneratedNever();
 
             // -------------------------
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.RelatedOrderID)
+            builder.Property(x => x.RelatedOrderID) // One(Order) -----> Many(AccountWarning) || الطلب المرتبط بالتحذير
                 .HasConversion(
                     id => id.HasValue ? id.Value.Value : (Guid?)null,
                     value => value.HasValue ? StrongID<OrderTag>.From(value.Value) : null)
@@ -43,7 +42,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
 
             // -------------------------
 
-            builder.Property(x => x.CreatedByAdminID)
+            builder.Property(x => x.CreatedByAdminID) // One(User) -----> Many(AccountWarning) || المشرف الي أنشأ التحذير
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -56,7 +55,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
 
             // -------------------------
 
-            builder.Property(x => x.DecidedByAdminID)
+            builder.Property(x => x.DecidedByAdminID) // One(User) -----> Many(AccountWarning) || المشرف الي حسم القرار
                 .HasConversion(
                     id => id.HasValue ? id.Value.Value : (Guid?)null,
                     value => value.HasValue ? StrongID<UserTag>.From(value.Value) : null)
@@ -128,16 +127,26 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.RelatedOrderID)
+            builder.HasIndex(x => x.RelatedOrderID) // جلب التحذيرات المرتبطة بطلب معين
                 .HasFilter("[RelatedOrderID] IS NOT NULL");
 
-            builder.HasIndex(x => x.Decision);
+            builder.HasIndex(x => x.Decision); // جلب التحذيرات حسب الحالة
 
-            builder.HasIndex(x => new 
-            { 
+            builder.HasIndex(x => new // جلب التحذيرات الخاصة بكيان معين مرتبة حسب وقت الإنشاء
+            {
                 x.EntityType,
-                x.EntityID 
+                x.EntityID,
+                x.CreatedAt
             });
+
+            builder.HasIndex(x => new // منع تكرار تحذير غير محسوم
+            {       
+                x.EntityType,
+                x.EntityID,
+                x.RelatedOrderID,
+                x.Reason
+            })     .IsUnique()
+                   .HasFilter("[IsActive] = 1");
         }
     }
 }

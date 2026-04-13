@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
     {
         public void Configure(EntityTypeBuilder<Driver> builder)
         {
-            builder.ToTable("Drivers", "drivers");
+            builder.ToTable("Driver", "drivers");
 
             // -------------------------
             //            Key
@@ -37,7 +37,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.VehicleTypeID)
+            builder.Property(x => x.VehicleTypeID) // One(VehicleType) -----> Many(Driver) || نوع المركبة السائق
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<VehicleTypeTag>.From(value))
@@ -50,7 +50,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
 
             // -------------------------
 
-            builder.Property(x => x.DisabledByAdminID)
+            builder.Property(x => x.DisabledByAdminID) // One(User) -----> Many(Driver) || المشرف الي عطل السائق
                 .HasConversion(
                     id => id.HasValue ? id.Value.Value : (Guid?)null,
                     value => value.HasValue ? StrongID<UserTag>.From(value.Value) : null)
@@ -63,7 +63,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
 
             // -------------------------
 
-            builder.Property(x => x.ApprovedByAdminID)
+            builder.Property(x => x.ApprovedByAdminID) // One(User) -----> Many(Driver) || المشرف الي وافق على السائق
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -145,9 +145,10 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // جلب السائقين حسب نوع المركبة والتفعيل والتوفر وآخر نشاط
             {
                 x.VehicleTypeID,
+                x.IsEnabled,
                 x.IsAvailable,
                 x.LastSeenAt
             });

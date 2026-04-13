@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
     {
         public void Configure(EntityTypeBuilder<MerchantCategory> builder)
         {
-            builder.ToTable("MerchantCategories", "merchants");
+            builder.ToTable("MerchantCategory", "merchants");
 
             // -------------------------
             //            Key
@@ -28,7 +28,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.MerchantID)
+            builder.Property(x => x.MerchantID) // One(Merchant) -----> Many(MerchantCategory) || تصنيف تابع لأي مطعم
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<MerchantTag>.From(value))
@@ -81,20 +81,20 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.MerchantID);
+            builder.HasIndex(x => x.MerchantID); // جلب جميع تصنيفات مطعم معين
 
-            builder.HasIndex(x => new
-            {
+            builder.HasIndex(x => new // منع تكرار اسم التصنيف داخل نفس المطعم
+            {           
                 x.MerchantID,
                 x.CategoryName
-            }).IsUnique();
+            })     .IsUnique();
 
-            builder.HasIndex(x => new
-            {
+            builder.HasIndex(x => new // جلب التصنيفات الفعالة لمطعم معين مرتبة
+            {           
                 x.MerchantID,
                 x.IsActive,
                 x.SortOrder
-            }).HasFilter("[IsActive] = 1");
+            })     .HasFilter("[IsActive] = 1");
         }
     }
 }

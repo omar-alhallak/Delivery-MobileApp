@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.Zone
     {
         public void Configure(EntityTypeBuilder<Zone> builder)
         {
-            builder.ToTable("Zones", "moderation");
+            builder.ToTable("Zone", "moderation");
 
             // -------------------------
             //            Key
@@ -21,11 +21,10 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.Zone
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<ZoneTag>.From(value))
-                .ValueGeneratedNever()
-                .IsRequired();
+                .ValueGeneratedNever();
 
             // -------------------------
-            //       Relationships
+            //        Foreign Keys
             // -------------------------
 
             builder.HasMany(x => x.Polygons)
@@ -69,8 +68,14 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.Zone
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.IsServiceable)
-                .HasFilter("[IsActive] = 1 AND [IsServiceable] = 1");
+            builder.HasIndex(x => x.ZoneName) // منع تكرار اسم المنطقة
+                .IsUnique();
+
+            builder.HasIndex(x => new // جلب المناطق الفعالة والمخدمة
+            {
+                x.IsActive,
+                x.IsServiceable
+            })     .HasFilter("[IsActive] = 1 AND [IsServiceable] = 1");
         }
     }
 }

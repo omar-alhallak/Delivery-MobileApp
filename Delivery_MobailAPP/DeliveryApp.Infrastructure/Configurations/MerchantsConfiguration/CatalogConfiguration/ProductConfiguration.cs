@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
     {
         public void Configure(EntityTypeBuilder<Product> builder)
         {
-            builder.ToTable("Products", "merchants");
+            builder.ToTable("Product", "merchants");
 
             // -------------------------
             //            Key
@@ -27,7 +27,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.MerchantCategoryID)
+            builder.Property(x => x.MerchantCategoryID) // One(MerchantCategory) -----> Many(Product) || التصنيف الخاص بالمنتج
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<MerchantCategoryTag>.From(value))
@@ -81,19 +81,20 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.MerchantCategoryID);
+            builder.HasIndex(x => x.MerchantCategoryID); // جلب جميع منتجات تصنيف معين
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // منع تكرار اسم المنتج داخل نفس التصنيف
             {
                 x.MerchantCategoryID,
                 x.ProductName
-            }).IsUnique();
+            })     .IsUnique();
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // جلب المنتجات الفعالة داخل التصنيف مرتبة حسب وقت الإنشاء
             {
                 x.MerchantCategoryID,
-                x.IsActive
-            }).HasFilter("[IsActive] = 1");
+                x.IsActive,
+                x.CreatedAt
+            })     .HasFilter("[IsActive] = 1");
         }
     }
 }

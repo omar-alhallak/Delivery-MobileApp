@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
     {
         public void Configure(EntityTypeBuilder<Merchant> builder)
         {
-            builder.ToTable("Merchants", "merchants");
+            builder.ToTable("Merchant", "merchants");
 
             // -------------------------
             //            Key
@@ -67,7 +67,7 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
 
             builder.Property(x => x.Description)
                 .HasMaxLength(2000)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .IsRequired(false);
 
             builder.Property(x => x.Phone)
@@ -124,18 +124,18 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.PublicID)
+            builder.HasIndex(x => x.PublicID) // جلب التاجر عن طريق الكود ومنع تكراره
                 .IsUnique()
                 .HasFilter("[PublicID] IS NOT NULL");
 
-            builder.HasIndex(x => x.Slug)
+            builder.HasIndex(x => x.Slug) // جلب التاجر عن طريق الرابط ومنع تكراره
                 .IsUnique();
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // جلب التجار الفعالين حسب نوع التاجر
             {
                 x.MerchantType,
                 x.IsActive
-            }).HasFilter("[IsActive] = 1");
+            })     .HasFilter("[IsActive] = 1");
         }
     }
 }

@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
     {
         public void Configure(EntityTypeBuilder<VehicleType> builder)
         {
-            builder.ToTable("VehicleTypes", "drivers");
+            builder.ToTable("VehicleType", "drivers");
 
             // -------------------------
             //            Key
@@ -31,14 +31,17 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
 
             builder.Property(x => x.VehicleName)
                 .HasMaxLength(100)
+                .IsUnicode(true)
                 .IsRequired();
 
             // -------- Delivery Limits --------
 
             builder.Property(x => x.MaxDistanceKm)
+                .HasColumnType("float")
                 .IsRequired();
 
             builder.Property(x => x.MaxMergeExtraKm)
+                .HasColumnType("float")
                 .IsRequired();
 
             builder.Property(x => x.MaxOrdersToBatch)
@@ -63,7 +66,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.VehicleName)
+            builder.HasIndex(x => x.VehicleName) // منع تكرار اسم المركبة
                 .IsUnique();
         }
     }

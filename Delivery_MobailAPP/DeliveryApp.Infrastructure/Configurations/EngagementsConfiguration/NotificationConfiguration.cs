@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
     {
         public void Configure(EntityTypeBuilder<Notification> builder)
         {
-            builder.ToTable("Notifications", "engagement");
+            builder.ToTable("Notification", "engagement");
 
             // -------------------------
             //            Key
@@ -28,7 +28,7 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.UserID)
+            builder.Property(x => x.UserID) // One(User) -----> Many(Notification) || المستخدم الي اله الإشعار
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -37,7 +37,6 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
             builder.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.UserID)
-                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
@@ -88,11 +87,16 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
             //            Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.UserID);
+            builder.HasIndex(x => new // جلب إشعارات المستخدم مرتبة زمنياً
+            {
+                x.UserID,
+                x.IsRead,
+                x.CreatedAt
+            });
 
-            builder.HasIndex(x => new 
-            { 
-                x.RelatedEntityType, 
+            builder.HasIndex(x => new // جلب الإشعارات المرتبطة بكيان معين
+            {
+                x.RelatedEntityType,
                 x.RelatedEntityID
             });
         }

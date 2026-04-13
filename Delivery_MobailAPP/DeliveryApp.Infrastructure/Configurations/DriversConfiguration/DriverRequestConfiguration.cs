@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
     {
         public void Configure(EntityTypeBuilder<DriverRequest> builder)
         {
-            builder.ToTable("DriverRequests", "drivers");
+            builder.ToTable("DriverRequest", "drivers");
 
             // -------------------------
             //            Key
@@ -27,8 +27,8 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
             // -------------------------
             //        Foreign Keys
             // -------------------------
-         
-            builder.Property(x => x.UserID)
+
+            builder.Property(x => x.UserID) // One(User) -----> Many(DriverRequest) || المستخدم الي قدم الطلب
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -41,7 +41,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
 
             // -------------------------
 
-            builder.Property(x => x.VehicleTypeID)
+            builder.Property(x => x.VehicleTypeID) // One(VehicleType) -----> Many(DriverRequest) || نوع المركبة الي بده يشتغل عليها
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<VehicleTypeTag>.From(value))
@@ -54,7 +54,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
 
             // -------------------------
 
-            builder.Property(x => x.ReviewedByAdminID)
+            builder.Property(x => x.ReviewedByAdminID) // One(User) -----> Many(DriverRequest) || المشرف الي راجع الطلب
                 .HasConversion(
                     id => id.HasValue ? id.Value.Value : (Guid?)null,
                     value => value.HasValue ? StrongID<UserTag>.From(value.Value) : null)
@@ -144,15 +144,27 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
             //           Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.UserID)
+            builder.HasIndex(x => x.UserID) // منع وجود أكثر من طلب معلق لنفس المستخدم
                 .IsUnique()
                 .HasFilter("[Status] = 1");
 
-            builder.HasIndex(x => x.NationalIdNumber)
+            builder.HasIndex(x => x.NationalIdNumber) // منع تكرار رقم الهوية ضمن الطلبات Pending و Approved
                 .IsUnique()
                 .HasFilter("[Status] IN (1, 2)");
 
-            builder.HasIndex(x => x.Status);
+            builder.HasIndex(x => x.DrivingLicenseNumber) // منع تكرار رقم الرخصة ضمن الطلبات Pending و Approved
+                .IsUnique()
+                .HasFilter("[DrivingLicenseNumber] IS NOT NULL AND [Status] IN (1, 2)");
+
+            builder.HasIndex(x => x.VehiclePlateNumber) // منع تكرار رقم اللوحة ضمن الطلبات Pending و Approved
+                .IsUnique()
+                .HasFilter("[VehiclePlateNumber] IS NOT NULL AND [Status] IN (1, 2)");
+
+            builder.HasIndex(x => new // جلب الطلبات حسب الحالة مرتبة بوقت الإنشاء
+            {
+                x.Status,
+                x.CreatedAt
+            });
         }
     }
 }

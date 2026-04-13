@@ -8,7 +8,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration.Zone
     {
         public void Configure(EntityTypeBuilder<ZonePolygon> builder)
         {
-            builder.ToTable("ZonePolygons", "moderation");
+            builder.ToTable("ZonePolygon", "moderation");
 
             // -------------------------
             //            Key

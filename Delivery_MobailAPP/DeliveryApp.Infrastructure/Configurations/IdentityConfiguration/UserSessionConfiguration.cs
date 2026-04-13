@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.Entities.Identity;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
 {
@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
     {
         public void Configure(EntityTypeBuilder<UserSession> builder)
         {
-            builder.ToTable("UserSessions", "identity");
+            builder.ToTable("UserSession", "identity");
 
             // -------------------------
             //            Key
@@ -27,7 +27,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.UserID)
+            builder.Property(x => x.UserID) // One(User) -----> Many(UserSession) || المستخدم صاحب الجلسة
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -88,18 +88,16 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.UserID);
-
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // منع وجود أكثر من جلسة لنفس المستخدم على نفس التطبيق
             {
                 x.UserID,
                 x.ClientType
-            }).IsUnique();
+            })  .IsUnique();
 
-            builder.HasIndex(x => x.RefreshTokenHash)
-                .IsUnique();
+            builder.HasIndex(x => x.RefreshTokenHash) // البحث عن الجلسة من خلال
+                .IsUnique();                          // Refresh Token Hash ومنع تكراره
 
-            builder.HasIndex(x => x.ExpiresAt);
+            builder.HasIndex(x => x.ExpiresAt); // جلب الجلسات المنتهية
         }
     }
 }

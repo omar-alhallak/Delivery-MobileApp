@@ -11,7 +11,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
     {
         public void Configure(EntityTypeBuilder<Complaint> builder)
         {
-            builder.ToTable("Complaints", "moderation");
+            builder.ToTable("Complaint", "moderation");
 
             // -------------------------
             //            Key
@@ -23,14 +23,13 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<ComplaintTag>.From(value))
-                .ValueGeneratedNever()
-                .IsRequired();
+                .ValueGeneratedNever();
 
             // -------------------------
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.OrderID)
+            builder.Property(x => x.OrderID) // One(Order) -----> Many(Complaint) || الطلب المرتبط بالشكوى
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<OrderTag>.From(value))
@@ -43,7 +42,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
 
             // -------------------------
 
-            builder.Property(x => x.CreatedByUserID)
+            builder.Property(x => x.CreatedByUserID) // One(User) -----> Many(Complaint) || المستخدم الي أنشأ الشكوى
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -56,7 +55,7 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
 
             // -------------------------
 
-            builder.Property(x => x.ReviewedByAdminID)
+            builder.Property(x => x.ReviewedByAdminID) // One(User) -----> Many(Complaint) || المشرف الي راجع الشكوى
                 .HasConversion(
                     id => id.HasValue ? id.Value.Value : (Guid?)null,
                     value => value.HasValue ? StrongID<UserTag>.From(value.Value) : null)
@@ -116,13 +115,26 @@ namespace DeliveryApp.Infrastructure.Configurations.ModerationConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.Status);
+            builder.HasIndex(x => x.OrderID); // جلب جميع الشكاوى المرتبطة بطلب معين
 
-            builder.HasIndex(x => new 
-            { 
+            builder.HasIndex(x => x.Status); // جلب الشكاوى حسب حالتها
+
+            builder.HasIndex(x => new // جلب الشكاوى الخاصة بجهة معينة مرتبة حسب وقت الإنشاء
+            {
                 x.TargetType,
-                x.TargetID 
-            });    
+                x.TargetID,
+                x.CreatedAt
+            });
+
+            builder.HasIndex(x => new // منع تكرار الشكاوي المعلقة
+            {
+                x.CreatedByUserID,
+                x.OrderID,
+                x.TargetType,
+                x.TargetID,
+                x.Reason
+            })  .IsUnique()
+                .HasFilter("[Status] = 1");
         }
     }
 }

@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
     {
         public void Configure(EntityTypeBuilder<UserIdentity> builder)
         {
-            builder.ToTable("UserIdentities", "identity");
+            builder.ToTable("UserIdentity", "identity");
 
             // -------------------------
             //            Key
@@ -27,7 +27,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.UserID)
+            builder.Property(x => x.UserID) // One(User) -----> Many(UserIdentity) || المستخدم المرتبط بالهوية
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -72,18 +72,18 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // منع تكرار نفس الحساب مع أكثر من مستخدم
             {
                 x.Provider,
                 x.ProviderUserId
-            }).IsUnique()
-            .HasFilter("[ProviderUserId] IS NOT NULL");
+            })  .IsUnique()
+                .HasFilter("[ProviderUserId] IS NOT NULL");
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // منع المستخدم من أنو يكون عنده نفس طريقة تسجيل مكررة
             {
                 x.UserID,
                 x.Provider
-            }).IsUnique();
+            })  .IsUnique();
         }
     }
 }

@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.ToTable("Users", "identity");
+            builder.ToTable("User", "identity");
 
             // -------------------------
             //            Key
@@ -55,17 +55,17 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
 
             builder.Property(x => x.Email)
                 .HasMaxLength(255)
-                .IsUnicode(true)
+                .IsUnicode(false)
                 .IsRequired(false);
 
             builder.Property(x => x.FullName)
                 .HasMaxLength(150)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .IsRequired(false);
 
             builder.Property(x => x.Phone)
                 .HasMaxLength(16)
-                .IsUnicode(true)
+                .IsUnicode(false)
                 .IsRequired(false);
 
             builder.Property(x => x.PhotoUrl)
@@ -105,15 +105,15 @@ namespace DeliveryApp.Infrastructure.Configurations.IdentityConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.PublicID)
+            builder.HasIndex(x => x.PublicID) // جلب المستخدم ومنع تكرار الكود
                 .IsUnique()
                 .HasFilter("[PublicID] IS NOT NULL");
 
-            builder.HasIndex(x => x.Email)
+            builder.HasIndex(x => x.Email) // منع تكرار البريد الإلكتروني والبحث به
                 .IsUnique()
                 .HasFilter("[Email] IS NOT NULL");
-                    
-            builder.HasIndex(x => x.Phone)
+
+            builder.HasIndex(x => x.Phone) // منع تكرار رقم الهاتف والبحث به
                 .IsUnique()
                 .HasFilter("[Phone] IS NOT NULL");
         }

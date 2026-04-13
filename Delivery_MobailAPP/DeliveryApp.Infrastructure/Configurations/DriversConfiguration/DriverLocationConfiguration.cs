@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
     {
         public void Configure(EntityTypeBuilder<DriverLocation> builder)
         {
-            builder.ToTable("DriverLocations", "drivers");
+            builder.ToTable("DriverLocation", "drivers");
 
             // -------------------------
             //            Key
@@ -27,7 +27,7 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.DriverID)
+            builder.Property(x => x.DriverID) // One(Driver) -----> Many(DriverLocation) || لأي سائق تابع هاد السجل
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -67,10 +67,10 @@ namespace DeliveryApp.Infrastructure.Configurations.DriversConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => new 
-            { 
-                x.DriverID, 
-                x.RecordedAt 
+            builder.HasIndex(x => new // جلب سجل موقع سائق معين حسب وقت
+            {
+                x.DriverID,
+                x.RecordedAt
             });
         }
     }

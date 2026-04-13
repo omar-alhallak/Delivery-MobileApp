@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
     {
         public void Configure(EntityTypeBuilder<Variant> builder)
         {
-            builder.ToTable("Variants", "merchants");
+            builder.ToTable("Variant", "merchants");
 
             // -------------------------
             //            Key
@@ -27,7 +27,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //        Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.ProductID)
+            builder.Property(x => x.ProductID) // One(Product) -----> Many(Variant) || المنتج الي يتبع له ال Variant
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<ProductTag>.From(value))
@@ -71,19 +71,20 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.ProductID);
+            builder.HasIndex(x => x.ProductID); // جلب جميع التفصيلات الخاصة بمنتج معين
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // منع تكرار اسم التفصيل داخل نفس المنتج
             {
                 x.ProductID,
                 x.VariantName
-            }).IsUnique();
+            })     .IsUnique();
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // جلب التفصيل الفعالة لمنتج معين مرتبة حسب وقت الإنشاء
             {
                 x.ProductID,
-                x.IsActive
-            }).HasFilter("[IsActive] = 1");
+                x.IsActive,
+                x.CreatedAt
+            })     .HasFilter("[IsActive] = 1");
         }
     }
 }

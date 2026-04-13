@@ -9,7 +9,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
     {
         public void Configure(EntityTypeBuilder<SystemCategory> builder)
         {
-            builder.ToTable("SystemCategories", "merchants");
+            builder.ToTable("SystemCategory", "merchants");
 
             // -------------------------
             //            Key
@@ -76,27 +76,24 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => new
-            {
+            builder.HasIndex(x => new // منع تكرار 
+            {                         // slug داخل نفس نوع التاجر
                 x.MerchantType,
                 x.Slug
-            })
-            .IsUnique();
+            })     .IsUnique();
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // منع تكرار التصنيف للتاجر
             {
                 x.MerchantType,
                 x.CategoryName
-            })
-            .IsUnique();
+            })     .IsUnique();
 
-            builder.HasIndex(x => new
+            builder.HasIndex(x => new // جلب التصنيفات الفعالة مرتبة
             {
                 x.MerchantType,
                 x.IsActive,
                 x.SortOrder
-            })
-            .HasFilter("[IsActive] = 1");
+            })     .HasFilter("[IsActive] = 1");
         }
     }
 }

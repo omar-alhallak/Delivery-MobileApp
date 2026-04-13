@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
     {
         public void Configure(EntityTypeBuilder<MerchantUser> builder)
         {
-            builder.ToTable("MerchantUsers", "merchants");
+            builder.ToTable("MerchantUser", "merchants");
 
             // -------------------------
             //            Key
@@ -22,11 +22,14 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
             //        Foreign Keys
             // -------------------------
 
+            //                           جدول كسر 
+            // One(Merchant) -----> Many(MerchantUser) <----- One(User)
+
             builder.Property(x => x.MerchantID)
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<MerchantTag>.From(value))
-                .ValueGeneratedNever();
+                .IsRequired();
 
             builder.HasOne<Merchant>()
                 .WithMany()
@@ -39,7 +42,7 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
-                .ValueGeneratedNever();
+                .IsRequired();
 
             builder.HasOne<User>()
                 .WithMany()
@@ -73,7 +76,7 @@ namespace DeliveryApp.Infrastructure.Configurations.MerchantsConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.UserID);
+            builder.HasIndex(x => x.UserID); // جلب جميع المطاعم المرتبط بالمستخدم
         }
     }
 }

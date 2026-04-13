@@ -34,7 +34,7 @@ namespace DeliveryApp.Domain.Entities.Identity
         //        Client Info
         // -------------------------
         public ClientType ClientType { get; private set; } // نوع التطبيق الي تابعة له جلسة
-        public string DeviceID { get; private set; } = null!; // صاحب الجلسة
+        public string DeviceID { get; private set; } = null!; // معرف الجهاز
 
         // -------------------------
         //    Refresh Token Hash

@@ -11,7 +11,7 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
     {
         public void Configure(EntityTypeBuilder<Rating> builder)
         {
-            builder.ToTable("Ratings", "engagement");
+            builder.ToTable("Rating", "engagement");
 
             // -------------------------
             //           Key
@@ -29,7 +29,7 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
             //       Foreign Keys
             // -------------------------
 
-            builder.Property(x => x.OrderID)
+            builder.Property(x => x.OrderID) // One(Order) -----> Many(Rating) || الطلب المرتبط بالتقييم
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<OrderTag>.From(value))
@@ -38,12 +38,11 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
             builder.HasOne<Order>()
                 .WithMany()
                 .HasForeignKey(x => x.OrderID)
-                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
 
-            builder.Property(x => x.RaterUserID)
+            builder.Property(x => x.RaterUserID) // One(User) -----> Many(Rating) || المستخدم الي قييم
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<UserTag>.From(value))
@@ -52,7 +51,6 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
             builder.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.RaterUserID)
-                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
@@ -93,16 +91,21 @@ namespace DeliveryApp.Infrastructure.Configurations.EngagementsConfiguration
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.OrderID);
+            builder.HasIndex(x => x.RaterUserID); // جلب كل التقييمات التي كتبها مستخدم معين
 
-            builder.HasIndex(x => x.RaterUserID);
-
-            builder.HasIndex(x => new 
-            { 
-                x.TargetType, 
-                x.RatedEntityID, 
-                x.CreatedAt 
+            builder.HasIndex(x => new // جلب تقييمات كيان معين (سائق / مطعم / زبون) مرتبة زمنياً
+            {
+                x.TargetType,
+                x.RatedEntityID,
+                x.CreatedAt
             });
+
+            builder.HasIndex(x => new // منع تكرار التقييم من نفس المستخدم لنفس الجهة داخل نفس الطلب
+            {         
+                x.OrderID,
+                x.RaterUserID,
+                x.TargetType
+            })     .IsUnique();
         }
     }
 }

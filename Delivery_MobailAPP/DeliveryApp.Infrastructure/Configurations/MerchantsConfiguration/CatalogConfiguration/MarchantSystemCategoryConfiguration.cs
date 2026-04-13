@@ -10,7 +10,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
     {
         public void Configure(EntityTypeBuilder<MerchantSystemCategory> builder)
         {
-            builder.ToTable("MerchantSystemCategories", "merchants");
+            builder.ToTable("MerchantSystemCategory", "merchants");
 
             // -------------------------
             //            Key
@@ -21,25 +21,27 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             // -------------------------
             //        Foreign Keys
             // -------------------------
+            //                               جدول كسر 
+            // One(Merchant) -----> Many(MerchantSystemCategory) <----- One(SystemCategory)
 
-            builder.Property(x => x.MerchantID)
+            builder.Property(x => x.MerchantID) 
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<MerchantTag>.From(value))
-                .ValueGeneratedNever();
+                .IsRequired();
 
             builder.HasOne<Merchant>()
                 .WithMany()
                 .HasForeignKey(x => x.MerchantID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // -------------------------
 
-            builder.Property(x => x.SystemCategoryID)
+            builder.Property(x => x.SystemCategoryID) 
                 .HasConversion(
                     id => id.Value,
                     value => StrongID<SystemCategoryTag>.From(value))
-                .ValueGeneratedNever();
+                .IsRequired();
 
             builder.HasOne<SystemCategory>()
                 .WithMany()
@@ -60,7 +62,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.SystemCategoryID);
+            builder.HasIndex(x => x.SystemCategoryID); // جلب المطاعم المرتبطة بتصنيف معين
         }
     }
 }
