@@ -19,6 +19,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
         public DisplayName VariantName { get; private set; } = null!; // اسم ال Variant
         public decimal BasePrice { get; private set; } // السعر الأساسي
+        public int SortOrder { get; private set; } //ترتيب عرض ال Variants في المنتج
 
         // -------------------------
         //          State
@@ -34,7 +35,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
         private Variant() { }
 
-        public Variant(VariantID variantId, ProductID productId, string variantName, decimal basePrice, DateTimeOffset createdAtUtc)
+        public Variant(VariantID variantId, ProductID productId, string variantName, int sortOrder, decimal basePrice, DateTimeOffset createdAtUtc)
         {
             if (variantId.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(variantId));
@@ -50,6 +51,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
             SetName(variantName);
             SetBasePrice(basePrice);
+            ChangeSortOrder(sortOrder);
 
             IsActive = true;
             CreatedAt = createdAtUtc;
@@ -89,6 +91,14 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(BasePrice));
 
             BasePrice = value;
+        }
+
+        public void ChangeSortOrder(int sortOrder)
+        {
+            if (sortOrder <= 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(sortOrder));
+
+            SortOrder = sortOrder;
         }
     }
 }

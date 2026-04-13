@@ -66,6 +66,10 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 .HasPrecision(18, 2)
                 .IsRequired(false);
 
+            builder.Property(x => x.SortOrder)
+                .HasColumnType("int")
+                .IsRequired();
+
             // -------- State --------
 
             builder.Property(x => x.IsActive)
@@ -81,7 +85,7 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
             //          Indexes
             // -------------------------
 
-            builder.HasIndex(x => x.MerchantCategoryID);
+           
 
             builder.HasIndex(x => new
             {
@@ -94,6 +98,12 @@ namespace DeliveryApp.Infrastructure.Configuration.Merchants.Catalog
                 x.MerchantCategoryID,
                 x.IsActive
             }).HasFilter("[IsActive] = 1");
+
+            builder.HasIndex(x => new
+            {
+                x.MerchantCategoryID,
+                x.SortOrder
+            });
         }
     }
 }

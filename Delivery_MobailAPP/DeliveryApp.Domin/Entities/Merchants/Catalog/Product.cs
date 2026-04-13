@@ -28,6 +28,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
         // ملاحظة: السعر في حال عدم وجود للمنتج Variant
         public decimal? BasePrice { get; private set; } // السعر الأساسي للمنتج
+        public int SortOrder { get; private set; } //ترتيب المنتجات في العرض
 
         // -------------------------
         //          State
@@ -43,7 +44,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
         private Product() { }
 
-        public Product(ProductID id, MerchantCategoryID merchantCategoryId, string productName, string? description, string? imageUrl, DateTimeOffset createdAtUtc, decimal? basePrice = null)
+        public Product(ProductID id, MerchantCategoryID merchantCategoryId, string productName, string? description, int sortOrder, string? imageUrl, DateTimeOffset createdAtUtc, decimal? basePrice = null )
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
@@ -53,6 +54,8 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
             if (createdAtUtc == default) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(createdAtUtc));
+            
+
 
             ID = id;
             MerchantCategoryID = merchantCategoryId;
@@ -61,7 +64,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
             SetDescription(description);
             SetImageUrl(imageUrl);
             SetBasePrice(basePrice);
-
+            ChangeSortOrder(sortOrder);
             IsActive = true;
             CreatedAt = createdAtUtc;
         }
@@ -133,6 +136,14 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(BasePrice));
 
             BasePrice = value;
+        }
+
+        public void ChangeSortOrder(int sortOrder)
+        {
+            if (sortOrder <= 0)throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode,ValidationErrors.OutOfRangeMessage,nameof(sortOrder));
+
+            SortOrder = sortOrder;
         }
 
         private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim(); // تنظيف النصوص
