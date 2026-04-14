@@ -59,6 +59,7 @@ namespace DeliveryApp.Infrastructure.Persistence
 
         public DbSet<Merchant> Merchants => Set<Merchant>();
         public DbSet<MerchantUser> MerchantUsers => Set<MerchantUser>();
+        public DbSet<MerchantWorkingHour> MerchantWorkingHours => Set<MerchantWorkingHour>();
 
         // -------------------------
         //          Catalog
