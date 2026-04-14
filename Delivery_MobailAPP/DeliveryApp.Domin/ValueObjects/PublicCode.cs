@@ -6,8 +6,8 @@ namespace DeliveryApp.Domain.ValueObjects
 {
     public readonly record struct PublicCode // الكود الذي يظهر للمستخدم مثال ORD-000000
     {
-        private static readonly Regex Format = new(@"^[A-Z]{1,5}-\d{6}$", RegexOptions.Compiled); // للتحقق من الكود كاملاً
-        private static readonly Regex PrefixFormat = new(@"^[A-Z]{1,5}$", RegexOptions.Compiled); // تحقق من البداية مثال ORD
+        private static readonly Regex FullFormatRegex = new(@"^[A-Z]{1,5}-\d{6,}$", RegexOptions.Compiled); // للتحقق من الكود كاملاً
+        private static readonly Regex PrefixFormatRegex = new(@"^[A-Z]{1,5}$", RegexOptions.Compiled); // تحقق من البداية مثال ORD
 
         public string Value { get; } // القيمة النهائية بعد التحقق
 
@@ -21,7 +21,7 @@ namespace DeliveryApp.Domain.ValueObjects
 
             value = value.Trim().ToUpperInvariant();
 
-            if (!Format.IsMatch(value)) throw new DomainValidationException
+            if (!FullFormatRegex.IsMatch(value)) throw new DomainValidationException
                     (ValidationErrors.InvalidFormatCode, ValidationErrors.InvalidFormatMessage, nameof(value));
 
             return new PublicCode(value);
@@ -34,16 +34,13 @@ namespace DeliveryApp.Domain.ValueObjects
 
             prefix = prefix.Trim().ToUpperInvariant();
 
-            if (!PrefixFormat.IsMatch(prefix)) throw new DomainValidationException
+            if (!PrefixFormatRegex.IsMatch(prefix)) throw new DomainValidationException
                     (ValidationErrors.InvalidFormatCode, ValidationErrors.InvalidFormatMessage, nameof(prefix));
 
             if (number <= 0) throw new DomainValidationException
                     (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(number));
 
-            if (number > 999999) throw new DomainValidationException
-                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(number));
-
-            var formatted = $"{prefix}-{number:000000}";
+            var formatted = $"{prefix}-{number.ToString().PadLeft(6, '0')}";
             return new PublicCode(formatted);
         }
 

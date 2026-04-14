@@ -30,6 +30,8 @@ namespace DeliveryApp.Domain.Entities.Merchants
         public string? LogoUrl { get; private set; } // شعار التاجر
         public string? CoverImageUrl { get; private set; } // صورة الغلاف
 
+        public TimeSpan DefaultPreparationTime { get; private set; } // الوقت الافتراضي لتحضير الطلب
+
         // -------------------------
         //         Location
         // -------------------------
@@ -58,7 +60,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
         private Merchant() { }
 
         public Merchant(MerchantID id, MerchantType merchantType, string merchantName, string slug, double lat, double lng, string? description,
-            string? phone, string? logoUrl, string? coverImageUrl, DateTimeOffset createdAtUtc)
+            string? phone, string? logoUrl, string? coverImageUrl, TimeSpan defaultPreparationTime, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
@@ -81,6 +83,8 @@ namespace DeliveryApp.Domain.Entities.Merchants
 
             SetLogoUrl(logoUrl);
             SetCoverImageUrl(coverImageUrl);
+
+            SetDefaultPreparationTime(defaultPreparationTime);
 
             AverageRating = 0;
             RatingsCount = 0;
@@ -118,6 +122,11 @@ namespace DeliveryApp.Domain.Entities.Merchants
         public void ChangeCoverImage(string? coverImageUrl) => SetCoverImageUrl(coverImageUrl); // تغيير صورة الغلاف
 
         public void Relocate(double lat, double lng) => SetLocation(lat, lng); // تغيير موقع التاجر
+
+        public void ChangeDefaultPreparationTime(TimeSpan value) // تعديل وقت التحضير الافتراضي
+        {
+            SetDefaultPreparationTime(value);
+        }
 
         public void Activate() // تفعيل التاجر
         {
@@ -186,7 +195,7 @@ namespace DeliveryApp.Domain.Entities.Merchants
 
         private void SetName(string value) => MerchantName = DisplayName.Create(value, 150, nameof(MerchantName)); // إدخال اسم التاجر
 
-        private void SetSlug(string value)  =>  Slug = Slug.Create(value); // إدخال ال Slug
+        private void SetSlug(string value) => Slug = Slug.Create(value); // إدخال ال Slug
 
         private void SetLocation(double lat, double lng) => Location = GeoPoint.Create(lat, lng); // إدخال موقع التاجر
 
@@ -228,6 +237,22 @@ namespace DeliveryApp.Domain.Entities.Merchants
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(CoverImageUrl));
 
             CoverImageUrl = value;
+        }
+
+        private void SetDefaultPreparationTime(TimeSpan value) // إدخال الوقت الافتراضي لتحضير الطلب
+        {
+            if (DefaultPreparationTime == value) return;
+
+            if (value <= TimeSpan.Zero) throw new DomainValidationException
+                    (MerchantErrors.PreparingTimeTooSmallCode, MerchantErrors.PreparingTimeTooSmallMessage, nameof(DefaultPreparationTime));
+
+            if (value.TotalMinutes < 10) throw new DomainValidationException
+                    (MerchantErrors.PreparingTimeTooSmallCode, MerchantErrors.PreparingTimeTooSmallMessage, nameof(DefaultPreparationTime));
+
+            if (value.TotalMinutes > 50) throw new DomainValidationException
+                    (MerchantErrors.PreparingTimeTooLargeCode, MerchantErrors.PreparingTimeTooLargeMessage, nameof(DefaultPreparationTime));
+
+            DefaultPreparationTime = value;
         }
 
         private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim(); // تنظيف النصوص

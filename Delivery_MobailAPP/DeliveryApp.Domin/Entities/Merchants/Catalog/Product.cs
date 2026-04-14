@@ -29,6 +29,8 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         // ملاحظة: السعر في حال عدم وجود للمنتج Variant
         public decimal? BasePrice { get; private set; } // السعر الأساسي للمنتج
 
+        public int SortOrder { get; private set; } // ترتيب عرض المنتجات
+
         // -------------------------
         //          State
         // -------------------------
@@ -43,7 +45,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
         private Product() { }
 
-        public Product(ProductID id, MerchantCategoryID merchantCategoryId, string productName, string? description, string? imageUrl, DateTimeOffset createdAtUtc, decimal? basePrice = null)
+        public Product(ProductID id, MerchantCategoryID merchantCategoryId, string productName, string? description, int sortOrder, string? imageUrl, DateTimeOffset createdAtUtc, decimal? basePrice = null)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
@@ -61,6 +63,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
             SetDescription(description);
             SetImageUrl(imageUrl);
             SetBasePrice(basePrice);
+            ChangeSortOrder(sortOrder);
 
             IsActive = true;
             CreatedAt = createdAtUtc;
@@ -86,6 +89,19 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
             MerchantCategoryID = newMerchantCategoryId;
         }
 
+        public void ChangeSortOrder(int sortOrder) // تعديل ترتيب عرض المنتج
+        {
+            if (SortOrder == sortOrder) return;
+
+            if (sortOrder <= 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(sortOrder));
+
+            if (sortOrder > 1000) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(sortOrder));
+
+            SortOrder = sortOrder;
+        }
+
         public void Activate() // تفعيل المنتج
         {
             if (IsActive) return;
@@ -105,7 +121,6 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         // -------------------------
 
         private void SetName(string value) => ProductName = DisplayName.Create(value, 150, nameof(ProductName)); // إدخال اسم المنتج
-        
 
         private void SetDescription(string? value) // إدخال وصف المنتج
         {
