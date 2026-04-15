@@ -17,19 +17,25 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         //        Basic Info
         // -------------------------
 
-        public CatalogName VariantName { get; private set; } = null!; // اسم ال Variant
+        public DisplayName VariantName { get; private set; } = null!; // اسم ال Variant
         public decimal BasePrice { get; private set; } // السعر الأساسي
+        public int SortOrder { get; private set; } // ترتيب عرض التفصيل في المنتج
 
         // -------------------------
         //          State
         // -------------------------
 
         public bool IsActive { get; private set; } // مفعل أو لاء
+
+        // -------------------------
+        //           Dates
+        // -------------------------
+
         public DateTimeOffset CreatedAt { get; private set; } // وقت الإنشاء
 
         private Variant() { }
 
-        public Variant(VariantID variantId, ProductID productId, string variantName, decimal basePrice, DateTimeOffset createdAtUtc)
+        public Variant(VariantID variantId, ProductID productId, string variantName, int sortOrder, decimal basePrice, DateTimeOffset createdAtUtc)
         {
             if (variantId.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(variantId));
@@ -45,6 +51,7 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
 
             SetName(variantName);
             SetBasePrice(basePrice);
+            ChangeSortOrder(sortOrder);
 
             IsActive = true;
             CreatedAt = createdAtUtc;
@@ -57,6 +64,19 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         public void Rename(string name) => SetName(name); // تغيير اسم ال Variant
 
         public void ChangePrice(decimal basePrice) => SetBasePrice(basePrice); // تغيير السعر
+
+        public void ChangeSortOrder(int sortOrder) // تعديل ترتيب عرض التفصيل في المنتج
+        {
+            if (SortOrder == sortOrder) return;
+
+            if (sortOrder <= 0) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(sortOrder));
+
+            if (sortOrder > 1000) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(sortOrder));
+
+            SortOrder = sortOrder;
+        }
 
         public void Activate() // تفعيل ال Variant
         {
@@ -73,11 +93,11 @@ namespace DeliveryApp.Domain.Entities.Merchants.Catalog
         }
 
         // -------------------------
-        //           Setters
+        //          Setters
         // -------------------------
 
-        private void SetName(string value) => VariantName = CatalogName.Create(value, 100, nameof(VariantName)); // إدخال اسم ال Variant
-        
+        private void SetName(string value) => VariantName = DisplayName.Create(value, 100, nameof(VariantName)); // إدخال اسم ال Variant
+
         private void SetBasePrice(decimal value) // إدخال السعر
         {
             if (value < 0) throw new DomainValidationException

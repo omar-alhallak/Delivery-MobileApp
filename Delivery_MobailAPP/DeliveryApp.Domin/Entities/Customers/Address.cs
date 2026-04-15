@@ -53,7 +53,7 @@ namespace DeliveryApp.Domain.Entities.Customers
 
         private Address() { }
 
-        public Address(AddressID id, UserID userId, decimal lat, decimal lng, DateTimeOffset createdAtUtc)
+        public Address(AddressID id, UserID userId, double lat, double lng, DateTimeOffset createdAtUtc)
         {
             if (id.IsEmpty) throw new DomainValidationException
                     (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(id));
@@ -108,7 +108,7 @@ namespace DeliveryApp.Domain.Entities.Customers
             AddressType = addressType;
         }
 
-        public void Relocate(decimal lat, decimal lng) // تغيير موقع العنوان فقط إذا كان ما يزال مؤقت
+        public void Relocate(double lat, double lng) // تغيير موقع العنوان فقط إذا كان ما يزال مؤقت
         {
             EnsureTemporary();
             SetLocation(lat, lng);
@@ -163,7 +163,7 @@ namespace DeliveryApp.Domain.Entities.Customers
         //         Setters
         // -------------------------
 
-        private void SetLocation(decimal lat, decimal lng) => Location = GeoPoint.Create(lat, lng); // إدخال موقع العنوان
+        private void SetLocation(double lat, double lng) => Location = GeoPoint.Create(lat, lng); // إدخال موقع العنوان
 
         private void SetLabel(string value) // إدخال اسم مختصر للعنوان
         {

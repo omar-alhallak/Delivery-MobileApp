@@ -165,7 +165,7 @@ namespace DeliveryApp.Domain.Entities.Drivers
             LastSeenAt = utcNow;
         }
 
-        public void UpdateLocation(decimal lat, decimal lng, DateTimeOffset utcNow) // تحديث موقع السائق وآخر ظهور له
+        public void UpdateLocation(double lat, double lng, DateTimeOffset utcNow) // تحديث موقع السائق وآخر ظهور له
         {
             EnsureEnabled();
 

@@ -1,3 +1,5 @@
+using DeliveryApp.Infrastructure;
+
 namespace DeliveryApp.API
 {
     public class Program
@@ -7,14 +9,18 @@ namespace DeliveryApp.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddControllers();     
+            builder.Services.AddControllers();
+
+            // Register Infrastructure Services(Services + ApplicationDbContext)
+            // Read Connection String From Configurations(UserSecrets ,appsetting ,env)
+            builder.Services.AddInfrastructure(builder.Configuration);  
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
-           
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
