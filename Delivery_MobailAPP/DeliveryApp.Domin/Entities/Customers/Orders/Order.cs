@@ -3,9 +3,8 @@ using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.OrderEnums;
 using DeliveryApp.Domain.DomainErrors.OrderErrors;
-using DeliveryApp.Domain.Entities.Customers.Orders;
 
-namespace DeliveryApp.Domain.Entities.Orders
+namespace DeliveryApp.Domain.Entities.Customers.Orders
 {
     public class Order // يمثل الطلب
     {

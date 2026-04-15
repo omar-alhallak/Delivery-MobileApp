@@ -59,15 +59,13 @@ namespace DeliveryApp.Infrastructure.Persistence.Configurations.IdentityConfigur
 
             // -------- Refresh Token Hash --------
 
-            builder.Property(x => x.RefreshTokenHash)
-                .HasConversion(
-                    value => value.ToArray(),
-                    value => new ReadOnlyMemory<byte>(value))
+            builder.Property<byte[]>("refreshTokenHash")
+                .HasColumnName("RefreshTokenHash")
                 .HasColumnType("varbinary(32)")
                 .IsRequired();
-
+                       
             // -------- Dates --------
-
+                 
             builder.Property(x => x.CreatedAt)
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
@@ -94,7 +92,7 @@ namespace DeliveryApp.Infrastructure.Persistence.Configurations.IdentityConfigur
                 x.ClientType
             })  .IsUnique();
 
-            builder.HasIndex(x => x.RefreshTokenHash) // البحث عن الجلسة من خلال
+            builder.HasIndex("refreshTokenHash") // البحث عن الجلسة من خلال
                 .IsUnique();                          // Refresh Token Hash ومنع تكراره
 
             builder.HasIndex(x => x.ExpiresAt); // جلب الجلسات المنتهية

@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using DeliveryApp.Domain.Entities.Orders;
 using DeliveryApp.Domain.Entities.Drivers;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Entities.Merchants;
 using DeliveryApp.Domain.Entities.Customers;
 using DeliveryApp.Domain.Entities.Moderation;
 using DeliveryApp.Domain.Entities.Engagements;
+using DeliveryApp.Domain.Entities.Customers.Orders;
 using DeliveryApp.Domain.Entities.Moderation.Zones;
 using DeliveryApp.Domain.Entities.Merchants.Catalog;
 

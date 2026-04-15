@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using DeliveryApp.Domain.Entities.Orders;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Entities.Engagements;
+using DeliveryApp.Domain.Entities.Customers.Orders;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DeliveryApp.Infrastructure.Persistence.Configurations.EngagementsConfiguration

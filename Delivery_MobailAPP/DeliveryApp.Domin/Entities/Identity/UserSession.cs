@@ -1,4 +1,5 @@
-﻿using DeliveryApp.Domain.DomainErrors;
+﻿using System.Security.Cryptography;
+using DeliveryApp.Domain.DomainErrors;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.IdentityEnums;
 using DeliveryApp.Domain.DomainErrors.IdentityErrors;
@@ -8,11 +9,11 @@ namespace DeliveryApp.Domain.Entities.Identity
     // -------------------------
     //         شرح توكين
     // -------------------------
-        // عند تسجيل الدخول نظام يعطي المستخدم شيئين :
-        // Access Tocen : قصير العمر للطلبات اليومية
-        // Refresh Token : طويل العمر يستخدم لتوليد أكسس توكين بدل من تسجيل الدخول كل مرة
+    // عند تسجيل الدخول نظام يعطي المستخدم شيئين :
+    // Access Tocen : قصير العمر للطلبات اليومية
+    // Refresh Token : طويل العمر يستخدم لتوليد أكسس توكين بدل من تسجيل الدخول كل مرة
 
-        // HMACSHA256 : طريقة تشفير متل الهاش لكن أمن أكثر وأسرع يستخدم خصيصا مع توكين
+    // HMACSHA256 : طريقة تشفير متل الهاش لكن أمن أكثر وأسرع يستخدم خصيصا مع توكين
 
     public class UserSession // يمثل جلسة تسجيل دخول واحدة للمستخدم على كل تطبيق من المنصة
     {
@@ -41,12 +42,11 @@ namespace DeliveryApp.Domain.Entities.Identity
         // -------------------------
 
         private byte[] refreshTokenHash = Array.Empty<byte>(); // الهاش داخلي ل Refresh token
-        public ReadOnlyMemory<byte> RefreshTokenHash => refreshTokenHash; // عرض الهاش للقراءة فقط
 
         // -------------------------
         //           Dates 
         // -------------------------
-        
+
         public DateTimeOffset CreatedAt { get; private set; } // وقت إنشاء الجلسة
         public DateTimeOffset LastSeenAt { get; private set; } // آخر وقت كانت الجلسة فيه نشطة
         public DateTimeOffset ExpiresAt { get; private set; } // وقت انتهاء الجلسة
@@ -81,7 +81,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             StoreRefreshTokenHash(refreshTokenHash);
 
             CreatedAt = createdAtUtc;
-            LastSeenAt = createdAtUtc; 
+            LastSeenAt = createdAtUtc;
             ExpiresAt = expiresAtUtc;
 
             ValidateState();
@@ -178,6 +178,16 @@ namespace DeliveryApp.Domain.Entities.Identity
             return !IsRevoked && !IsExpired(utcNow);
         }
 
+        public bool MatchesRefreshTokenHash(byte[] hash) // التحقق من تطابق هاش ال Refresh token
+        {
+            if (hash is null) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(hash));
+
+            if (hash.Length != RefreshHashLength) return false;
+
+            return CryptographicOperations.FixedTimeEquals(refreshTokenHash, hash);
+        }
+
         private void EnsureActive(DateTimeOffset utcNow) // تأكد أن جلسة ما تزال فعالة
         {
             if (IsRevoked) throw new DomainRuleViolationException
@@ -236,4 +246,4 @@ namespace DeliveryApp.Domain.Entities.Identity
                     (UserSessionErrors.RevokedAtBeforeCreatedAtCode, UserSessionErrors.RevokedAtBeforeCreatedAtMessage, nameof(RevokedAt));
         }
     }
-}
+} 

@@ -3,7 +3,7 @@ using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Enums.OrderEnums;
 using DeliveryApp.Domain.DomainErrors.OrderErrors;
 
-namespace DeliveryApp.Domain.Entities.Orders
+namespace DeliveryApp.Domain.Entities.Customers.Orders
 {
     public class OrderAssignment // يمثل إسناد طلب إلى سائق
     {
