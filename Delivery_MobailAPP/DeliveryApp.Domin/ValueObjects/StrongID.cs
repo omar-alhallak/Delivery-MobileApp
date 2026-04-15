@@ -37,6 +37,7 @@ namespace DeliveryApp.Domain.ValueObjects
     // -------------------------
 
     public readonly struct MerchantTag { }
+    public readonly struct MerchantWorkingHourTag { }
 
     // -------------------------
     //          Catalog

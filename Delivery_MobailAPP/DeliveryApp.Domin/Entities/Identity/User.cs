@@ -24,6 +24,7 @@ namespace DeliveryApp.Domain.Entities.Identity
         public string? FullName { get; private set; } // الاسم الكامل
         public string? Phone { get; private set; } // رقم الهاتف
         public string? PhotoUrl { get; private set; } // رابط الصورة الشخصية
+        public DateOnly? BirthDate { get; private set; } // تاريخ ميلاد المستخدم
 
         public bool IsProfileComplete { get; private set; } // هل الملف الشخصي مكتمل
 
@@ -103,6 +104,35 @@ namespace DeliveryApp.Domain.Entities.Identity
                     (UserErrors.CantRemoveRequiredFieldCode, UserErrors.CantRemoveRequiredFieldMessage);
         }
 
+        public void ChangeBirthDate(DateOnly birthDate, DateOnly today) // تحديث تاريخ ميلاد المستخدم مع تحقق من صحة العمر
+        {
+            PreventModificationIfBanned();
+
+            if (birthDate == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(birthDate));
+
+            if (today == default) throw new DomainValidationException
+                    (ValidationErrors.RequiredCode, ValidationErrors.RequiredMessage, nameof(today));
+          
+            if (BirthDate == birthDate) return;
+
+            if (birthDate > today) throw new DomainValidationException
+                    (UserErrors.BirthDateCantBeFutureCode, UserErrors.BirthDateCantBeFutureMessage, nameof(birthDate));
+
+            if (birthDate < new DateOnly(1900, 1, 1)) throw new DomainValidationException
+                    (ValidationErrors.OutOfRangeCode, ValidationErrors.OutOfRangeMessage, nameof(birthDate));
+
+            var age = CalculateAge(birthDate, today);
+
+            if (age < 14) throw new DomainValidationException
+                    (UserErrors.BirthDateUnderMinimumAgeCode, UserErrors.BirthDateUnderMinimumAgeMessage, nameof(birthDate));
+
+            if (age > 120) throw new DomainValidationException
+                    (UserErrors.BirthDateAboveMaximumAgeCode, UserErrors.BirthDateAboveMaximumAgeMessage, nameof(birthDate));
+
+            BirthDate = birthDate;
+        }
+
         public void MarkProfileAsComplete() // جعل الملف الشخصي مكتمل
         {
             PreventModificationIfBanned();
@@ -119,7 +149,7 @@ namespace DeliveryApp.Domain.Entities.Identity
             IsProfileComplete = false;
         }
 
-        private bool HasRequiredProfileFields() => Phone is not null && FullName is not null; // التحقق من وجود الحقول المطلوبة لإكمال الملف الشخصي
+        private bool HasRequiredProfileFields() => Phone is not null && FullName is not null && BirthDate is not null; // التحقق من وجود الحقول المطلوبة لإكمال الملف الشخصي
 
         private void ValidateFieldLengths() // التحقق من أطوال الحقول
         {
@@ -134,6 +164,13 @@ namespace DeliveryApp.Domain.Entities.Identity
 
             if (PhotoUrl is not null && PhotoUrl.Length > 500) throw new DomainValidationException
                     (ValidationErrors.TooLongCode, ValidationErrors.TooLongMessage, nameof(PhotoUrl));
+        }
+
+        private static int CalculateAge(DateOnly birthDate, DateOnly today) // حساب عمر المستخدم
+        {
+            var age = today.Year - birthDate.Year;
+            if (birthDate > today.AddYears(-age)) age--;
+            return age;
         }
 
         // -------------------------

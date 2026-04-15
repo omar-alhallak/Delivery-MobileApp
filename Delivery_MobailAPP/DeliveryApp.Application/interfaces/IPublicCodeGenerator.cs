@@ -1,6 +1,6 @@
 ﻿using DeliveryApp.Domain.ValueObjects;
 
-namespace DeliveryApp.Application.interfaces
+namespace DeliveryApp.Application.Interfaces
 {
     public interface IPublicCodeGenerator
     {
