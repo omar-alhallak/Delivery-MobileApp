@@ -1,17 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DeliveryApp.Application.Interfaces;
+using DeliveryApp.Domain.Entities.Customers;
+using DeliveryApp.Domain.Entities.Customers.Orders;
 using DeliveryApp.Domain.Entities.Drivers;
+using DeliveryApp.Domain.Entities.Engagements;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Entities.Merchants;
-using DeliveryApp.Domain.Entities.Customers;
-using DeliveryApp.Domain.Entities.Moderation;
-using DeliveryApp.Domain.Entities.Engagements;
-using DeliveryApp.Domain.Entities.Customers.Orders;
-using DeliveryApp.Domain.Entities.Moderation.Zones;
 using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Domain.Entities.Moderation;
+using DeliveryApp.Domain.Entities.Moderation.Zones;
+using Microsoft.EntityFrameworkCore;
 
 namespace DeliveryApp.Infrastructure.Persistence
 {
-    public sealed class ApplicationDbContext : DbContext
+    public sealed class ApplicationDbContext : DbContext, IIdentityDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using DeliveryApp.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using DeliveryApp.Infrastructure.Implementation;
+using DeliveryApp.Application.Interfaces.IdentityInterfaces;
 
 namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة Infrastructure
 {                                    // داخل الكلاس واحد لربطه مع Program.cs 
@@ -21,8 +22,12 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             // توليد القاعدة عن طريق ApplicationDbContext 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
+            services.AddScoped<IIdentityDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+
             // توليد أكواد العامة
             services.AddScoped<IPublicCodeGenerator, SqlServerPublicCodeGenerator>();
+
+            services.AddScoped<IPasswordHasher, PasswordHasherService>();
 
             return services;
         }
