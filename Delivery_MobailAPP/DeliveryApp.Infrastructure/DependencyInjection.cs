@@ -22,12 +22,14 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             // توليد القاعدة عن طريق ApplicationDbContext 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
-            services.AddScoped<IIdentityDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
-
             // توليد أكواد العامة
             services.AddScoped<IPublicCodeGenerator, SqlServerPublicCodeGenerator>();
 
+            // تشفير كلمة السر
             services.AddScoped<IPasswordHasher, PasswordHasherService>();
+
+            // خدمات Identity( RegisterLocal - )
+            services.AddScoped<IIdentityDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
             return services;
         }

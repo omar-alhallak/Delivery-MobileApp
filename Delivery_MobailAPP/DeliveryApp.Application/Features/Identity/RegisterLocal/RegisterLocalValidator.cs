@@ -2,12 +2,12 @@
 
 namespace DeliveryApp.Application.Features.Identity.RegisterLocal
 {
-    public static partial class RegisterLocalValidator
+    public static partial class RegisterLocalValidator // Validation الخاص بخدمة إنشاء الحساب
     {
         private const int MinPasswordLength = 8;
         private const int MaxPasswordLength = 64;
 
-        public static RegisterLocalValidatedInput Validate(RegisterLocalRequest request, DateOnly today)
+        public static RegisterLocalValidatedInput Validate(RegisterLocalRequest request, DateOnly today) // فحص جميع الحقول لإرسال نسخة منظفة وصالحة للاستخدام
         {
             if (request is null) throw new Exception("Request is required.");
             if (today == default) throw new Exception("Invalid system date.");
@@ -25,12 +25,29 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
         //          FullName
         // -------------------------
 
+        //         Validation
+        // 1_ تأكد أن الحقل ليس فارغاً
+        // 2_ تنظيف المسافات
+        // 3_ الأسم لا يبدأ برقم أو رمز جصراً حرف
+        // 4_ منع تكرارالشرطات
+        // 5_ فلترى الشرطات
+        // 6_ الأسم يحوي فقط على:
+        //  A_ أحرف عربية
+        //  B_ أحرف أجنبية
+        //  C_ أرقام
+        //  D_ فراغات
+        //  E_ الشرطات(_ -)د
+
         private static string ValidateFullName(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new Exception("Full name is required.");
 
             value = NormalizeSpaces(value);
+            value = NormalizeNameSymbols(value);
+
+            if (string.IsNullOrWhiteSpace(value))
+                throw new Exception("Full name is required.");
 
             if (!FullNameRegex().IsMatch(value))
                 throw new Exception("Full name contains invalid characters.");
@@ -51,6 +68,11 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
         //           Phone
         // -------------------------
 
+        //         Validation
+        // 1_ تأكد أن الحقل ليس فارغاً
+        // 2_ تنظيف المسافات
+        // 3_ تأكد من أن الرقم بشكل D +963 9XXXXXXXX
+
         private static string ValidatePhone(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -67,6 +89,11 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
         // -------------------------
         //         BirthDate
         // -------------------------
+
+        //         Validation
+        // 1_ تأكد أن الحقل ليس فارغاً
+        // 2_ لازم حصراً يكون بصيغة yyyy/mm/dd
+        // 3_ تأكد من صحة تاريخ
 
         private static DateOnly ParseBirthDate(string value)
         {
@@ -85,8 +112,21 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
         }
 
         // -------------------------
-        // Password
+        //         Password
         // -------------------------
+
+        //         Validation
+        // 1_ تأكد أن الحقل ليس فارغاً
+        // 2_ أقل شي 8 محارف و أكثر شي 64
+        // 3_ تحوي على حرف واحد على الأقل من أحرف أجنبية كبيرة
+        // 4_ تحوي على حرف واحد على الأقل من أحرف أجنبية صغيرة
+        // 5_ تحوي على رقم واحد على الأقل 
+        // 6_ تحوي على رمز واحد على الأقل من الرموز(! @ # $ % ^ & *)د
+        // 7_ تأكد من أن كلمة السر تحوي فقط على:
+        //  A_ أحرف أجنبية  كبيرة
+        //  B_ أحرف أجنبية صغيرة
+        //  C_ الرموز(! @ # $ % ^ & *)د
+        //  D_ أرقام
 
         private static string ValidatePassword(string value)
         {
@@ -121,6 +161,12 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
         //          Photo
         // -------------------------
 
+        //         Validation
+        // 1_ تنظيف المسافات
+        // 3_ تأكد من صحة الرابط من خلال قبول فقط:
+        //  A_ http
+        //  B_ https
+
         private static string? ValidatePhotoUrl(string? value)
         {
             if (string.IsNullOrWhiteSpace(value)) return null;
@@ -138,9 +184,21 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
         //          Helpers
         // -------------------------
 
-        private static string NormalizeSpaces(string value) => SpaceRegex().Replace(value.Trim(), " ");
+        private static string NormalizeSpaces(string value) => SpaceRegex().Replace(value.Trim(), " "); // تنظيف المسافات
 
-        private static bool IsSpecialCharacter(char c) => "!@#$%^&*".Contains(c);
+        private static string NormalizeNameSymbols(string value) // فلترى الشرطات
+        {
+            value = NameSymbolSpacesRegex().Replace(value, "$1");
+            value = value.Trim(' ', '-', '_');
+
+            return value;
+        }
+
+        private static bool IsSpecialCharacter(char c) => "!@#$%^&*".Contains(c); // فحص إذا رمز أحد الرموز(! @ # $ % ^ & *)د
+
+        // -------------------------
+        //          Regex
+        // -------------------------
 
         [GeneratedRegex(@"^[\p{IsArabic}A-Za-z0-9 _-]+$")]
         private static partial Regex FullNameRegex();
@@ -157,9 +215,13 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
         [GeneratedRegex(@"^[A-Za-z0-9!@#$%^&*]+$")]
         private static partial Regex PasswordAllowedCharactersRegex();
 
+        [GeneratedRegex(@"\s*([_-])\s*")]
+        private static partial Regex NameSymbolSpacesRegex();
+
         [GeneratedRegex(@"\s+")]
         private static partial Regex SpaceRegex();
     }
-    
-    public sealed record RegisterLocalValidatedInput( string FullName, string Phone, DateOnly BirthDate, string Password, string? PhotoUrl);
+
+    // نسخة المنقحة
+    public sealed record RegisterLocalValidatedInput(string FullName, string Phone, DateOnly BirthDate, string Password, string? PhotoUrl);
 }

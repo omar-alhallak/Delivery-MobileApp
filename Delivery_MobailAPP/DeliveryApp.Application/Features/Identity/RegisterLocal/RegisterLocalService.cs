@@ -22,10 +22,16 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
         public async Task<RegisterLocalResponse> ExecuteAsync(RegisterLocalRequest request, CancellationToken ct = default)
         {
             // -------------------------
+            //        Date Time
+            // -------------------------
+
+            var now = DateTimeOffset.UtcNow;
+            var today = DateOnly.FromDateTime(now.UtcDateTime);
+
+            // -------------------------
             //        Validation
             // -------------------------
 
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var input = RegisterLocalValidator.Validate(request, today);
 
             // -------------------------
@@ -35,22 +41,26 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
             var exists = await _context.Users
                 .AnyAsync(x => x.Phone == input.Phone, ct);
 
-            if (exists) throw new Exception("Phone already exists"); // لاحقاً نحولها DomainException
+            if (exists) throw new Exception("Phone already exists");
 
             // -------------------------
             //       Create User
             // -------------------------
 
-            var user = new User(
+            var user = new User
+                (
                 id: UserID.New(),
                 roles: UserRole.Customer,
-                createdAtUtc: DateTimeOffset.UtcNow);
+                createdAtUtc: now
+                );
 
-            user.UpdateProfile(
+            user.UpdateProfile
+                (
                 email: null,
                 phone: input.Phone,
                 fullName: input.FullName,
-                photoUrl: input.PhotoUrl);
+                photoUrl: input.PhotoUrl
+                );
 
             user.ChangeBirthDate(input.BirthDate, today);
 
@@ -73,11 +83,13 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
             //     UserIdentity
             // -------------------------
 
-            var identity = UserIdentity.CreateLocal(
+            var identity = UserIdentity.CreateLocal
+                (
                 id: UserIdentityID.New(),
                 userId: user.ID,
                 passwordHash: hash,
-                createdAtUtc: DateTimeOffset.UtcNow);
+                createdAtUtc: now
+                );
 
             // -------------------------
             //          Save
