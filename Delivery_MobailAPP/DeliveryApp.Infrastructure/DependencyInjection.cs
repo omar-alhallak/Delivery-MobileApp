@@ -1,10 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DeliveryApp.Application.Features.Identity.LoginLocal;
+using DeliveryApp.Application.Features.Identity.RegisterLocal;
 using DeliveryApp.Application.Interfaces;
-using Microsoft.Extensions.Configuration;
-using DeliveryApp.Infrastructure.Persistence;
-using Microsoft.Extensions.DependencyInjection;
-using DeliveryApp.Infrastructure.Implementation;
 using DeliveryApp.Application.Interfaces.IdentityInterfaces;
+using DeliveryApp.Infrastructure.Implementation;
+using DeliveryApp.Infrastructure.Implementation.Identity;
+using DeliveryApp.Infrastructure.Options;
+using DeliveryApp.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة Infrastructure
 {                                    // داخل الكلاس واحد لربطه مع Program.cs 
@@ -28,8 +32,18 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             // تشفير كلمة السر
             services.AddScoped<IPasswordHasher, PasswordHasherService>();
 
-            // خدمات Identity( RegisterLocal - )
-            services.AddScoped<IIdentityDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+            // 
+            services.AddScoped<IRegisterLocalRepository, RegisterLocalRepository>();
+
+            // 
+            services.AddScoped<ILoginLocalRepository, LoginLocalRepository>();
+
+            // 
+            services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            services.AddScoped<ITokenService, TokenService>();
+
+            services.AddScoped<RegisterLocalService>();
+            services.AddScoped<LoginLocalService>();
 
             return services;
         }

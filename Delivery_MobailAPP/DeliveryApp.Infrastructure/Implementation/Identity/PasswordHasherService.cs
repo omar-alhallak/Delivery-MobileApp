@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using DeliveryApp.Application.Interfaces.IdentityInterfaces;
 
-namespace DeliveryApp.Infrastructure.Implementation
+namespace DeliveryApp.Infrastructure.Implementation.Identity
 {
     public sealed class PasswordHasherService : IPasswordHasher // تشفير كلمة السر قبل التخزين
     {
@@ -24,7 +24,6 @@ namespace DeliveryApp.Infrastructure.Implementation
 
             return result == PasswordVerificationResult.Success ||
                    result == PasswordVerificationResult.SuccessRehashNeeded;// بدها إكمال
-
         }
     }
 }

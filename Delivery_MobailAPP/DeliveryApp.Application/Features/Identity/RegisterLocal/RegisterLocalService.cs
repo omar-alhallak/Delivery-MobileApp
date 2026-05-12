@@ -1,24 +1,24 @@
-﻿using Microsoft.EntityFrameworkCore;
-using DeliveryApp.Application.Interfaces;
+﻿using DeliveryApp.Application.Interfaces;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Enums.IdentityEnums;
 using DeliveryApp.Application.Interfaces.IdentityInterfaces;
 
-namespace DeliveryApp.Application.Features.Identity.RegisterLocal
+namespace DeliveryApp.Application.Features.Identity.RegisterLocal 
 {
-    public sealed class RegisterLocalService
+    public sealed class RegisterLocalService // Case إنشاء الحساب
     {
-        private readonly IIdentityDbContext _context;
+        private readonly IRegisterLocalRepository _repository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IPublicCodeGenerator _codeGenerator;
 
-        public RegisterLocalService(IIdentityDbContext context, IPasswordHasher passwordHasher, IPublicCodeGenerator codeGenerator)
+        public RegisterLocalService(IRegisterLocalRepository repository, IPasswordHasher passwordHasher, IPublicCodeGenerator codeGenerator)
         {
-            _context = context;
+            _repository = repository;
             _passwordHasher = passwordHasher;
             _codeGenerator = codeGenerator;
         }
 
+        // المسؤلة عن تنفيذ الكيس
         public async Task<RegisterLocalResponse> ExecuteAsync(RegisterLocalRequest request, CancellationToken ct = default)
         {
             // -------------------------
@@ -38,8 +38,7 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
             //     Check duplicate phone
             // -------------------------
 
-            var exists = await _context.Users
-                .AnyAsync(x => x.Phone == input.Phone, ct);
+            var exists = await _repository.PhoneExistsAsync(input.Phone, ct);
 
             if (exists) throw new Exception("Phone already exists");
 
@@ -95,9 +94,9 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
             //          Save
             // -------------------------
 
-            await _context.Users.AddAsync(user, ct);
-            await _context.UserIdentities.AddAsync(identity, ct);
-            await _context.SaveChangesAsync(ct);
+            await _repository.AddUserAsync(user, ct);
+            await _repository.AddUserIdentityAsync(identity, ct);
+            await _repository.SaveChangesAsync(ct);
 
             // -------------------------
             //        Response

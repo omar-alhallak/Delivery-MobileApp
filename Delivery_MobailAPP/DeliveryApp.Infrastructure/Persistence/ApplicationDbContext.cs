@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using DeliveryApp.Application.Interfaces;
 using DeliveryApp.Domain.Entities.Drivers;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Entities.Customers;
@@ -12,8 +11,7 @@ using DeliveryApp.Domain.Entities.Merchants.Catalog;
 
 namespace DeliveryApp.Infrastructure.Persistence
 {
-    public sealed class ApplicationDbContext : DbContext, 
-        IIdentityDbContext
+    public sealed class ApplicationDbContext : DbContext   
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
