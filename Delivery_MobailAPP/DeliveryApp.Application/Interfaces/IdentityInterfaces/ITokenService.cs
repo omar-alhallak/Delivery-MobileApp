@@ -9,5 +9,7 @@ namespace DeliveryApp.Application.Interfaces.IdentityInterfaces
         string GenerateRefreshToken();
 
         byte[] HashRefreshToken(string refreshToken);
+
+        TimeSpan GetRefreshTokenLifetime();
     }
 }

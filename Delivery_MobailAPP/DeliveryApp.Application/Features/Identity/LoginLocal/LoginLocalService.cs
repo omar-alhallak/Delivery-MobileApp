@@ -23,7 +23,7 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
         public async Task<LoginLocalResponse> ExecuteAsync(LoginLocalRequest request, CancellationToken ct = default)
         {
             var now = DateTimeOffset.UtcNow;
-            var sessionLifetime = TimeSpan.FromDays(30);
+            var sessionLifetime = _tokenService.GetRefreshTokenLifetime();
 
             // -------------------------
             //        Validation

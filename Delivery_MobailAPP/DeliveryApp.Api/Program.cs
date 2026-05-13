@@ -1,5 +1,5 @@
-using DeliveryApp.Infrastructure;
 using DeliveryApp.API.Extensions;
+using DeliveryApp.Infrastructure;
 
 namespace DeliveryApp.API
 {
