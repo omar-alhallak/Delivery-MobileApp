@@ -3,7 +3,7 @@ using DeliveryApp.Application.Interfaces;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Infrastructure.Persistence;
 
-namespace DeliveryApp.Infrastructure.Implementation.Identity.Repositores
+namespace DeliveryApp.Infrastructure.Implementation.IdentityRepositores
 {
     public sealed class RegisterLocalRepository : IRegisterLocalRepository
     {

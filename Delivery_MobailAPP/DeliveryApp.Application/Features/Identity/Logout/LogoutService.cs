@@ -1,4 +1,4 @@
-﻿using DeliveryApp.Application.Interfaces.IdentityInterfaces;
+﻿using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 
 namespace DeliveryApp.Application.Features.Identity.Logout
 {
@@ -11,10 +11,7 @@ namespace DeliveryApp.Application.Features.Identity.Logout
             _repository = repository;
         }
 
-        public async Task<LogoutResponse> ExecuteAsync(
-            Guid userId,
-            LogoutRequest request,
-            CancellationToken ct = default)
+        public async Task<LogoutResponse> ExecuteAsync(Guid userId, LogoutRequest request, CancellationToken ct = default)
         {
             var userID = UserID.From(userId);
             var now = DateTimeOffset.UtcNow;
@@ -29,10 +26,12 @@ namespace DeliveryApp.Application.Features.Identity.Logout
             //          Session
             // -------------------------
 
-            var session = await _repository.GetSessionAsync(
+            var session = await _repository.GetSessionAsync
+            (
                 userID,
                 input.ClientType,
-                ct);
+                ct
+            );
 
             if (session is null)
                 throw new Exception("Session not found.");

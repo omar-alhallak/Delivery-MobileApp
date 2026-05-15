@@ -2,10 +2,10 @@
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Enums.IdentityEnums;
 using DeliveryApp.Infrastructure.Persistence;
-using DeliveryApp.Application.Interfaces.IdentityInterfaces;
+using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
 
-namespace DeliveryApp.Infrastructure.Implementation.Identity.Repositores
+namespace DeliveryApp.Infrastructure.Implementation.IdentityRepositores
 {
     public sealed class RefreshTokenRepository : IRefreshTokenRepository
     {

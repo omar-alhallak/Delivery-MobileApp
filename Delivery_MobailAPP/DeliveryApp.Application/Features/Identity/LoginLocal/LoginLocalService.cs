@@ -1,6 +1,7 @@
 ﻿using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Enums.IdentityEnums;
-using DeliveryApp.Application.Interfaces.IdentityInterfaces;
+using DeliveryApp.Application.Interfaces.Services;
+using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 
 namespace DeliveryApp.Application.Features.Identity.LoginLocal
 {
@@ -10,10 +11,7 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
         private readonly IPasswordHasher _passwordHasher;
         private readonly ITokenService _tokenService;
 
-        public LoginLocalService(
-            ILoginLocalRepository repository,
-            IPasswordHasher passwordHasher,
-            ITokenService tokenService)
+        public LoginLocalService(ILoginLocalRepository repository, IPasswordHasher passwordHasher, ITokenService tokenService)
         {
             _repository = repository;
             _passwordHasher = passwordHasher;
@@ -22,6 +20,7 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
 
         public async Task<LoginLocalResponse> ExecuteAsync(LoginLocalRequest request, CancellationToken ct = default)
         {
+            // تحديد مدة الجلسة
             var now = DateTimeOffset.UtcNow;
             var sessionLifetime = _tokenService.GetRefreshTokenLifetime();
 
@@ -86,7 +85,8 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
 
             if (session is null)
             {
-                session = UserSession.Create(
+                session = UserSession.Create
+                (
                     id: UserSessionID.New(),
                     userId: user.ID,
                     clientType: input.ClientType,
@@ -100,7 +100,8 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
             }
             else
             {
-                session.Refresh(
+                session.Refresh
+                (
                     deviceId: input.DeviceID,
                     newRefreshTokenHash: refreshTokenHash,
                     utcNow: now,

@@ -19,6 +19,8 @@ namespace DeliveryApp.API
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
+
+            // Swagger With Jwt
             builder.Services.AddSwaggerWithJwt();
 
             var app = builder.Build();

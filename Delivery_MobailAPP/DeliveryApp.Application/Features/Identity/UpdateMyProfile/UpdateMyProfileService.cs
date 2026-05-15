@@ -1,5 +1,5 @@
-﻿using DeliveryApp.Domain.Entities.Identity;
-using DeliveryApp.Application.Interfaces.IdentityInterfaces;
+﻿using DeliveryApp.Application.Interfaces.Services;
+using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 
 namespace DeliveryApp.Application.Features.Identity.UpdateMyProfile
 {
@@ -8,18 +8,13 @@ namespace DeliveryApp.Application.Features.Identity.UpdateMyProfile
         private readonly IUpdateMyProfileRepository _repository;
         private readonly IPasswordHasher _passwordHasher;
 
-        public UpdateMyProfileService(
-            IUpdateMyProfileRepository repository,
-            IPasswordHasher passwordHasher)
+        public UpdateMyProfileService(IUpdateMyProfileRepository repository, IPasswordHasher passwordHasher)
         {
             _repository = repository;
             _passwordHasher = passwordHasher;
         }
 
-        public async Task<UpdateMyProfileResponse> ExecuteAsync(
-            Guid userId,
-            UpdateMyProfileRequest request,
-            CancellationToken ct = default)
+        public async Task<UpdateMyProfileResponse> ExecuteAsync(Guid userId, UpdateMyProfileRequest request, CancellationToken ct = default)
         {
             var userID = UserID.From(userId);
             var now = DateTimeOffset.UtcNow;
@@ -44,9 +39,7 @@ namespace DeliveryApp.Application.Features.Identity.UpdateMyProfile
             //      Sensitive Changes
             // -------------------------
 
-            var wantsSensitiveChange =
-                input.Phone is not null ||
-                input.NewPassword is not null;
+            var wantsSensitiveChange = input.Phone is not null || input.NewPassword is not null;
 
             if (wantsSensitiveChange)
             {
@@ -55,19 +48,19 @@ namespace DeliveryApp.Application.Features.Identity.UpdateMyProfile
                 if (identity is null)
                     throw new Exception("Local identity not found.");
 
-                var isValidPassword = _passwordHasher.Verify(
-                    input.CurrentPassword!,
-                    identity.PasswordHash!);
+                var isValidPassword = _passwordHasher.Verify(input.CurrentPassword!, identity.PasswordHash!);
 
                 if (!isValidPassword)
                     throw new Exception("Current password is incorrect.");
 
                 if (input.Phone is not null && input.Phone != user.Phone)
                 {
-                    var phoneExists = await _repository.PhoneExistsAsync(
+                    var phoneExists = await _repository.PhoneExistsAsync
+                    (
                         input.Phone,
                         user.ID,
-                        ct);
+                        ct
+                    );
 
                     if (phoneExists)
                         throw new Exception("Phone already exists.");
@@ -85,17 +78,17 @@ namespace DeliveryApp.Application.Features.Identity.UpdateMyProfile
             //       Update Profile
             // -------------------------
 
-            user.UpdateProfile(
+            user.UpdateProfile
+            (
                 email: user.Email,
                 phone: input.Phone ?? user.Phone,
                 fullName: input.FullName ?? user.FullName,
-                photoUrl: input.PhotoUrl ?? user.PhotoUrl);
+                photoUrl: input.PhotoUrl ?? user.PhotoUrl
+            );
 
-            if (input.BirthDate.HasValue)
-                user.ChangeBirthDate(input.BirthDate.Value, today);
+            if (input.BirthDate.HasValue) user.ChangeBirthDate(input.BirthDate.Value, today);
 
-            if (!user.IsProfileComplete)
-                user.MarkProfileAsComplete();
+            if (!user.IsProfileComplete) user.MarkProfileAsComplete();
 
             // -------------------------
             //            Save

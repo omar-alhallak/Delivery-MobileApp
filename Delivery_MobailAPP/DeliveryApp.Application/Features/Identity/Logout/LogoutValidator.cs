@@ -12,9 +12,11 @@ namespace DeliveryApp.Application.Features.Identity.Logout
             var deviceId = ValidateDeviceId(request.DeviceID);
             var clientType = ValidateClientType(request.ClientType);
 
-            return new LogoutValidatedInput(
+            return new LogoutValidatedInput
+            (
                 deviceId,
-                clientType);
+                clientType
+            );
         }
 
         // -------------------------
@@ -47,7 +49,9 @@ namespace DeliveryApp.Application.Features.Identity.Logout
         }
     }
 
-    public sealed record LogoutValidatedInput(
+    public sealed record LogoutValidatedInput
+    (
         string DeviceID,
-        ClientType ClientType);
+        ClientType ClientType
+    );
 }

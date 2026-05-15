@@ -1,4 +1,4 @@
-﻿namespace DeliveryApp.Application.Interfaces.IdentityInterfaces
+﻿namespace DeliveryApp.Application.Interfaces.Services
 {
     public interface IPasswordHasher
     {

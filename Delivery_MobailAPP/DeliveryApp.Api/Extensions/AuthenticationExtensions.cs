@@ -1,24 +1,31 @@
 ﻿using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace DeliveryApp.API.Extensions
 {
-    public static class AuthenticationExtensions
+    // تجهيز API:
+    //   A_ ليصبح يفهم JWT
+    //   B_ ويعمل [Authorize]
+    //   C_ فحص كامل لل Token
+    public static class AuthenticationExtensions // مثل: نظام تحقق قبل الدخول
     {
-        public static IServiceCollection AddJwtAuthentication(
-            this IServiceCollection services,
-            IConfiguration configuration)
+        public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
+            // قراة إعدادات JWT
             var jwtSection = configuration.GetSection("Jwt");
 
-            var secretKey = jwtSection["SecretKey"]
-                ?? throw new Exception("Jwt SecretKey is missing.");
+            // قراة المفتاح السري
+            var secretKey = jwtSection["SecretKey"] ?? throw new Exception("Jwt SecretKey is missing.");
 
-            services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            if (secretKey.Length < 32)
+                throw new InvalidOperationException("Jwt SecretKey must be at least 32 characters");
+
+            // تنصيب نظام القراءة الأفتراضي وجعله JWT
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    // القواعد لفحص Token
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = false,
@@ -27,8 +34,9 @@ namespace DeliveryApp.API.Extensions
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
 
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(secretKey))
+                        ClockSkew = TimeSpan.Zero,
+
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
                     };
                 });
 

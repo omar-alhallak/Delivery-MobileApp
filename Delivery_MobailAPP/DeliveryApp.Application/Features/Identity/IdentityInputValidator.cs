@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace DeliveryApp.Application.Features.Identity.IdentityHelpers
+namespace DeliveryApp.Application.Features.Identity
 {
-    public static partial class IdentityInputValidator
+    public static partial class IdentityInputValidator // Identity حقول الإدخال الخاصة بال Validation
     {
         private const int MinPasswordLength = 8;
         private const int MaxPasswordLength = 64;
@@ -10,6 +10,19 @@ namespace DeliveryApp.Application.Features.Identity.IdentityHelpers
         // -------------------------
         //          FullName
         // -------------------------
+
+        // ------ Validation ------
+        // 1_ تأكد أن الحقل ليس فارغاً
+        // 2_ تنظيف المسافات
+        // 3_ الأسم لا يبدأ برقم أو رمز جصراً حرف
+        // 4_ منع تكرارالشرطات
+        // 5_ فلترى الشرطات
+        // 6_ الأسم يحوي فقط على:
+        //  A_ أحرف عربية
+        //  B_ أحرف أجنبية
+        //  C_ أرقام
+        //  D_ فراغات
+        //  E_ الشرطات(_ -)د 
 
         public static string ValidateFullName(string value)
         {
@@ -41,6 +54,11 @@ namespace DeliveryApp.Application.Features.Identity.IdentityHelpers
         //           Phone
         // -------------------------
 
+        // ------ Validation ------
+        // 1_ تأكد أن الحقل ليس فارغاً
+        // 2_ تنظيف المسافات
+        // 3_ تأكد من أن الرقم بشكل D +963 9XXXXXXXX
+
         public static string ValidatePhone(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -58,7 +76,12 @@ namespace DeliveryApp.Application.Features.Identity.IdentityHelpers
         //         BirthDate
         // -------------------------
 
-        public static DateOnly ParseBirthDate(string value)
+        // ------ Validation ------
+        // 1_ تأكد أن الحقل ليس فارغاً
+        // 2_ لازم حصراً يكون بصيغة yyyy/mm/dd
+        // 3_ تأكد من صحة تاريخ
+
+        public static DateOnly ValidateBirthDate(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new Exception("Birth date is required.");
@@ -77,6 +100,19 @@ namespace DeliveryApp.Application.Features.Identity.IdentityHelpers
         // -------------------------
         //         Password
         // -------------------------
+
+        // ------ Validation ------
+        // 1_ تأكد أن الحقل ليس فارغاً
+        // 2_ أقل شي 8 محارف و أكثر شي 64
+        // 3_ تحوي على حرف واحد على الأقل من أحرف أجنبية كبيرة
+        // 4_ تحوي على حرف واحد على الأقل من أحرف أجنبية صغيرة
+        // 5_ تحوي على رقم واحد على الأقل 
+        // 6_ تحوي على رمز واحد على الأقل من الرموز(! @ # $ % ^ & *)د
+        // 7_ تأكد من أن كلمة السر تحوي فقط على:
+        //  A_ أحرف أجنبية  كبيرة
+        //  B_ أحرف أجنبية صغيرة
+        //  C_ الرموز(! @ # $ % ^ & *)د
+        //  D_ أرقام
 
         public static string ValidatePassword(string value)
         {
@@ -111,6 +147,12 @@ namespace DeliveryApp.Application.Features.Identity.IdentityHelpers
         //          Photo
         // -------------------------
 
+        // ------ Validation ------
+        // 1_ تنظيف المسافات
+        // 3_ تأكد من صحة الرابط من خلال قبول فقط:
+        //  A_ http
+        //  B_ https
+
         public static string? ValidatePhotoUrl(string? value)
         {
             if (string.IsNullOrWhiteSpace(value)) return null;
@@ -128,10 +170,9 @@ namespace DeliveryApp.Application.Features.Identity.IdentityHelpers
         //          Helpers
         // -------------------------
 
-        private static string NormalizeSpaces(string value)
-            => SpaceRegex().Replace(value.Trim(), " ");
+        private static string NormalizeSpaces(string value) => SpaceRegex().Replace(value.Trim(), " "); // تنظيف المسافات
 
-        private static string NormalizeNameSymbols(string value)
+        private static string NormalizeNameSymbols(string value) // فلترى الشرطات
         {
             value = NameSymbolSpacesRegex().Replace(value, "$1");
             value = value.Trim(' ', '-', '_');
@@ -139,8 +180,7 @@ namespace DeliveryApp.Application.Features.Identity.IdentityHelpers
             return value;
         }
 
-        private static bool IsSpecialCharacter(char c)
-            => "!@#$%^&*".Contains(c);
+        private static bool IsSpecialCharacter(char c) => "!@#$%^&*".Contains(c); // فحص إذا أحد الرموز(! @ # $ % ^ & *)د
 
         // -------------------------
         //          Regex
@@ -152,13 +192,13 @@ namespace DeliveryApp.Application.Features.Identity.IdentityHelpers
         [GeneratedRegex(@"[_-]{2,}")]
         private static partial Regex RepeatedNameSymbolsRegex();
 
-        [GeneratedRegex(@"^\+963 9\d{8}$")]
+        [GeneratedRegex(@"^\+963 9\d{8}$", RegexOptions.CultureInvariant)]
         private static partial Regex PhoneRegex();
 
-        [GeneratedRegex(@"^\d{4}/\d{2}/\d{2}$")]
+        [GeneratedRegex(@"^\d{4}/\d{2}/\d{2}$", RegexOptions.CultureInvariant)]
         private static partial Regex DateRegex();
 
-        [GeneratedRegex(@"^[A-Za-z0-9!@#$%^&*]+$")]
+        [GeneratedRegex(@"^[A-Za-z0-9!@#$%^&*]+$", RegexOptions.CultureInvariant)]
         private static partial Regex PasswordAllowedCharactersRegex();
 
         [GeneratedRegex(@"\s*([_-])\s*")]

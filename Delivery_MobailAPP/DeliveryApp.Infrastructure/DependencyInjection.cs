@@ -4,15 +4,15 @@ using Microsoft.Extensions.Configuration;
 using DeliveryApp.Infrastructure.Options;
 using DeliveryApp.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
-using DeliveryApp.Infrastructure.Implementation;
 using DeliveryApp.Application.Features.Identity.Logout;
 using DeliveryApp.Application.Features.Identity.LoginLocal;
-using DeliveryApp.Application.Interfaces.IdentityInterfaces;
+using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 using DeliveryApp.Application.Features.Identity.RefreshToken;
 using DeliveryApp.Application.Features.Identity.RegisterLocal;
 using DeliveryApp.Application.Features.Identity.UpdateMyProfile;
-using DeliveryApp.Infrastructure.Implementation.Identity.Services;
-using DeliveryApp.Infrastructure.Implementation.Identity.Repositores;
+using DeliveryApp.Infrastructure.Implementation.Services;
+using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
+using DeliveryApp.Application.Interfaces.Services;
 
 namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة Infrastructure
 {                                    // داخل الكلاس واحد لربطه مع Program.cs 

@@ -14,11 +14,13 @@ namespace DeliveryApp.Application.Features.Identity.RefreshToken
             var deviceId = ValidateDeviceId(request.DeviceID);
             var clientType = ValidateClientType(request.ClientType);
 
-            return new RefreshTokenValidatedInput(
+            return new RefreshTokenValidatedInput
+            (
                 userId,
                 refreshToken,
                 deviceId,
-                clientType);
+                clientType
+            );
         }
 
         // -------------------------
@@ -75,9 +77,11 @@ namespace DeliveryApp.Application.Features.Identity.RefreshToken
         }
     }
 
-    public sealed record RefreshTokenValidatedInput(
+    public sealed record RefreshTokenValidatedInput
+    (
         Guid UserId,
         string RefreshToken,
         string DeviceID,
-        ClientType ClientType);
+        ClientType ClientType
+    );
 }

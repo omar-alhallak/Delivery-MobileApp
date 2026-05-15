@@ -1,5 +1,5 @@
-﻿using DeliveryApp.Domain.Entities.Identity;
-using DeliveryApp.Application.Interfaces.IdentityInterfaces;
+﻿using DeliveryApp.Application.Interfaces.Services;
+using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 
 namespace DeliveryApp.Application.Features.Identity.RefreshToken
 {
@@ -8,17 +8,13 @@ namespace DeliveryApp.Application.Features.Identity.RefreshToken
         private readonly IRefreshTokenRepository _repository;
         private readonly ITokenService _tokenService;
 
-        public RefreshTokenService(
-            IRefreshTokenRepository repository,
-            ITokenService tokenService)
+        public RefreshTokenService(IRefreshTokenRepository repository, ITokenService tokenService)
         {
             _repository = repository;
             _tokenService = tokenService;
         }
 
-        public async Task<RefreshTokenResponse> ExecuteAsync(
-            RefreshTokenRequest request,
-            CancellationToken ct = default)
+        public async Task<RefreshTokenResponse> ExecuteAsync(RefreshTokenRequest request, CancellationToken ct = default)
         {
             var now = DateTimeOffset.UtcNow;
             var sessionLifetime = _tokenService.GetRefreshTokenLifetime();
@@ -33,9 +29,11 @@ namespace DeliveryApp.Application.Features.Identity.RefreshToken
             //          User
             // -------------------------
 
-            var user = await _repository.GetUserByIdAsync(
+            var user = await _repository.GetUserByIdAsync
+            (
                 UserID.From(input.UserId),
-                ct);
+                ct
+            );
 
             if (user is null)
                 throw new Exception("User not found.");
@@ -44,10 +42,12 @@ namespace DeliveryApp.Application.Features.Identity.RefreshToken
             //         Session
             // -------------------------
 
-            var session = await _repository.GetSessionAsync(
+            var session = await _repository.GetSessionAsync
+            (
                 user.ID,
                 input.ClientType,
-                ct);
+                ct
+            );
 
             if (session is null)
                 throw new Exception("Session not found.");
@@ -62,11 +62,9 @@ namespace DeliveryApp.Application.Features.Identity.RefreshToken
             //    Verify RefreshToken
             // -------------------------
 
-            var refreshTokenHash =
-                _tokenService.HashRefreshToken(input.RefreshToken);
+            var refreshTokenHash = _tokenService.HashRefreshToken(input.RefreshToken);
 
-            var matches =
-                session.MatchesRefreshTokenHash(refreshTokenHash);
+            var matches = session.MatchesRefreshTokenHash(refreshTokenHash);
 
             if (!matches)
                 throw new Exception("Invalid refresh token.");
@@ -82,24 +80,23 @@ namespace DeliveryApp.Application.Features.Identity.RefreshToken
             //       New Tokens
             // -------------------------
 
-            var newAccessToken =
-                _tokenService.GenerateAccessToken(user);
+            var newAccessToken = _tokenService.GenerateAccessToken(user);
 
-            var newRefreshToken =
-                _tokenService.GenerateRefreshToken();
+            var newRefreshToken = _tokenService.GenerateRefreshToken();
 
-            var newRefreshTokenHash =
-                _tokenService.HashRefreshToken(newRefreshToken);
+            var newRefreshTokenHash = _tokenService.HashRefreshToken(newRefreshToken);
 
             // -------------------------
             //      Refresh Session
             // -------------------------
 
-            session.Refresh(
+            session.Refresh
+            (
                 deviceId: input.DeviceID,
                 newRefreshTokenHash: newRefreshTokenHash,
                 utcNow: now,
-                lifetime: sessionLifetime);
+                lifetime: sessionLifetime
+            );
 
             // -------------------------
             //            Save

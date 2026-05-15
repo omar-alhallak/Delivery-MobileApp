@@ -6,14 +6,14 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using DeliveryApp.Infrastructure.Options;
 using DeliveryApp.Domain.Entities.Identity;
-using DeliveryApp.Application.Interfaces.IdentityInterfaces;
+using DeliveryApp.Application.Interfaces.Services;
 
 // JWT:    مؤلف من 3 أقسام
 // Header: فيه معلومات عن نوع التوكن و الخوارزمية     // alg: HMACSHA256
 // Payload: البيانات داخل التوكن
 // Signature: التوقيع الي بيتأكد من صحة التوكن
 // Sig: يكون Header + Payload + Signature لو تغير حرف التوقيع يفشل
-namespace DeliveryApp.Infrastructure.Implementation.Identity.Services
+namespace DeliveryApp.Infrastructure.Implementation.Services
 {
     public sealed class TokenService : ITokenService // الكلاس المسؤول عن Tokens
     {

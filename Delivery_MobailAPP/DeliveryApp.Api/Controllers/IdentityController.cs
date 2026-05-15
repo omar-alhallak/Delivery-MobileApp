@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using DeliveryApp.Application.Features.Identity.Logout;
@@ -20,102 +20,93 @@ namespace DeliveryApp.API.Controllers
         private readonly RefreshTokenService _refreshTokenService;
         private readonly LogoutService _logoutService;
 
-        public IdentityController(
-            RegisterLocalService registerLocalService,
-            LoginLocalService loginLocalService,
-            UpdateMyProfileService updateMyProfileService,
-            RefreshTokenService refreshTokenService,
-            LogoutService logoutService)
+        public IdentityController(RegisterLocalService registerLocalService, LoginLocalService loginLocalService, UpdateMyProfileService updateMyProfileService, RefreshTokenService refreshTokenService, LogoutService logoutService)
         {
-            _registerLocalService = registerLocalService;
+            _registerLocalService = registerLocalService ?? throw new ArgumentNullException(nameof(registerLocalService));
             _loginLocalService = loginLocalService;
             _updateMyProfileService = updateMyProfileService;
             _refreshTokenService = refreshTokenService;
             _logoutService = logoutService;
         }
 
+        // -------------------------
+        //          EndPoint
+        // ------------------------- 
+
+        // Endpoint Register
         [HttpPost("register/local")]
-        public async Task<ActionResult<RegisterLocalResponse>> RegisterLocal(
-            [FromBody] RegisterLocalRequest request,
-            CancellationToken ct)
+        public async Task<ActionResult<RegisterLocalResponse>> RegisterLocal([FromBody] RegisterLocalRequest request, CancellationToken ct)
         {
             var response = await _registerLocalService.ExecuteAsync(request, ct);
 
             return Ok(response);
         }
 
+        // Endpoint Login
         [HttpPost("login/local")]
-        public async Task<ActionResult<LoginLocalResponse>> LoginLocal(
-            [FromBody] LoginLocalRequest request,
-            CancellationToken ct)
+        public async Task<ActionResult<LoginLocalResponse>> LoginLocal([FromBody] LoginLocalRequest request, CancellationToken ct)
         {
             var response = await _loginLocalService.ExecuteAsync(request, ct);
 
             return Ok(response);
         }
 
+        // Endpoint Get my-profile
+        // اختبار التوكن + معرفة المستخدم  الحالي
         [Authorize]
-        [HttpGet("me")]
+        [HttpGet("my-profile")]
         public IActionResult Me()
         {
             var userId = GetCurrentUserId();
 
-            return Ok(new
-            {
-                UserId = userId
-            });
+            return Ok(new { UserId = userId });
         }
 
+        // Endpoint Put my-profile
+        // لتحديث معلومات الحساب
         [Authorize]
-        [HttpPut("me")]
-        public async Task<ActionResult<UpdateMyProfileResponse>> UpdateMyProfile(
-            [FromBody] UpdateMyProfileRequest request,
-            CancellationToken ct)
+        [HttpPut("my-profile")]
+        public async Task<ActionResult<UpdateMyProfileResponse>> UpdateMyProfile([FromBody] UpdateMyProfileRequest request, CancellationToken ct)
         {
             var userId = GetCurrentUserId();
 
-            var response = await _updateMyProfileService.ExecuteAsync(
-                userId,
-                request,
-                ct);
+            var response = await _updateMyProfileService.ExecuteAsync(userId, request, ct);
 
             return Ok(response);
         }
 
+        // تجديد التوكنات
         [HttpPost("refresh-token")]
-        public async Task<ActionResult<RefreshTokenResponse>> RefreshToken(
-            [FromBody] RefreshTokenRequest request,
-            CancellationToken ct)
+        public async Task<ActionResult<RefreshTokenResponse>> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken ct)
         {
             var response = await _refreshTokenService.ExecuteAsync(request, ct);
 
             return Ok(response);
         }
 
+        // Endpoint Logout
         [Authorize]
         [HttpPost("logout")]
-        public async Task<ActionResult<LogoutResponse>> Logout(
-            [FromBody] LogoutRequest request,
-            CancellationToken ct)
+        public async Task<ActionResult<LogoutResponse>> Logout([FromBody] LogoutRequest request, CancellationToken ct)
         {
             var userId = GetCurrentUserId();
 
-            var response = await _logoutService.ExecuteAsync(
-                userId,
-                request,
-                ct);
+            var response = await _logoutService.ExecuteAsync(userId, request, ct);
 
             return Ok(response);
         }
 
+        // -------------------------
+        //          Helpers
+        // ------------------------- 
+
+        // للحساب JWT عند إنشار حساب توليد   
         private Guid GetCurrentUserId()
         {
-            var userId =
-                User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (!Guid.TryParse(userId, out var parsedUserId))
-                throw new Exception("Invalid user id.");
+                throw new UnauthorizedAccessException("Invalid user id.");
 
             return parsedUserId;
         }

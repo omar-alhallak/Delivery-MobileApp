@@ -1,5 +1,5 @@
-﻿using DeliveryApp.Domain.Enums.IdentityEnums;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
+using DeliveryApp.Domain.Enums.IdentityEnums;
 
 namespace DeliveryApp.Application.Features.Identity.LoginLocal
 {
@@ -11,17 +11,27 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
                 throw new Exception("Request is required.");
 
             var phone = ValidatePhone(request.Phone);
+
             var password = ValidatePassword(request.Password);
+
             var deviceId = ValidateDeviceId(request.DeviceID);
+
             var clientType = ValidateClientType(request.ClientType);
 
-            return new LoginLocalValidatedInput(phone, password, deviceId, clientType);
+            return new LoginLocalValidatedInput
+            (
+                phone, 
+                password, 
+                deviceId, 
+                clientType
+            );
         }
 
         // -------------------------
         // Phone
         // -------------------------
 
+        // تأكد من أن رقم يبدأ ب +963
         private static string ValidatePhone(string value)
         {
             if (string.IsNullOrWhiteSpace(value)) 
@@ -93,5 +103,11 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
         private static partial Regex SpaceRegex();
     }
 
-    public sealed record LoginLocalValidatedInput(string Phone, string Password, string DeviceID, ClientType ClientType);
+    public sealed record LoginLocalValidatedInput
+    (
+        string Phone, 
+        string Password, 
+        string DeviceID, 
+        ClientType ClientType
+    );
 }

@@ -1,6 +1,6 @@
 ﻿using DeliveryApp.Domain.Entities.Identity;
 
-namespace DeliveryApp.Application.Interfaces.IdentityInterfaces
+namespace DeliveryApp.Application.Interfaces.Services
 {
     public interface ITokenService
     {

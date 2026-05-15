@@ -2,11 +2,11 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
-using DeliveryApp.Application.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 using DeliveryApp.Infrastructure.Persistence;
+using DeliveryApp.Application.Interfaces.Services;
 
-namespace DeliveryApp.Infrastructure.Implementation
+namespace DeliveryApp.Infrastructure.Implementation.Services
 {
     public sealed class SqlServerPublicCodeGenerator : IPublicCodeGenerator // مسؤول عن توليد الأكواد بأستخدام SQL Server Sequences
     {

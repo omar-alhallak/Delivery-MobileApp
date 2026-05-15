@@ -1,11 +1,11 @@
 ﻿using DeliveryApp.Application.Interfaces;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Enums.IdentityEnums;
-using DeliveryApp.Application.Interfaces.IdentityInterfaces;
+using DeliveryApp.Application.Interfaces.Services;
 
 namespace DeliveryApp.Application.Features.Identity.RegisterLocal 
 {
-    public sealed class RegisterLocalService // Case إنشاء الحساب
+    public sealed class RegisterLocalService
     {
         private readonly IRegisterLocalRepository _repository;
         private readonly IPasswordHasher _passwordHasher;
@@ -18,7 +18,6 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
             _codeGenerator = codeGenerator;
         }
 
-        // المسؤلة عن تنفيذ الكيس
         public async Task<RegisterLocalResponse> ExecuteAsync(RegisterLocalRequest request, CancellationToken ct = default)
         {
             // -------------------------
@@ -47,19 +46,19 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
             // -------------------------
 
             var user = new User
-                (
+            (
                 id: UserID.New(),
                 roles: UserRole.Customer,
                 createdAtUtc: now
-                );
+            );
 
             user.UpdateProfile
-                (
+            (
                 email: null,
                 phone: input.Phone,
                 fullName: input.FullName,
                 photoUrl: input.PhotoUrl
-                );
+            );
 
             user.ChangeBirthDate(input.BirthDate, today);
 
@@ -83,12 +82,12 @@ namespace DeliveryApp.Application.Features.Identity.RegisterLocal
             // -------------------------
 
             var identity = UserIdentity.CreateLocal
-                (
+            (
                 id: UserIdentityID.New(),
                 userId: user.ID,
                 passwordHash: hash,
                 createdAtUtc: now
-                );
+            );
 
             // -------------------------
             //          Save
