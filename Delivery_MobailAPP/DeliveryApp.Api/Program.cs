@@ -1,3 +1,4 @@
+using DeliveryApp.API.Extensions;
 using DeliveryApp.Infrastructure;
 
 namespace DeliveryApp.API
@@ -14,10 +15,13 @@ namespace DeliveryApp.API
             // Register Infrastructure Services(Services + ApplicationDbContext)
             // Read Connection String From Configurations(UserSecrets ,appsetting ,env)
             builder.Services.AddInfrastructure(builder.Configuration);  
+            builder.Services.AddJwtAuthentication(builder.Configuration);
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            // Swagger With Jwt
+            builder.Services.AddSwaggerWithJwt();
 
             var app = builder.Build();
 
@@ -29,6 +33,8 @@ namespace DeliveryApp.API
             }
 
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
