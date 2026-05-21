@@ -1,18 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
-using DeliveryApp.Application.Interfaces;
-using Microsoft.Extensions.Configuration;
-using DeliveryApp.Infrastructure.Options;
-using DeliveryApp.Infrastructure.Persistence;
-using Microsoft.Extensions.DependencyInjection;
+﻿using DeliveryApp.Application.Features.Identity.LoginLocal;
 using DeliveryApp.Application.Features.Identity.Logout;
-using DeliveryApp.Application.Features.Identity.LoginLocal;
-using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 using DeliveryApp.Application.Features.Identity.RefreshToken;
 using DeliveryApp.Application.Features.Identity.RegisterLocal;
 using DeliveryApp.Application.Features.Identity.UpdateMyProfile;
-using DeliveryApp.Infrastructure.Implementation.Services;
-using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
+using DeliveryApp.Application.Features.Orders.CancelOrder;
+using DeliveryApp.Application.Features.Orders.CreateOrder;
+using DeliveryApp.Application.Features.Orders.DeleteOrder;
+using DeliveryApp.Application.Features.Orders.GetOrders;
+using DeliveryApp.Application.Features.Orders.MerchantDecision;
+using DeliveryApp.Application.Features.Orders.OrderWorkflow;
+using DeliveryApp.Application.Features.Orders.Payment;
+using DeliveryApp.Application.Interfaces;
+using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
+using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 using DeliveryApp.Application.Interfaces.Services;
+using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
+using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
+using DeliveryApp.Infrastructure.Implementation.Services;
+using DeliveryApp.Infrastructure.Options;
+using DeliveryApp.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة Infrastructure
 {                                    // داخل الكلاس واحد لربطه مع Program.cs 
@@ -62,6 +71,12 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
 
             services.AddScoped<ILogoutRepository, LogoutRepository>();
 
+            // ---------- Order Repositories ----------
+
+            services.AddScoped<IOrderReadRepository, OrderReadRepository>();
+            services.AddScoped<IOrderCreateRepository, OrderCreateRepository>();
+            services.AddScoped<IOrderCommandRepository, OrderCommandRepository>();
+
             // -------------------------
             //         FEATURES
             // -------------------------
@@ -78,7 +93,16 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
 
             services.AddScoped<LogoutService>();
 
-            // ----------------------------------------
+            // ---------- Order Features ----------
+
+            services.AddScoped<OrderQueryService>();
+            services.AddScoped<CreateOrderService>();
+            services.AddScoped<DeleteOrderService>();
+            services.AddScoped<OrderWorkflowService>();
+            services.AddScoped<MerchantDecisionService>();
+            services.AddScoped<CancelOrderService>();
+            services.AddScoped<OrderPaymentService>();
+
 
             return services;
         }
