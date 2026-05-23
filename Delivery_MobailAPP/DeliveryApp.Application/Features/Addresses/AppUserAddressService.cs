@@ -25,35 +25,30 @@ public class AppUserAddressService
     {
         var now = DateTimeOffset.UtcNow;
 
-        // 1. إنشاء العنوان بالمرحلة الأولى كمؤقت باستخدام الـ Constructor المتاح بالـ Domain
         var addressEntity = new Address(
-            AddressID.New(), // توليد المعرف الجديد للعنوان
+            AddressID.New(), 
             userId,
-            request.Location.Latitude, // استخراج خطوط الطول والعرض من كائن الـ GeoPoint المرسل
+            request.Location.Latitude, 
             request.Location.Longitude,
             now
         );
 
-        // 2. استدعاء دالة البزنس من الـ Domain لإكمال باقي البيانات وتحويله لعنوان دائم ومكتمل
         addressEntity.Complete(
             request.Label!,
-            request.AddressType!.Value, // تأكد من عمل تحويل أو التعامل مع الـ Nullable Enum حسب كودك
+            request.AddressType!.Value,
             request.BuildingName!,
             request.Floor!,
             request.DoorInfo!,
             request.Notes
         );
 
-        // لو الـ Request طالب تعيينه كافتراضي مباشرة
         if (request.IsDefault)
         {
             addressEntity.SetAsDefault();
         }
 
-        // 3. حفظ الكيان المكتمل والجاهز عن طريق الـ Repository
         var createdEntity = await _repository.CreateAsync(userId, addressEntity);
 
-        // 4. تحويل الكيان المحفوظ إلى Response وإرجاعه
         return MapToResponse(createdEntity);
     }
 
@@ -105,7 +100,6 @@ public class AppUserAddressService
         // 3. الحذف
         await _repository.DeleteAsync(address, ct);
     }
-
 
     private static AddressResponse MapToResponse(Address entity)
     {
