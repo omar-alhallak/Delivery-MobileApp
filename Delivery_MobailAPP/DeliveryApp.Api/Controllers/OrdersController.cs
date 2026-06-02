@@ -1,13 +1,13 @@
-﻿using DeliveryApp.Application.Features.Orders.CancelOrder;
+﻿using Microsoft.AspNetCore.Mvc;
+using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Application.Features.Orders.Common;
+using DeliveryApp.Application.Features.Orders.Payment;
+using DeliveryApp.Application.Features.Orders.GetOrders;
+using DeliveryApp.Application.Features.Orders.CancelOrder;
 using DeliveryApp.Application.Features.Orders.CreateOrder;
 using DeliveryApp.Application.Features.Orders.DeleteOrder;
-using DeliveryApp.Application.Features.Orders.GetOrders;
-using DeliveryApp.Application.Features.Orders.MerchantDecision;
 using DeliveryApp.Application.Features.Orders.OrderWorkflow;
-using DeliveryApp.Application.Features.Orders.Payment;
-using DeliveryApp.Domain.DomainExceptions;
-using Microsoft.AspNetCore.Mvc;
+using DeliveryApp.Application.Features.Orders.MerchantDecision;
 
 namespace DeliveryApp.API.Controllers
 {
@@ -15,22 +15,16 @@ namespace DeliveryApp.API.Controllers
     [Route("api/orders")]
     public sealed class OrdersController : ControllerBase // Controller يفتح endpoints الخاصة بالطلبات للفرونت
     {
-        private readonly OrderQueryService _orderQueryService; // قراءة الطلبات
-        private readonly CreateOrderService _createOrderService; // إنشاء طلب
-        private readonly DeleteOrderService _deleteOrderService; // حذف طلب
-        private readonly OrderWorkflowService _orderWorkflowService; // خطوات دورة حياة الطلب
-        private readonly MerchantDecisionService _merchantDecisionService; // قبول أو رفض المطعم
-        private readonly CancelOrderService _cancelOrderService; // إلغاء الطلب
-        private readonly OrderPaymentService _orderPaymentService; // تعديل حالة الدفع
+        private readonly OrderQueryService _orderQueryService; 
+        private readonly CreateOrderService _createOrderService; 
+        private readonly DeleteOrderService _deleteOrderService; 
+        private readonly OrderWorkflowService _orderWorkflowService; 
+        private readonly MerchantDecisionService _merchantDecisionService; 
+        private readonly CancelOrderService _cancelOrderService; 
+        private readonly OrderPaymentService _orderPaymentService;
 
-        public OrdersController(
-            OrderQueryService orderQueryService,
-            CreateOrderService createOrderService,
-            DeleteOrderService deleteOrderService,
-            OrderWorkflowService orderWorkflowService,
-            MerchantDecisionService merchantDecisionService,
-            CancelOrderService cancelOrderService,
-            OrderPaymentService orderPaymentService)
+        public OrdersController(OrderQueryService orderQueryService, CreateOrderService createOrderService, DeleteOrderService deleteOrderService,
+            OrderWorkflowService orderWorkflowService, MerchantDecisionService merchantDecisionService, CancelOrderService cancelOrderService, OrderPaymentService orderPaymentService)
         {
             _orderQueryService = orderQueryService;
             _createOrderService = createOrderService;
