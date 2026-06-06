@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DeliveryApp.Application.Interfaces.Addresses;
+﻿using DeliveryApp.Application.Interfaces.Addresses;
 using DeliveryApp.Domain.Entities.Customers;
 
 namespace DeliveryApp.Application.Features.Addresses.UpdateAddress

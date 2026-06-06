@@ -1,5 +1,4 @@
 ﻿using DeliveryApp.Domain.Enums.CustomerEnums;
-using DeliveryApp.Domain.ValueObjects;
 
 namespace DeliveryApp.Application.Features.Addresses
 {

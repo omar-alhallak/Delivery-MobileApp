@@ -1,6 +1,5 @@
 using DeliveryApp.Application.Interfaces.Addresses;
 using DeliveryApp.Domain.Entities.Customers;
-using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
