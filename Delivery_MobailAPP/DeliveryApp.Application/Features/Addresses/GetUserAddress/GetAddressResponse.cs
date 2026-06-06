@@ -3,7 +3,7 @@ using DeliveryApp.Domain.ValueObjects;
 
 namespace DeliveryApp.Application.Features.Addresses;
 
-public sealed class AddressResponse
+public sealed class GetAddressResponse
 {
     public AddressID ID { get;  init; }
     public UserID UserID { get; init; }

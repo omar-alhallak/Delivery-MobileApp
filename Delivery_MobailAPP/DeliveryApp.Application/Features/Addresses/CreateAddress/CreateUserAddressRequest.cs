@@ -10,7 +10,7 @@ namespace DeliveryApp.Application.Features.Addresses
 {
     public sealed class CreateUserAddressRequest
     {
-        public UserID UserID { get; init; } 
+        public Guid UserID { get; init; } 
         public string? Label { get; init; } = null!;
         public AddressType? AddressType { get; init; } = null!;
         public GeoPoint Location { get; init; } = null!;    
