@@ -111,12 +111,6 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<OrderPaymentService>();
 
 
-            // Addresses Features
-            services.AddScoped<CreateAddressService>();
-            services.AddScoped<UpdateAddressService>();
-            services.AddScoped<DeleteAddressService>();
-            services.AddScoped<GetAddressService>();
-
             return services;
         }
     }
