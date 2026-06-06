@@ -1,18 +1,25 @@
-﻿using DeliveryApp.Application.Features.Identity.LoginLocal;
+﻿using DeliveryApp.Application.Features.Addresses.CreateAddress;
+using DeliveryApp.Application.Features.Addresses.DeleteAddress;
+using DeliveryApp.Application.Features.Addresses.GetUserAddress;
+using DeliveryApp.Application.Features.Addresses.UpdateAddress;
+using DeliveryApp.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 using DeliveryApp.Application.Features.Identity.Logout;
-using DeliveryApp.Application.Features.Identity.RefreshToken;
-using DeliveryApp.Application.Features.Identity.RegisterLocal;
-using DeliveryApp.Application.Features.Identity.UpdateMyProfile;
-using DeliveryApp.Application.Features.Orders.CancelOrder;
-using DeliveryApp.Application.Features.Orders.CreateOrder;
-using DeliveryApp.Application.Features.Orders.DeleteOrder;
-using DeliveryApp.Application.Features.Orders.GetOrders;
-using DeliveryApp.Application.Features.Orders.MerchantDecision;
-using DeliveryApp.Application.Features.Orders.OrderWorkflow;
-using DeliveryApp.Application.Features.Orders.Payment;
+using DeliveryApp.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 using DeliveryApp.Application.Interfaces;
 using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
-using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
+using DeliveryApp.Application.Interfaces.Services;
+using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
+using DeliveryApp.Application.Features.Identity.Logout;
+using DeliveryApp.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
+using DeliveryApp.Application.Features.Identity.Logout;
+using DeliveryApp.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
+using DeliveryApp.Application.Features.Identity.Logout;
+using DeliveryApp.Application.Features.Identity.LoginLocal;
+using DeliveryApp.Application.Features.Identity.Logout;
 using DeliveryApp.Application.Interfaces.Services;
 using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
 using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
@@ -103,6 +110,12 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<CancelOrderService>();
             services.AddScoped<OrderPaymentService>();
 
+
+            // Addresses Features
+            services.AddScoped<CreateAddressService>();
+            services.AddScoped<UpdateAddressService>();
+            services.AddScoped<DeleteAddressService>();
+            services.AddScoped<GetAddressService>();
 
             return services;
         }
