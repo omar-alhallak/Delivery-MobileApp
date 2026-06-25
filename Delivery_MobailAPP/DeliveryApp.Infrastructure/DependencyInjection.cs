@@ -9,6 +9,7 @@ using DeliveryApp.Application.Features.MerchantCatalog.Products;
 using DeliveryApp.Application.Features.MerchantCatalog.PublicCatalog;
 using DeliveryApp.Application.Features.MerchantCatalog.SystemCategories;
 using DeliveryApp.Application.Features.MerchantCatalog.Variants;
+using DeliveryApp.Application.Features.Notifications;
 using DeliveryApp.Application.Features.Orders.CancelOrder;
 using DeliveryApp.Application.Features.Orders.CreateOrder;
 using DeliveryApp.Application.Features.Orders.DeleteOrder;
@@ -16,14 +17,19 @@ using DeliveryApp.Application.Features.Orders.GetOrders;
 using DeliveryApp.Application.Features.Orders.MerchantDecision;
 using DeliveryApp.Application.Features.Orders.OrderWorkflow;
 using DeliveryApp.Application.Features.Orders.Payment;
+using DeliveryApp.Application.Features.Ratings;
 using DeliveryApp.Application.Interfaces;
 using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
+using DeliveryApp.Application.Interfaces.NotificationRepositoriesInterfaces;
 using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
+using DeliveryApp.Application.Interfaces.RatingRepositoriesInterfaces;
 using DeliveryApp.Application.Interfaces.Services;
 using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
 using DeliveryApp.Infrastructure.Implementation.MerchantCatalogRepositories;
+using DeliveryApp.Infrastructure.Implementation.NotificationRepositores;
 using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
+using DeliveryApp.Infrastructure.Implementation.RatingRepositores;
 using DeliveryApp.Infrastructure.Implementation.Services;
 using DeliveryApp.Infrastructure.Options;
 using DeliveryApp.Infrastructure.Persistence;
@@ -90,6 +96,16 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<IMerchantCatalogReadRepository, MerchantCatalogReadRepository>();
             services.AddScoped<IMerchantCatalogCommandRepository, MerchantCatalogCommandRepository>();
 
+            //---------- Rating Repositories ----------
+
+            services.AddScoped<IRatingReadRepository, RatingReadRepository>();
+            services.AddScoped<IRatingCommandRepository, RatingCommandRepository>();
+
+            //---------- Notification Repositories ----------
+
+            services.AddScoped<INotificationReadRepository, NotificationReadRepository>();
+            services.AddScoped<INotificationCommandRepository, NotificationCommandRepository>();
+
             // -------------------------
             //         FEATURES
             // -------------------------
@@ -124,6 +140,14 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<ProductService>();
             services.AddScoped<VariantService>();
             services.AddScoped<PublicCatalogService>();
+
+            // ---------- Rating Features ----------
+
+            services.AddScoped<RatingService>();
+
+            // ---------- Notification Features ----------
+
+            services.AddScoped<NotificationService>();
 
             return services;
         }
