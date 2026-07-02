@@ -58,8 +58,33 @@
   * ترتيب الكود بشكل واضح ومنظم.
   * إضافة تعليقات مناسبة لشرح الأجزاء المهمة من الكود.
 
-  ---
+🔟 يمنع منعاً باتاً تعديل أي شيء يخص ملفات Data Bese:
+  * Migration
+  * Configuration
+  * all Entity
+  * ApplicationDbContext
+    
 
+
+## كيفية تنصيب قاعدة بيانات:
+1️⃣ أول خطوة الاتصال مع القاعدة عن طريق:
+  * ضغطة يمين على مشروع DeliveryApp.API.
+  * أختيار Manage User Secrets.
+  * لصق هاد الكود  بالملف:
+```
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.;Database=DeliveryAppDB;Trusted_Connection=True;Encrypt=False;"
+  }
+}
+```
+2️⃣ ومن ثم تنفيذ Migration عن طريق لصق الكود الأتي بال Terminal:
+```
+dotnet ef database update --project DeliveryApp.Infrastructure --startup-project DeliveryApp.API
+```
+
+
+  ---
 <p align="center">
 📩 لأي استفسار أو مشكلة تواجهك أو في حال وجود شيء غير واضح، يرجى التواصل معي مباشرة.
 </p>
