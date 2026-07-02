@@ -101,7 +101,6 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<IMerchantCatalogReadRepository, MerchantCatalogReadRepository>();
             services.AddScoped<IMerchantCatalogCommandRepository, MerchantCatalogCommandRepository>();
 
- feature/add-Engagements-case
             //---------- Rating Repositories ----------
 
             services.AddScoped<IRatingReadRepository, RatingReadRepository>();
@@ -111,7 +110,7 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
 
             services.AddScoped<INotificationReadRepository, NotificationReadRepository>();
             services.AddScoped<INotificationCommandRepository, NotificationCommandRepository>();
-=======
+
             //---------- Address Repositories ----------
             services.AddScoped<IAddressReadRepository, AddressReadRepository>();
             services.AddScoped<IAddressCommandRepository, AddressCommandRepository>();
@@ -151,7 +150,6 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<VariantService>();
             services.AddScoped<PublicCatalogService>();
 
- feature/add-Engagements-case
             // ---------- Rating Features ----------
 
             services.AddScoped<RatingService>();
@@ -159,7 +157,6 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             // ---------- Notification Features ----------
 
             services.AddScoped<NotificationService>();
-=======
 
             // ---------- Address Features ----------
             services.AddScoped<AddressQueryService>();
