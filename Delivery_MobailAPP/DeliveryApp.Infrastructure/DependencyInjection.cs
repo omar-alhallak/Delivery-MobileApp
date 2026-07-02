@@ -18,10 +18,15 @@ using DeliveryApp.Application.Features.Identity.RefreshToken;
 using DeliveryApp.Application.Features.Identity.RegisterLocal;
 using DeliveryApp.Application.Features.Orders.MerchantDecision;
 using DeliveryApp.Application.Features.Identity.UpdateMyProfile;
+using DeliveryApp.Application.Features.Merchants.CreateMerchant;
+using DeliveryApp.Application.Features.Merchants.UpdateMerchant;
 using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
 using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
 using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
+using DeliveryApp.Application.Interfaces.MerchantRepositoresInterfaces;
+using DeliveryApp.Infrastructure.Implementation.Merchants.Repositores;
+
 
 namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة Infrastructure
 {                                    // داخل الكلاس واحد لربطه مع Program.cs 
@@ -60,7 +65,7 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             // -------------------------
 
             // ---------- Identity Repositories ----------
-   
+
             services.AddScoped<IRegisterLocalRepository, RegisterLocalRepository>();
 
             services.AddScoped<ILoginLocalRepository, LoginLocalRepository>();
@@ -78,6 +83,12 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<IOrderCreateRepository, OrderCreateRepository>();
 
             services.AddScoped<IOrderCommandRepository, OrderCommandRepository>();
+
+            // ---------- Merchant Repositories ----------
+
+            services.AddScoped<ICreateMerchantRepository, CreateMerchantRepository>();
+
+            services.AddScoped<IUpdateMerchantRepository, UpdateMerchantRepository>();
 
             // -------------------------
             //         FEATURES
@@ -110,6 +121,12 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<CancelOrderService>();
 
             services.AddScoped<OrderPaymentService>();
+
+            // ---------- Merchant Features ----------
+
+            services.AddScoped<CreateMerchantService>();
+
+            services.AddScoped<UpdateMerchantService>();
 
             // ---------------------------------------
 

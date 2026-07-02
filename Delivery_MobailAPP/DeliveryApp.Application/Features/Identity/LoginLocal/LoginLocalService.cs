@@ -70,6 +70,17 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
                 throw new Exception("Account is suspended.");
 
             // -------------------------
+            //       Merchant Access
+            // -------------------------
+
+            if (input.ClientType == ClientType.MerchantWebApp)
+            {
+                var hasMerchantAccess = await _repository.HasMerchantAccessAsync(user.ID, ct);
+
+                if (!hasMerchantAccess) throw new Exception("Merchant access denied.");    
+            }
+
+            // -------------------------
             //          Tokens
             // -------------------------
 

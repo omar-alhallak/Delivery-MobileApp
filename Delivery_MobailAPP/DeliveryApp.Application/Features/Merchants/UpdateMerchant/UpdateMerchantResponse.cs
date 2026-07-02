@@ -1,6 +1,6 @@
-﻿namespace DeliveryApp.Application.Features.Merchants.CreateMerchant
+﻿namespace DeliveryApp.Application.Features.Merchants.UpdateMerchant
 {
-    public sealed record CreateMerchantResponse
+    public sealed record UpdateMerchantResponse
     {
         public Guid MerchantId { get; init; }
 
