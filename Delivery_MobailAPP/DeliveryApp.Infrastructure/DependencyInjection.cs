@@ -1,4 +1,7 @@
-﻿using DeliveryApp.Application.Features.Identity.LoginLocal;
+﻿using DeliveryApp.Application.Features.Addresses.AddressLifecycle;
+using DeliveryApp.Application.Features.Addresses.AddressQuery;
+using DeliveryApp.Application.Features.Addresses.AddressStatus;
+using DeliveryApp.Application.Features.Identity.LoginLocal;
 using DeliveryApp.Application.Features.Identity.Logout;
 using DeliveryApp.Application.Features.Identity.RefreshToken;
 using DeliveryApp.Application.Features.Identity.RegisterLocal;
@@ -19,12 +22,14 @@ using DeliveryApp.Application.Features.Orders.OrderWorkflow;
 using DeliveryApp.Application.Features.Orders.Payment;
 using DeliveryApp.Application.Features.Ratings;
 using DeliveryApp.Application.Interfaces;
+using DeliveryApp.Application.Interfaces.AddressRepositoriesInterfaces;
 using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
 using DeliveryApp.Application.Interfaces.NotificationRepositoriesInterfaces;
 using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 using DeliveryApp.Application.Interfaces.RatingRepositoriesInterfaces;
 using DeliveryApp.Application.Interfaces.Services;
+using DeliveryApp.Infrastructure.Implementation.AddressRepositories;
 using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
 using DeliveryApp.Infrastructure.Implementation.MerchantCatalogRepositories;
 using DeliveryApp.Infrastructure.Implementation.NotificationRepositores;
@@ -96,6 +101,7 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<IMerchantCatalogReadRepository, MerchantCatalogReadRepository>();
             services.AddScoped<IMerchantCatalogCommandRepository, MerchantCatalogCommandRepository>();
 
+ feature/add-Engagements-case
             //---------- Rating Repositories ----------
 
             services.AddScoped<IRatingReadRepository, RatingReadRepository>();
@@ -105,6 +111,10 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
 
             services.AddScoped<INotificationReadRepository, NotificationReadRepository>();
             services.AddScoped<INotificationCommandRepository, NotificationCommandRepository>();
+=======
+            //---------- Address Repositories ----------
+            services.AddScoped<IAddressReadRepository, AddressReadRepository>();
+            services.AddScoped<IAddressCommandRepository, AddressCommandRepository>();
 
             // -------------------------
             //         FEATURES
@@ -141,6 +151,7 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<VariantService>();
             services.AddScoped<PublicCatalogService>();
 
+ feature/add-Engagements-case
             // ---------- Rating Features ----------
 
             services.AddScoped<RatingService>();
@@ -148,6 +159,12 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             // ---------- Notification Features ----------
 
             services.AddScoped<NotificationService>();
+=======
+
+            // ---------- Address Features ----------
+            services.AddScoped<AddressQueryService>();
+            services.AddScoped<AddressLifecycleService>();
+            services.AddScoped<AddressStatusService>();
 
             return services;
         }
