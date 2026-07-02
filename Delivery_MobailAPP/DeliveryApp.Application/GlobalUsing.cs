@@ -25,3 +25,10 @@ global using VariantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Do
 
 global using OrderID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.OrderTag>;
 global using OrderItemID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.OrderItemTag>;
+
+// -------------------------
+//         Engagements
+// -------------------------
+
+global using RatingID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.RatingTag>;
+global using NotificationID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.NotificationTag>;
