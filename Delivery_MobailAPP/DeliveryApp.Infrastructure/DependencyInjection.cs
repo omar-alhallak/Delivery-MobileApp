@@ -3,6 +3,7 @@ using DeliveryApp.Infrastructure.Options;
 using Microsoft.Extensions.Configuration;
 using DeliveryApp.Application.Interfaces;
 using DeliveryApp.Infrastructure.Persistence;
+using DeliveryApp.Application.Features.Ratings;
 using Microsoft.Extensions.DependencyInjection;
 using DeliveryApp.Application.Interfaces.Services;
 using DeliveryApp.Application.Features.Orders.Payment;
@@ -13,7 +14,6 @@ using DeliveryApp.Application.Features.Addresses.AddressLifecycle;
 using DeliveryApp.Application.Features.Addresses.AddressQuery;
 using DeliveryApp.Application.Features.Addresses.AddressStatus;
 using DeliveryApp.Application.Features.Identity.LoginLocal;
-using DeliveryApp.Application.Features.Identity.Logout;
 using DeliveryApp.Application.Features.Identity.RefreshToken;
 using DeliveryApp.Application.Features.Identity.RegisterLocal;
 using DeliveryApp.Application.Features.Identity.UpdateMyProfile;
@@ -27,12 +27,8 @@ using DeliveryApp.Application.Features.Notifications;
 using DeliveryApp.Application.Features.Orders.CancelOrder;
 using DeliveryApp.Application.Features.Orders.CreateOrder;
 using DeliveryApp.Application.Features.Orders.DeleteOrder;
-using DeliveryApp.Application.Features.Identity.LoginLocal;
 using DeliveryApp.Application.Features.Orders.OrderWorkflow;
-using DeliveryApp.Application.Features.Identity.RefreshToken;
-using DeliveryApp.Application.Features.Identity.RegisterLocal;
 using DeliveryApp.Application.Features.Orders.MerchantDecision;
-using DeliveryApp.Application.Features.Identity.UpdateMyProfile;
 using DeliveryApp.Application.Features.Merchants.CreateMerchant;
 using DeliveryApp.Application.Features.Merchants.UpdateMerchant;
 using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
@@ -41,28 +37,14 @@ using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
 using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 using DeliveryApp.Application.Interfaces.MerchantRepositoresInterfaces;
 using DeliveryApp.Infrastructure.Implementation.Merchants.Repositores;
-using DeliveryApp.Application.Features.Orders.Payment;
-using DeliveryApp.Application.Features.Ratings;
-using DeliveryApp.Application.Interfaces;
 using DeliveryApp.Application.Interfaces.AddressRepositoriesInterfaces;
-using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
 using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
 using DeliveryApp.Application.Interfaces.NotificationRepositoriesInterfaces;
-using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 using DeliveryApp.Application.Interfaces.RatingRepositoriesInterfaces;
-using DeliveryApp.Application.Interfaces.Services;
 using DeliveryApp.Infrastructure.Implementation.AddressRepositories;
-using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
 using DeliveryApp.Infrastructure.Implementation.MerchantCatalogRepositories;
 using DeliveryApp.Infrastructure.Implementation.NotificationRepositores;
-using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
 using DeliveryApp.Infrastructure.Implementation.RatingRepositores;
-using DeliveryApp.Infrastructure.Implementation.Services;
-using DeliveryApp.Infrastructure.Options;
-using DeliveryApp.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة Infrastructure
 {                                    // داخل الكلاس واحد لربطه مع Program.cs 
@@ -129,20 +111,24 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             //---------- Catagories Repositories ----------
 
             services.AddScoped<IMerchantCatalogReadRepository, MerchantCatalogReadRepository>();
+
             services.AddScoped<IMerchantCatalogCommandRepository, MerchantCatalogCommandRepository>();
 
             //---------- Rating Repositories ----------
 
             services.AddScoped<IRatingReadRepository, RatingReadRepository>();
+
             services.AddScoped<IRatingCommandRepository, RatingCommandRepository>();
 
             //---------- Notification Repositories ----------
 
             services.AddScoped<INotificationReadRepository, NotificationReadRepository>();
+
             services.AddScoped<INotificationCommandRepository, NotificationCommandRepository>();
 
             //---------- Address Repositories ----------
             services.AddScoped<IAddressReadRepository, AddressReadRepository>();
+
             services.AddScoped<IAddressCommandRepository, AddressCommandRepository>();
 
             // -------------------------
@@ -183,15 +169,18 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
 
             services.AddScoped<UpdateMerchantService>();
 
-            // ---------------------------------------
-
             // ---------- Catagories Features ----------
 
             services.AddScoped<SystemCategoryService>();
+
             services.AddScoped<MerchantSystemCategoryService>();
+
             services.AddScoped<MerchantCategoryService>();
+
             services.AddScoped<ProductService>();
+
             services.AddScoped<VariantService>();
+
             services.AddScoped<PublicCatalogService>();
 
             // ---------- Rating Features ----------
@@ -203,9 +192,14 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<NotificationService>();
 
             // ---------- Address Features ----------
+
             services.AddScoped<AddressQueryService>();
+
             services.AddScoped<AddressLifecycleService>();
+
             services.AddScoped<AddressStatusService>();
+
+            // -----------------------------------
 
             return services;
         }
