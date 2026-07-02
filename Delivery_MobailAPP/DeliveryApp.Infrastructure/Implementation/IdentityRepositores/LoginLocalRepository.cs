@@ -47,5 +47,10 @@ namespace DeliveryApp.Infrastructure.Implementation.IdentityRepositores
         {
             await _context.SaveChangesAsync(ct);
         }
+
+        public async Task<bool> HasMerchantAccessAsync(UserID userId, CancellationToken ct = default)
+        {
+            return await _context.MerchantUsers.AnyAsync(x => x.UserID == userId && x.IsActive, ct);
+        }
     }
 }

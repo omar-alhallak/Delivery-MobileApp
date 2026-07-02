@@ -1,16 +1,14 @@
-﻿using DeliveryApp.Application.Features.Orders.Common;
-using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
-using DeliveryApp.Application.Interfaces.Services;
+﻿using DeliveryApp.Application.Interfaces.Services;
 using DeliveryApp.Domain.Entities.Customers.Orders;
-using DeliveryApp.Domain.Entities.Merchants;
-using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Application.Features.Orders.Common;
+using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 
 namespace DeliveryApp.Application.Features.Orders.CreateOrder
 {
     public sealed class CreateOrderService // Use case مسؤول عن إنشاء طلب جديد وإرساله مباشرة للمطعم
     {
-        private readonly IOrderCreateRepository _repository; // منفذ التخزين الخاص بإنشاء الطلب
-        private readonly IPublicCodeGenerator _codeGenerator; // مولد الكود المقروء مثل ORD-000001
+        private readonly IOrderCreateRepository _repository; 
+        private readonly IPublicCodeGenerator _codeGenerator;
 
         public CreateOrderService(IOrderCreateRepository repository, IPublicCodeGenerator codeGenerator)
         {

@@ -2,9 +2,9 @@
 
 namespace DeliveryApp.Application.Features.Orders.MerchantDecision
 {
-    public sealed class MerchantDecisionRequest // DTO يستخدم عند رفض المطعم للطلب
+    public sealed class MerchantDecisionRequest
     {
-        public OrderIssueReason IssueReason { get; init; } // سبب الرفض
-        public string? IssueNote { get; init; } // ملاحظة توضيحية اختيارية
+        public OrderIssueReason IssueReason { get; init; }
+        public string? IssueNote { get; init; }
     }
 }

@@ -17,9 +17,7 @@ namespace DeliveryApp.Application.Features.Orders.GetOrders
             var orders = await _repository.GetAllAsync(ct); // جلب الطلبات
             var assignments = await _repository.GetAllAssignmentsAsync(ct); // جلب التعيينات وربطها مع الطلبات
 
-            return orders
-                .Select(order => OrderMapper.ToDto(order, assignments.Where(x => x.OrderID == order.ID)))
-                .ToList();
+            return orders.Select(order => OrderMapper.ToDto(order, assignments.Where(x => x.OrderID == order.ID))).ToList();
         }
 
         public async Task<OrderDto?> GetByIdAsync(Guid id, CancellationToken ct = default) // يرجع طلب واحد أو null إذا غير موجود

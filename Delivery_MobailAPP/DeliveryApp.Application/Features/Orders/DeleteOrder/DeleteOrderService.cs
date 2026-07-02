@@ -1,5 +1,4 @@
 ﻿using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
-using DeliveryApp.Domain.Entities.Customers.Orders;
 
 namespace DeliveryApp.Application.Features.Orders.DeleteOrder
 {

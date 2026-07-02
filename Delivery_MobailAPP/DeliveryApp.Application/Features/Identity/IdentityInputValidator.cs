@@ -16,7 +16,7 @@ namespace DeliveryApp.Application.Features.Identity
         // 2_ تنظيف المسافات
         // 3_ الأسم لا يبدأ برقم أو رمز جصراً حرف
         // 4_ منع تكرارالشرطات
-        // 5_ فلترى الشرطات
+        // 5_ فلترى الشرطات 
         // 6_ الأسم يحوي فقط على:
         //  A_ أحرف عربية
         //  B_ أحرف أجنبية
@@ -159,8 +159,7 @@ namespace DeliveryApp.Application.Features.Identity
 
             value = value.Trim();
 
-            if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
-                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)) 
                 throw new Exception("Invalid photo URL.");
 
             return value;

@@ -1,4 +1,15 @@
-﻿using DeliveryApp.Application.Features.Addresses.AddressLifecycle;
+using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Infrastructure.Options;
+using Microsoft.Extensions.Configuration;
+using DeliveryApp.Application.Interfaces;
+using DeliveryApp.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
+using DeliveryApp.Application.Interfaces.Services;
+using DeliveryApp.Application.Features.Orders.Payment;
+using DeliveryApp.Application.Features.Identity.Logout;
+using DeliveryApp.Application.Features.Orders.GetOrders;
+using DeliveryApp.Infrastructure.Implementation.Services;
+using DeliveryApp.Application.Features.Addresses.AddressLifecycle;
 using DeliveryApp.Application.Features.Addresses.AddressQuery;
 using DeliveryApp.Application.Features.Addresses.AddressStatus;
 using DeliveryApp.Application.Features.Identity.LoginLocal;
@@ -16,9 +27,20 @@ using DeliveryApp.Application.Features.Notifications;
 using DeliveryApp.Application.Features.Orders.CancelOrder;
 using DeliveryApp.Application.Features.Orders.CreateOrder;
 using DeliveryApp.Application.Features.Orders.DeleteOrder;
-using DeliveryApp.Application.Features.Orders.GetOrders;
-using DeliveryApp.Application.Features.Orders.MerchantDecision;
+using DeliveryApp.Application.Features.Identity.LoginLocal;
 using DeliveryApp.Application.Features.Orders.OrderWorkflow;
+using DeliveryApp.Application.Features.Identity.RefreshToken;
+using DeliveryApp.Application.Features.Identity.RegisterLocal;
+using DeliveryApp.Application.Features.Orders.MerchantDecision;
+using DeliveryApp.Application.Features.Identity.UpdateMyProfile;
+using DeliveryApp.Application.Features.Merchants.CreateMerchant;
+using DeliveryApp.Application.Features.Merchants.UpdateMerchant;
+using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
+using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
+using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
+using DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces;
+using DeliveryApp.Application.Interfaces.MerchantRepositoresInterfaces;
+using DeliveryApp.Infrastructure.Implementation.Merchants.Repositores;
 using DeliveryApp.Application.Features.Orders.Payment;
 using DeliveryApp.Application.Features.Ratings;
 using DeliveryApp.Application.Interfaces;
@@ -79,7 +101,7 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             // -------------------------
 
             // ---------- Identity Repositories ----------
-   
+
             services.AddScoped<IRegisterLocalRepository, RegisterLocalRepository>();
 
             services.AddScoped<ILoginLocalRepository, LoginLocalRepository>();
@@ -93,9 +115,17 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             // ---------- Order Repositories ----------
 
             services.AddScoped<IOrderReadRepository, OrderReadRepository>();
+
             services.AddScoped<IOrderCreateRepository, OrderCreateRepository>();
+
             services.AddScoped<IOrderCommandRepository, OrderCommandRepository>();
 
+            // ---------- Merchant Repositories ----------
+
+            services.AddScoped<ICreateMerchantRepository, CreateMerchantRepository>();
+
+            services.AddScoped<IUpdateMerchantRepository, UpdateMerchantRepository>();
+          
             //---------- Catagories Repositories ----------
 
             services.AddScoped<IMerchantCatalogReadRepository, MerchantCatalogReadRepository>();
@@ -134,12 +164,26 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             // ---------- Order Features ----------
 
             services.AddScoped<OrderQueryService>();
+
             services.AddScoped<CreateOrderService>();
+
             services.AddScoped<DeleteOrderService>();
+
             services.AddScoped<OrderWorkflowService>();
+
             services.AddScoped<MerchantDecisionService>();
+
             services.AddScoped<CancelOrderService>();
+
             services.AddScoped<OrderPaymentService>();
+
+            // ---------- Merchant Features ----------
+
+            services.AddScoped<CreateMerchantService>();
+
+            services.AddScoped<UpdateMerchantService>();
+
+            // ---------------------------------------
 
             // ---------- Catagories Features ----------
 
