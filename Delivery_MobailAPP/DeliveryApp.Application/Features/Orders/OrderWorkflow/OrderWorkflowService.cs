@@ -1,14 +1,17 @@
-﻿using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
+﻿using DeliveryApp.Application.Features.Notifications;
+using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 
 namespace DeliveryApp.Application.Features.Orders.OrderWorkflow
 {
-    public sealed class OrderWorkflowService // Use case يجمع خطوات دورة حياة الطلب بعد الإنشاء
+    public sealed class OrderWorkflowService //  Use case يجمع خطوات دورة حياة الطلب بعد الإنشاء
     {
         private readonly IOrderCommandRepository _repository; // Repository لتعديل حالة الطلب
+        private readonly NotificationService _notificationService; // خدمة إنشاء إشعارات الزبون
 
-        public OrderWorkflowService(IOrderCommandRepository repository)
+        public OrderWorkflowService(IOrderCommandRepository repository, NotificationService notificationService)
         {
             _repository = repository;
+            _notificationService = notificationService;
         }
 
         public async Task<bool> SubmitToMerchantAsync(Guid id, CancellationToken ct = default) // إرسال الطلب للمطعم
@@ -31,6 +34,7 @@ namespace DeliveryApp.Application.Features.Orders.OrderWorkflow
             if (order is null) return false;
 
             order.MarkReadyForPickup();
+            await _notificationService.AddOrderReadyAsync(order, ct); // إشعار الزبون أن الطلب جاهز
 
             await _repository.SaveChangesAsync(ct);
             return true;
@@ -42,6 +46,8 @@ namespace DeliveryApp.Application.Features.Orders.OrderWorkflow
             if (order is null) return false;
 
             order.MarkPickedUp();
+            order.MarkOnTheWay();
+            await _notificationService.AddOrderOnTheWayAsync(order, ct);
 
             await _repository.SaveChangesAsync(ct);
             return true;
@@ -53,6 +59,7 @@ namespace DeliveryApp.Application.Features.Orders.OrderWorkflow
             if (order is null) return false;
 
             order.MarkOnTheWay();
+            await _notificationService.AddOrderOnTheWayAsync(order, ct); // إشعار الزبون أن الطلب بالطريق
 
             await _repository.SaveChangesAsync(ct);
             return true;
@@ -64,9 +71,11 @@ namespace DeliveryApp.Application.Features.Orders.OrderWorkflow
             if (order is null) return false;
 
             order.MarkDelivered(DateTimeOffset.UtcNow);
+            await _notificationService.AddOrderDeliveredAsync(order, ct); // إشعار الزبون أن الطلب تم تسليمه
 
             await _repository.SaveChangesAsync(ct);
             return true;
         }
     }
 }
+    
