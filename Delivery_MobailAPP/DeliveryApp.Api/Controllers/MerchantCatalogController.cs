@@ -6,11 +6,15 @@ using DeliveryApp.Application.Features.MerchantCatalog.PublicCatalog;
 using DeliveryApp.Application.Features.MerchantCatalog.SystemCategories;
 using DeliveryApp.Application.Features.MerchantCatalog.Variants;
 using DeliveryApp.Domain.DomainExceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace DeliveryApp.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/catalog")]
     public sealed class MerchantCatalogController : ControllerBase // Controller خاص بإدارة كتالوج المطاعم وعرضه للزبون
     {
@@ -37,113 +41,121 @@ namespace DeliveryApp.API.Controllers
             _publicCatalogService = publicCatalogService;
         }
 
+        [AllowAnonymous]
         [HttpGet("system-categories")]
         public async Task<ActionResult<IReadOnlyList<SystemCategoryDto>>> GetSystemCategories(CancellationToken ct) // جلب تصنيفات النظام
             => Ok(await _systemCategoryService.GetAllAsync(ct));
 
-        [HttpPost("system-categories")]
-        public Task<IActionResult> CreateSystemCategory([FromBody] CreateSystemCategoryRequest request, CancellationToken ct) // إنشاء تصنيف نظام
-            => RunCreate(() => _systemCategoryService.CreateAsync(request, ct));
-
-        [HttpPut("system-categories/{id:guid}")]
-        public Task<IActionResult> UpdateSystemCategory(Guid id, [FromBody] UpdateSystemCategoryRequest request, CancellationToken ct) // تعديل تصنيف نظام
-            => RunUpdate(() => _systemCategoryService.UpdateAsync(id, request, ct));
-
-        [HttpPatch("system-categories/{id:guid}/activate")]
-        public Task<IActionResult> ActivateSystemCategory(Guid id, CancellationToken ct) // تفعيل تصنيف نظام
-            => RunChange(() => _systemCategoryService.ActivateAsync(id, ct));
-
-        [HttpPatch("system-categories/{id:guid}/deactivate")]
-        public Task<IActionResult> DeactivateSystemCategory(Guid id, CancellationToken ct) // تعطيل تصنيف نظام
-            => RunChange(() => _systemCategoryService.DeactivateAsync(id, ct));
-
-        [HttpDelete("system-categories/{id:guid}")]
-        public Task<IActionResult> DeleteSystemCategory(Guid id, CancellationToken ct) // حذف تصنيف نظام
-            => RunChange(() => _systemCategoryService.DeleteAsync(id, ct));
-
         [HttpPost("merchants/{merchantId:guid}/system-categories")]
         public Task<IActionResult> AssignMerchantSystemCategory(Guid merchantId, [FromBody] AssignMerchantSystemCategoryRequest request, CancellationToken ct) // ربط مطعم مع تصنيف نظام
-            => RunChange(() => _merchantSystemCategoryService.AssignAsync(merchantId, request, ct));
+            => RunChange(() => _merchantSystemCategoryService.AssignAsync(GetCurrentUserId(), merchantId, request, ct));
 
         [HttpDelete("merchants/{merchantId:guid}/system-categories/{systemCategoryId:guid}")]
         public Task<IActionResult> RemoveMerchantSystemCategory(Guid merchantId, Guid systemCategoryId, CancellationToken ct) // فك ربط مطعم من تصنيف نظام
-            => RunChange(() => _merchantSystemCategoryService.RemoveAsync(merchantId, systemCategoryId, ct));
+            => RunChange(() => _merchantSystemCategoryService.RemoveAsync(GetCurrentUserId(), merchantId, systemCategoryId, ct));
 
         [HttpGet("merchants/{merchantId:guid}/categories")]
-        public async Task<ActionResult<IReadOnlyList<MerchantCategoryDto>>> GetMerchantCategories(Guid merchantId, CancellationToken ct) // جلب تصنيفات مطعم
-            => Ok(await _merchantCategoryService.GetByMerchantAsync(merchantId, ct));
+        public Task<IActionResult> GetMerchantCategories(Guid merchantId, CancellationToken ct) // جلب تصنيفات مطعم
+            => RunRead(() => _merchantCategoryService.GetByMerchantAsync(GetCurrentUserId(), merchantId, ct));
 
         [HttpPost("merchants/{merchantId:guid}/categories")]
         public Task<IActionResult> CreateMerchantCategory(Guid merchantId, [FromBody] CreateMerchantCategoryRequest request, CancellationToken ct) // إنشاء تصنيف مطعم
-            => RunCreate(() => _merchantCategoryService.CreateAsync(merchantId, request, ct));
+            => RunCreate(() => _merchantCategoryService.CreateAsync(GetCurrentUserId(), merchantId, request, ct));
 
         [HttpPut("merchant-categories/{id:guid}")]
         public Task<IActionResult> UpdateMerchantCategory(Guid id, [FromBody] UpdateMerchantCategoryRequest request, CancellationToken ct) // تعديل تصنيف مطعم
-            => RunUpdate(() => _merchantCategoryService.UpdateAsync(id, request, ct));
+            => RunUpdate(() => _merchantCategoryService.UpdateAsync(GetCurrentUserId(), id, request, ct));
 
         [HttpPatch("merchant-categories/{id:guid}/activate")]
         public Task<IActionResult> ActivateMerchantCategory(Guid id, CancellationToken ct) // تفعيل تصنيف مطعم
-            => RunChange(() => _merchantCategoryService.ActivateAsync(id, ct));
+            => RunChange(() => _merchantCategoryService.ActivateAsync(GetCurrentUserId(), id, ct));
 
         [HttpPatch("merchant-categories/{id:guid}/deactivate")]
         public Task<IActionResult> DeactivateMerchantCategory(Guid id, CancellationToken ct) // تعطيل تصنيف مطعم
-            => RunChange(() => _merchantCategoryService.DeactivateAsync(id, ct));
+            => RunChange(() => _merchantCategoryService.DeactivateAsync(GetCurrentUserId(), id, ct));
 
         [HttpDelete("merchant-categories/{id:guid}")]
         public Task<IActionResult> DeleteMerchantCategory(Guid id, CancellationToken ct) // حذف تصنيف مطعم
-            => RunChange(() => _merchantCategoryService.DeleteAsync(id, ct));
+            => RunChange(() => _merchantCategoryService.DeleteAsync(GetCurrentUserId(), id, ct));
 
         [HttpGet("merchant-categories/{merchantCategoryId:guid}/products")]
-        public async Task<ActionResult<IReadOnlyList<ProductDto>>> GetProducts(Guid merchantCategoryId, CancellationToken ct) // جلب منتجات تصنيف
-            => Ok(await _productService.GetByCategoryAsync(merchantCategoryId, ct));
+        public Task<IActionResult> GetProducts(Guid merchantCategoryId, CancellationToken ct) // جلب منتجات تصنيف
+            => RunRead(() => _productService.GetByCategoryAsync(GetCurrentUserId(), merchantCategoryId, ct));
 
         [HttpPost("merchant-categories/{merchantCategoryId:guid}/products")]
         public Task<IActionResult> CreateProduct(Guid merchantCategoryId, [FromBody] CreateProductRequest request, CancellationToken ct) // إنشاء منتج
-            => RunCreate(() => _productService.CreateAsync(merchantCategoryId, request, ct));
+            => RunCreate(() => _productService.CreateAsync(GetCurrentUserId(), merchantCategoryId, request, ct));
 
         [HttpPut("products/{id:guid}")]
         public Task<IActionResult> UpdateProduct(Guid id, [FromBody] UpdateProductRequest request, CancellationToken ct) // تعديل اسم أو سعر أو صورة منتج
-            => RunUpdate(() => _productService.UpdateAsync(id, request, ct));
+            => RunUpdate(() => _productService.UpdateAsync(GetCurrentUserId(), id, request, ct));
 
         [HttpPatch("products/{id:guid}/activate")]
         public Task<IActionResult> ActivateProduct(Guid id, CancellationToken ct) // تفعيل منتج
-            => RunChange(() => _productService.ActivateAsync(id, ct));
+            => RunChange(() => _productService.ActivateAsync(GetCurrentUserId(), id, ct));
 
         [HttpPatch("products/{id:guid}/deactivate")]
         public Task<IActionResult> DeactivateProduct(Guid id, CancellationToken ct) // تعطيل منتج
-            => RunChange(() => _productService.DeactivateAsync(id, ct));
+            => RunChange(() => _productService.DeactivateAsync(GetCurrentUserId(), id, ct));
 
         [HttpDelete("products/{id:guid}")]
         public Task<IActionResult> DeleteProduct(Guid id, CancellationToken ct) // حذف منتج
-            => RunChange(() => _productService.DeleteAsync(id, ct));
+            => RunChange(() => _productService.DeleteAsync(GetCurrentUserId(), id, ct));
 
         [HttpGet("products/{productId:guid}/variants")]
-        public async Task<ActionResult<IReadOnlyList<VariantDto>>> GetVariants(Guid productId, CancellationToken ct) // جلب خيارات منتج
-            => Ok(await _variantService.GetByProductAsync(productId, ct));
+        public Task<IActionResult> GetVariants(Guid productId, CancellationToken ct) // جلب خيارات منتج
+            => RunRead(() => _variantService.GetByProductAsync(GetCurrentUserId(), productId, ct));
 
         [HttpPost("products/{productId:guid}/variants")]
         public Task<IActionResult> CreateVariant(Guid productId, [FromBody] CreateVariantRequest request, CancellationToken ct) // إنشاء خيار منتج
-            => RunCreate(() => _variantService.CreateAsync(productId, request, ct));
+            => RunCreate(() => _variantService.CreateAsync(GetCurrentUserId(), productId, request, ct));
 
         [HttpPut("variants/{id:guid}")]
         public Task<IActionResult> UpdateVariant(Guid id, [FromBody] UpdateVariantRequest request, CancellationToken ct) // تعديل اسم أو سعر خيار
-            => RunUpdate(() => _variantService.UpdateAsync(id, request, ct));
+            => RunUpdate(() => _variantService.UpdateAsync(GetCurrentUserId(), id, request, ct));
 
         [HttpPatch("variants/{id:guid}/activate")]
         public Task<IActionResult> ActivateVariant(Guid id, CancellationToken ct) // تفعيل خيار
-            => RunChange(() => _variantService.ActivateAsync(id, ct));
+            => RunChange(() => _variantService.ActivateAsync(GetCurrentUserId(), id, ct));
 
         [HttpPatch("variants/{id:guid}/deactivate")]
         public Task<IActionResult> DeactivateVariant(Guid id, CancellationToken ct) // تعطيل خيار
-            => RunChange(() => _variantService.DeactivateAsync(id, ct));
+            => RunChange(() => _variantService.DeactivateAsync(GetCurrentUserId(), id, ct));
 
         [HttpDelete("variants/{id:guid}")]
         public Task<IActionResult> DeleteVariant(Guid id, CancellationToken ct) // حذف خيار
-            => RunChange(() => _variantService.DeleteAsync(id, ct));
+            => RunChange(() => _variantService.DeleteAsync(GetCurrentUserId(), id, ct));
 
+        [AllowAnonymous]
         [HttpGet("merchants/{merchantId:guid}/public")]
         public async Task<ActionResult<MerchantCatalogDto>> GetPublicMerchantCatalog(Guid merchantId, CancellationToken ct) // إظهار منتجات المطعم للزبون
             => Ok(await _publicCatalogService.GetMerchantCatalogAsync(merchantId, ct));
+
+        private Guid GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!Guid.TryParse(userId, out var parsedUserId))
+                throw new UnauthorizedAccessException("Invalid user id.");
+
+            return parsedUserId;
+        }
+
+        private static async Task<IActionResult> RunRead<T>(Func<Task<T>> action)
+        {
+            try
+            {
+                return new OkObjectResult(await action());
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new ForbidResult();
+            }
+            catch (DomainException ex)
+            {
+                return new BadRequestObjectResult(new { ex.Code, ex.Message });
+            }
+        }
 
         private static async Task<IActionResult> RunCreate<T>(Func<Task<T>> action) // توحيد ردود الإنشاء
         {
@@ -151,6 +163,14 @@ namespace DeliveryApp.API.Controllers
             {
                 var response = await action();
                 return new OkObjectResult(response);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new ForbidResult();
+            }
+            catch (KeyNotFoundException)
+            {
+                return new NotFoundResult();
             }
             catch (DomainException ex)
             {
@@ -165,6 +185,14 @@ namespace DeliveryApp.API.Controllers
                 var response = await action();
                 return response is null ? new NotFoundResult() : new OkObjectResult(response);
             }
+            catch (UnauthorizedAccessException)
+            {
+                return new ForbidResult();
+            }
+            catch (KeyNotFoundException)
+            {
+                return new NotFoundResult();
+            }
             catch (DomainException ex)
             {
                 return new BadRequestObjectResult(new { ex.Code, ex.Message });
@@ -177,6 +205,14 @@ namespace DeliveryApp.API.Controllers
             {
                 var changed = await action();
                 return changed ? new NoContentResult() : new NotFoundResult();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new ForbidResult();
+            }
+            catch (KeyNotFoundException)
+            {
+                return new NotFoundResult();
             }
             catch (DomainException ex)
             {

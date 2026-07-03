@@ -7,6 +7,7 @@ using DeliveryApp.Application.Features.Ratings;
 using Microsoft.Extensions.DependencyInjection;
 using DeliveryApp.Application.Interfaces.Services;
 using DeliveryApp.Application.Features.Orders.Payment;
+using DeliveryApp.Application.Features.Orders.Access;
 using DeliveryApp.Application.Features.Identity.Logout;
 using DeliveryApp.Application.Features.Orders.GetOrders;
 using DeliveryApp.Infrastructure.Implementation.Services;
@@ -23,6 +24,7 @@ using DeliveryApp.Application.Features.MerchantCatalog.Products;
 using DeliveryApp.Application.Features.MerchantCatalog.PublicCatalog;
 using DeliveryApp.Application.Features.MerchantCatalog.SystemCategories;
 using DeliveryApp.Application.Features.MerchantCatalog.Variants;
+using DeliveryApp.Application.Features.MerchantCatalog.Access;
 using DeliveryApp.Application.Features.Notifications;
 using DeliveryApp.Application.Features.Orders.CancelOrder;
 using DeliveryApp.Application.Features.Orders.CreateOrder;
@@ -102,6 +104,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
 
             services.AddScoped<IOrderCommandRepository, OrderCommandRepository>();
 
+            services.AddScoped<IOrderAccessRepository, OrderAccessRepository>();
+
             // ---------- Merchant Repositories ----------
 
             services.AddScoped<ICreateMerchantRepository, CreateMerchantRepository>();
@@ -113,6 +117,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<IMerchantCatalogReadRepository, MerchantCatalogReadRepository>();
 
             services.AddScoped<IMerchantCatalogCommandRepository, MerchantCatalogCommandRepository>();
+
+            services.AddScoped<IMerchantCatalogAccessRepository, MerchantCatalogAccessRepository>();
 
             //---------- Rating Repositories ----------
 
@@ -163,6 +169,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
 
             services.AddScoped<OrderPaymentService>();
 
+            services.AddScoped<OrderAccessService>();
+
             // ---------- Merchant Features ----------
 
             services.AddScoped<CreateMerchantService>();
@@ -182,6 +190,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<VariantService>();
 
             services.AddScoped<PublicCatalogService>();
+
+            services.AddScoped<MerchantCatalogAccessService>();
 
             // ---------- Rating Features ----------
 
