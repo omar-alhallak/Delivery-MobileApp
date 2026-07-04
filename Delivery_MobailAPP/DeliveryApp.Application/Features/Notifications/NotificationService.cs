@@ -17,15 +17,15 @@ namespace DeliveryApp.Application.Features.Notifications
             _commandRepository = commandRepository;
         }
 
-        public async Task<IReadOnlyList<NotificationDto>> GetByUserAsync(Guid userId, CancellationToken ct = default) // جلب إشعارات مستخدم
+        public async Task<IReadOnlyList<NotificationDto>> GetMineAsync(Guid currentUserId, CancellationToken ct = default) // جلب إشعارات المستخدم الحالي
         {
-            var notifications = await _readRepository.GetByUserAsync(UserID.From(userId), ct);
+            var notifications = await _readRepository.GetByUserAsync(UserID.From(currentUserId), ct);
             return notifications.Select(NotificationMapper.ToDto).ToList();
         }
 
-        public async Task<bool> MarkAsReadAsync(Guid id, CancellationToken ct = default) // تعليم إشعار واحد كمقروء
+        public async Task<bool> MarkAsReadAsync(Guid currentUserId, Guid id, CancellationToken ct = default) // تعليم إشعار يملكه المستخدم الحالي كمقروء
         {
-            var notification = await _commandRepository.GetByIdAsync(NotificationID.From(id), ct);
+            var notification = await _commandRepository.GetByIdAsync(NotificationID.From(id), UserID.From(currentUserId), ct);
             if (notification is null) return false;
 
             notification.MarkAsRead(DateTimeOffset.UtcNow);
@@ -34,9 +34,9 @@ namespace DeliveryApp.Application.Features.Notifications
             return true;
         }
 
-        public async Task<bool> MarkAllAsReadAsync(Guid userId, CancellationToken ct = default) // تعليم كل إشعارات المستخدم كمقروءة
+        public async Task<bool> MarkAllAsReadAsync(Guid currentUserId, CancellationToken ct = default) // تعليم كل إشعارات المستخدم الحالي كمقروءة
         {
-            var notifications = await _commandRepository.GetUnreadByUserAsync(UserID.From(userId), ct);
+            var notifications = await _commandRepository.GetUnreadByUserAsync(UserID.From(currentUserId), ct);
 
             foreach (var notification in notifications)
             {

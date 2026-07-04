@@ -16,8 +16,8 @@ namespace DeliveryApp.Infrastructure.Implementation.NotificationRepositores
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<Notification?> GetByIdAsync(NotificationID notificationId, CancellationToken ct = default)
-            => await _context.Notifications.FirstOrDefaultAsync(x => x.ID == notificationId, ct);
+        public async Task<Notification?> GetByIdAsync(NotificationID notificationId, UserID userId, CancellationToken ct = default)
+            => await _context.Notifications.FirstOrDefaultAsync(x => x.ID == notificationId && x.UserID == userId, ct);
 
         public async Task<IReadOnlyList<Notification>> GetUnreadByUserAsync(UserID userId, CancellationToken ct = default)
         {
