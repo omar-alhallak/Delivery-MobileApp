@@ -2,10 +2,14 @@ using DeliveryApp.Application.Features.Notifications;
 using DeliveryApp.Application.Features.Notifications.Common;
 using DeliveryApp.Domain.DomainExceptions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace DeliveryApp.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/notifications")]
     public sealed class NotificationsController : ControllerBase // Controller خاص بقراءة إشعارات المستخدم وتعليمها كمقروءة
     {
@@ -16,17 +20,28 @@ namespace DeliveryApp.API.Controllers
             _notificationService = notificationService;
         }
 
-        [HttpGet("users/{userId:guid}")]
-        public async Task<ActionResult<IReadOnlyList<NotificationDto>>> GetByUser(Guid userId, CancellationToken ct) // جلب إشعارات مستخدم
-            => Ok(await _notificationService.GetByUserAsync(userId, ct));
+        [HttpGet("my")]
+        public async Task<ActionResult<IReadOnlyList<NotificationDto>>> GetMine(CancellationToken ct) // جلب إشعارات المستخدم الحالي
+            => Ok(await _notificationService.GetMineAsync(GetCurrentUserId(), ct));
 
         [HttpPatch("{id:guid}/read")]
         public Task<IActionResult> MarkAsRead(Guid id, CancellationToken ct) // تعليم إشعار واحد كمقروء
-            => RunChange(() => _notificationService.MarkAsReadAsync(id, ct));
+            => RunChange(() => _notificationService.MarkAsReadAsync(GetCurrentUserId(), id, ct));
 
-        [HttpPatch("users/{userId:guid}/read-all")]
-        public Task<IActionResult> MarkAllAsRead(Guid userId, CancellationToken ct) // تعليم كل إشعارات المستخدم كمقروءة
-            => RunChange(() => _notificationService.MarkAllAsReadAsync(userId, ct));
+        [HttpPatch("read-all")]
+        public Task<IActionResult> MarkAllAsRead(CancellationToken ct) // تعليم كل إشعارات المستخدم الحالي كمقروءة
+            => RunChange(() => _notificationService.MarkAllAsReadAsync(GetCurrentUserId(), ct));
+
+        private Guid GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!Guid.TryParse(userId, out var parsedUserId))
+                throw new UnauthorizedAccessException("Invalid user id.");
+
+            return parsedUserId;
+        }
 
         private static async Task<IActionResult> RunChange(Func<Task<bool>> action) // توحيد ردود تعليم الإشعارات كمقروءة
         {
