@@ -1,7 +1,7 @@
-﻿using DeliveryApp.Application.Features.MerchantCatalog.Common;
-using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
+﻿using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Features.MerchantCatalog.Common;
 using DeliveryApp.Application.Features.MerchantCatalog.Access;
-using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
 
 namespace DeliveryApp.Application.Features.MerchantCatalog.Variants
 {
@@ -41,13 +41,15 @@ namespace DeliveryApp.Application.Features.MerchantCatalog.Variants
 
             await EnsureCanManageProductAsync(userId, product, ct);
 
-            var variant = new Variant(
+            var variant = new Variant
+            (
                 VariantID.New(),
                 productID,
                 request.VariantName,
                 request.SortOrder,
                 request.BasePrice,
-                DateTimeOffset.UtcNow);
+                DateTimeOffset.UtcNow
+            );
 
             await _commandRepository.AddVariantAsync(variant, ct);
             await _commandRepository.SaveChangesAsync(ct);

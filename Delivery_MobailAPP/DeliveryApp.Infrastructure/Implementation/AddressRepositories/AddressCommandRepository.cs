@@ -1,7 +1,7 @@
-using DeliveryApp.Application.Interfaces.AddressRepositoriesInterfaces;
+using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.Entities.Customers;
 using DeliveryApp.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Application.Interfaces.AddressRepositoriesInterfaces;
 using AddressID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.AddressTag>;
 using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
 

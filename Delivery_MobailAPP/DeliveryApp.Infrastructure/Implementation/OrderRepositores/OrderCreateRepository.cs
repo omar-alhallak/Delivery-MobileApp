@@ -1,13 +1,13 @@
-﻿using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
-using DeliveryApp.Domain.Entities.Customers.Orders;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Infrastructure.Persistence;
+using DeliveryApp.Domain.Entities.Customers.Orders;
 using DeliveryApp.Application.Features.Orders.CreateOrder;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
-using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;
 using AddressID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.AddressTag>;
 using ProductID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.ProductTag>;
 using VariantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.VariantTag>;
+using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;
 
 namespace DeliveryApp.Infrastructure.Implementation.OrderRepositores
 {
@@ -68,11 +68,7 @@ namespace DeliveryApp.Infrastructure.Implementation.OrderRepositores
                 address.Location.Longitude);
         }
 
-        public async Task<OrderCatalogItemSnapshot?> GetCatalogItemAsync(
-            MerchantID merchantId,
-            ProductID productId,
-            VariantID? variantId,
-            CancellationToken ct = default)
+        public async Task<OrderCatalogItemSnapshot?> GetCatalogItemAsync(MerchantID merchantId, ProductID productId, VariantID? variantId, CancellationToken ct = default)
         {
             var product = await (
                 from item in _context.Products.AsNoTracking()

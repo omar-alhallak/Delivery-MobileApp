@@ -1,8 +1,8 @@
-using DeliveryApp.Application.Features.Notifications.Common;
-using DeliveryApp.Application.Interfaces.NotificationRepositoriesInterfaces;
-using DeliveryApp.Domain.Entities.Customers.Orders;
 using DeliveryApp.Domain.Entities.Engagements;
 using DeliveryApp.Domain.Enums.EngagementEnums;
+using DeliveryApp.Domain.Entities.Customers.Orders;
+using DeliveryApp.Application.Features.Notifications.Common;
+using DeliveryApp.Application.Interfaces.NotificationRepositoriesInterfaces;
 
 namespace DeliveryApp.Application.Features.Notifications
 {
@@ -74,13 +74,15 @@ namespace DeliveryApp.Application.Features.Notifications
 
         private async Task AddOrderNotificationAsync(Order order, string title, string body, CancellationToken ct) // إنشاء إشعار مرتبط بطلب
         {
-            var notification = new Notification(
+            var notification = new Notification
+            (
                 order.CustomerID,
                 title,
                 body,
                 DateTimeOffset.UtcNow,
                 order.ID.Value,
-                RelatedEntityType.Order);
+                RelatedEntityType.Order
+            );
 
             await _commandRepository.AddAsync(notification, ct);
         }

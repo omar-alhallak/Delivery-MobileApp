@@ -1,7 +1,7 @@
-﻿using DeliveryApp.Application.Features.MerchantCatalog.Common;
-using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
+﻿using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Features.MerchantCatalog.Common;
 using DeliveryApp.Application.Features.MerchantCatalog.Access;
-using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
 
 namespace DeliveryApp.Application.Features.MerchantCatalog.Products
 {

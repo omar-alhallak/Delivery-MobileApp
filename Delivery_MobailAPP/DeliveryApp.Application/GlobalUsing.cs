@@ -7,7 +7,6 @@ global using UserSessionID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryAp
 global using UserIdentityID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserIdentityTag>;
 global using AddressID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.AddressTag>;
 
-
 // -------------------------
 //          Merchants
 // -------------------------
@@ -17,7 +16,6 @@ global using SystemCategoryID = DeliveryApp.Domain.ValueObjects.StrongID<Deliver
 global using MerchantCategoryID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantCategoryTag>;
 global using ProductID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.ProductTag>;
 global using VariantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.VariantTag>;
-
 
 // -------------------------
 //           Orders
@@ -30,5 +28,4 @@ global using OrderItemID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.
 //         Engagements
 // -------------------------
 
-global using RatingID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.RatingTag>;
 global using NotificationID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.NotificationTag>;

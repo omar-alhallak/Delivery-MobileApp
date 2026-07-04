@@ -1,10 +1,10 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
+using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Application.Features.Notifications;
 using DeliveryApp.Application.Features.Notifications.Common;
-using DeliveryApp.Domain.DomainExceptions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace DeliveryApp.API.Controllers
 {

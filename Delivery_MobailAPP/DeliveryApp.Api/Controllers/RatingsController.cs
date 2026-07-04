@@ -1,7 +1,7 @@
-﻿using DeliveryApp.Application.Features.Ratings;
-using DeliveryApp.Application.Features.Ratings.Common;
+﻿using Microsoft.AspNetCore.Mvc;
 using DeliveryApp.Domain.DomainExceptions;
-using Microsoft.AspNetCore.Mvc;
+using DeliveryApp.Application.Features.Ratings;
+using DeliveryApp.Application.Features.Ratings.Common;
 
 namespace DeliveryApp.API.Controllers
 {
