@@ -13,9 +13,9 @@ namespace DeliveryApp.Application.Features.Addresses.AddressStatus
             _repository = repository;
         }
 
-        public async Task<AddressDto?> SetDefaultAsync(Guid id, CancellationToken ct = default) // جعل عنوان واحد default وإزالة default عن الباقي
+        public async Task<AddressDto?> SetDefaultAsync(Guid currentUserId, Guid id, CancellationToken ct = default) // جعل عنوان يملكه المستخدم الحالي default
         {
-            var address = await _repository.GetByIdAsync(AddressID.From(id), ct);
+            var address = await _repository.GetByIdAsync(AddressID.From(id), UserID.From(currentUserId), ct);
             if (address is null) return null;
             if (!address.IsActive) throw new DomainRuleViolationException("Address.Inactive_Cant_Be_Default", "Inactive address cant be default.");
 
@@ -32,9 +32,9 @@ namespace DeliveryApp.Application.Features.Addresses.AddressStatus
             return AddressMapper.ToDto(address);
         }
 
-        public async Task<AddressDto?> ActivateAsync(Guid id, CancellationToken ct = default) // إعادة تفعيل عنوان
+        public async Task<AddressDto?> ActivateAsync(Guid currentUserId, Guid id, CancellationToken ct = default) // إعادة تفعيل عنوان يملكه المستخدم الحالي
         {
-            var address = await _repository.GetByIdAsync(AddressID.From(id), ct);
+            var address = await _repository.GetByIdAsync(AddressID.From(id), UserID.From(currentUserId), ct);
             if (address is null) return null;
 
             address.Activate();
@@ -43,9 +43,9 @@ namespace DeliveryApp.Application.Features.Addresses.AddressStatus
             return AddressMapper.ToDto(address);
         }
 
-        public async Task<AddressDto?> DeactivateAsync(Guid id, CancellationToken ct = default) // تعطيل عنوان بدل حذفه
+        public async Task<AddressDto?> DeactivateAsync(Guid currentUserId, Guid id, CancellationToken ct = default) // تعطيل عنوان يملكه المستخدم الحالي
         {
-            var address = await _repository.GetByIdAsync(AddressID.From(id), ct);
+            var address = await _repository.GetByIdAsync(AddressID.From(id), UserID.From(currentUserId), ct);
             if (address is null) return null;
 
             address.Deactivate();

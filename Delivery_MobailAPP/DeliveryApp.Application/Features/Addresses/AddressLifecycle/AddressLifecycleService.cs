@@ -18,11 +18,11 @@ namespace DeliveryApp.Application.Features.Addresses.AddressLifecycle
             _repository = repository;
         }
 
-        public async Task<AddressDto> CreateLocationAsync(CreateAddressLocationRequest request, CancellationToken ct = default) // إنشاء عنوان مؤقت من الخريطة
+        public async Task<AddressDto> CreateLocationAsync(Guid currentUserId, CreateAddressLocationRequest request, CancellationToken ct = default) // إنشاء عنوان مؤقت للمستخدم الحالي
         {
             if (request is null) throw new DomainValidationException("Address.Request_Required", "Address request is required.");
 
-            var userId = UserID.From(request.UserId);
+            var userId = UserID.From(currentUserId);
             var userExists = await _repository.UserExistsAsync(userId, ct);
             if (!userExists) throw new DomainRuleViolationException("Address.User_Not_Found", "User was not found.");
 
@@ -34,11 +34,11 @@ namespace DeliveryApp.Application.Features.Addresses.AddressLifecycle
             return AddressMapper.ToDto(address);
         }
 
-        public async Task<AddressDto?> CompleteAsync(Guid id, CompleteAddressRequest request, CancellationToken ct = default) // إكمال تفاصيل العنوان المؤقت
+        public async Task<AddressDto?> CompleteAsync(Guid currentUserId, Guid id, CompleteAddressRequest request, CancellationToken ct = default) // إكمال تفاصيل العنوان المؤقت
         {
             if (request is null) throw new DomainValidationException("Address.Request_Required", "Address request is required.");
 
-            var address = await _repository.GetByIdAsync(AddressID.From(id), ct);
+            var address = await _repository.GetByIdAsync(AddressID.From(id), UserID.From(currentUserId), ct);
             if (address is null) return null;
 
             address.Complete(request.Label, request.AddressType, request.BuildingName, request.Floor, request.DoorInfo, request.Notes);
@@ -47,11 +47,11 @@ namespace DeliveryApp.Application.Features.Addresses.AddressLifecycle
             return AddressMapper.ToDto(address);
         }
 
-        public async Task<AddressDto?> UpdateDetailsAsync(Guid id, UpdateAddressDetailsRequest request, CancellationToken ct = default) // تعديل تفاصيل العنوان
+        public async Task<AddressDto?> UpdateDetailsAsync(Guid currentUserId, Guid id, UpdateAddressDetailsRequest request, CancellationToken ct = default) // تعديل تفاصيل العنوان
         {
             if (request is null) throw new DomainValidationException("Address.Request_Required", "Address request is required.");
 
-            var address = await _repository.GetByIdAsync(AddressID.From(id), ct);
+            var address = await _repository.GetByIdAsync(AddressID.From(id), UserID.From(currentUserId), ct);
             if (address is null) return null;
 
             address.UpdateDetails(request.Label, request.AddressType, request.BuildingName, request.Floor, request.DoorInfo, request.Notes);
@@ -60,11 +60,11 @@ namespace DeliveryApp.Application.Features.Addresses.AddressLifecycle
             return AddressMapper.ToDto(address);
         }
 
-        public async Task<AddressDto?> UpdateLocationAsync(Guid id, UpdateAddressLocationRequest request, CancellationToken ct = default) // تعديل الموقع قبل إكمال العنوان فقط
+        public async Task<AddressDto?> UpdateLocationAsync(Guid currentUserId, Guid id, UpdateAddressLocationRequest request, CancellationToken ct = default) // تعديل الموقع قبل إكمال العنوان فقط
         {
             if (request is null) throw new DomainValidationException("Address.Request_Required", "Address request is required.");
 
-            var address = await _repository.GetByIdAsync(AddressID.From(id), ct);
+            var address = await _repository.GetByIdAsync(AddressID.From(id), UserID.From(currentUserId), ct);
             if (address is null) return null;
 
             address.Relocate(request.Latitude, request.Longitude);

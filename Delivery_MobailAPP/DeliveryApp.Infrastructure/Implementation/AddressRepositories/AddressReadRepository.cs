@@ -27,11 +27,11 @@ namespace DeliveryApp.Infrastructure.Implementation.AddressRepositories
                 .ToListAsync(ct);
         }
 
-        public async Task<Address?> GetByIdAsync(AddressID addressId, CancellationToken ct = default)
+        public async Task<Address?> GetByIdAsync(AddressID addressId, UserID userId, CancellationToken ct = default)
         {
             return await _context.Addresses
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.ID == addressId, ct);
+                .FirstOrDefaultAsync(x => x.ID == addressId && x.UserID == userId, ct);
         }
     }
 }

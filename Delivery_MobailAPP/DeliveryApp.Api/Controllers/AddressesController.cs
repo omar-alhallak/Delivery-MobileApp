@@ -8,10 +8,14 @@ using DeliveryApp.Application.Features.Addresses.UpdateAddressDetails;
 using DeliveryApp.Application.Features.Addresses.UpdateAddressLocation;
 using DeliveryApp.Domain.DomainExceptions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace DeliveryApp.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/addresses")]
     public sealed class AddressesController : ControllerBase // Controller خاص بعناوين المستخدم
     {
@@ -29,44 +33,55 @@ namespace DeliveryApp.API.Controllers
             _statusService = statusService;
         }
 
-        [HttpGet("users/{userId:guid}")]
-        public async Task<ActionResult<IReadOnlyList<AddressDto>>> GetByUser(Guid userId, CancellationToken ct) // جلب عناوين مستخدم
+        [HttpGet("my")]
+        public async Task<ActionResult<IReadOnlyList<AddressDto>>> GetMine(CancellationToken ct) // جلب عناوين المستخدم الحالي
         {
-            var response = await _queryService.GetByUserAsync(userId, ct);
+            var response = await _queryService.GetMineAsync(GetCurrentUserId(), ct);
             return Ok(response);
         }
 
         [HttpGet("{id:guid}")]
         public Task<IActionResult> GetById(Guid id, CancellationToken ct) // جلب عنوان واحد
-            => RunNullable(() => _queryService.GetByIdAsync(id, ct));
+            => RunNullable(() => _queryService.GetByIdAsync(GetCurrentUserId(), id, ct));
 
         [HttpPost("location")]
         public Task<IActionResult> CreateLocation([FromBody] CreateAddressLocationRequest request, CancellationToken ct) // إنشاء عنوان مؤقت من الخريطة
-            => RunCreate(() => _lifecycleService.CreateLocationAsync(request, ct));
+            => RunCreate(() => _lifecycleService.CreateLocationAsync(GetCurrentUserId(), request, ct));
 
         [HttpPatch("{id:guid}/complete")]
         public Task<IActionResult> Complete(Guid id, [FromBody] CompleteAddressRequest request, CancellationToken ct) // إكمال تفاصيل العنوان
-            => RunNullable(() => _lifecycleService.CompleteAsync(id, request, ct));
+            => RunNullable(() => _lifecycleService.CompleteAsync(GetCurrentUserId(), id, request, ct));
 
         [HttpPatch("{id:guid}/details")]
         public Task<IActionResult> UpdateDetails(Guid id, [FromBody] UpdateAddressDetailsRequest request, CancellationToken ct) // تعديل تفاصيل العنوان
-            => RunNullable(() => _lifecycleService.UpdateDetailsAsync(id, request, ct));
+            => RunNullable(() => _lifecycleService.UpdateDetailsAsync(GetCurrentUserId(), id, request, ct));
 
         [HttpPatch("{id:guid}/location")]
         public Task<IActionResult> UpdateLocation(Guid id, [FromBody] UpdateAddressLocationRequest request, CancellationToken ct) // تعديل موقع العنوان المؤقت فقط
-            => RunNullable(() => _lifecycleService.UpdateLocationAsync(id, request, ct));
+            => RunNullable(() => _lifecycleService.UpdateLocationAsync(GetCurrentUserId(), id, request, ct));
 
         [HttpPatch("{id:guid}/default")]
         public Task<IActionResult> SetDefault(Guid id, CancellationToken ct) // جعل العنوان default
-            => RunNullable(() => _statusService.SetDefaultAsync(id, ct));
+            => RunNullable(() => _statusService.SetDefaultAsync(GetCurrentUserId(), id, ct));
 
         [HttpPatch("{id:guid}/activate")]
         public Task<IActionResult> Activate(Guid id, CancellationToken ct) // تفعيل العنوان
-            => RunNullable(() => _statusService.ActivateAsync(id, ct));
+            => RunNullable(() => _statusService.ActivateAsync(GetCurrentUserId(), id, ct));
 
         [HttpPatch("{id:guid}/deactivate")]
         public Task<IActionResult> Deactivate(Guid id, CancellationToken ct) // تعطيل العنوان بدل حذفه
-            => RunNullable(() => _statusService.DeactivateAsync(id, ct));
+            => RunNullable(() => _statusService.DeactivateAsync(GetCurrentUserId(), id, ct));
+
+        private Guid GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!Guid.TryParse(userId, out var parsedUserId))
+                throw new UnauthorizedAccessException("Invalid user id.");
+
+            return parsedUserId;
+        }
 
         private static async Task<IActionResult> RunCreate<T>(Func<Task<T>> action)
         {

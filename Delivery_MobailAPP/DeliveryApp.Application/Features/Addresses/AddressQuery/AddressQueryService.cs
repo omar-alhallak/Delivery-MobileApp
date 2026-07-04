@@ -12,15 +12,15 @@ namespace DeliveryApp.Application.Features.Addresses.AddressQuery
             _repository = repository;
         }
 
-        public async Task<IReadOnlyList<AddressDto>> GetByUserAsync(Guid userId, CancellationToken ct = default) // جلب عناوين مستخدم
+        public async Task<IReadOnlyList<AddressDto>> GetMineAsync(Guid currentUserId, CancellationToken ct = default) // جلب عناوين المستخدم الحالي
         {
-            var addresses = await _repository.GetByUserAsync(UserID.From(userId), ct);
+            var addresses = await _repository.GetByUserAsync(UserID.From(currentUserId), ct);
             return addresses.Select(AddressMapper.ToDto).ToList();
         }
 
-        public async Task<AddressDto?> GetByIdAsync(Guid id, CancellationToken ct = default) // جلب عنوان واحد
+        public async Task<AddressDto?> GetByIdAsync(Guid currentUserId, Guid id, CancellationToken ct = default) // جلب عنوان يملكه المستخدم الحالي
         {
-            var address = await _repository.GetByIdAsync(AddressID.From(id), ct);
+            var address = await _repository.GetByIdAsync(AddressID.From(id), UserID.From(currentUserId), ct);
             return address is null ? null : AddressMapper.ToDto(address);
         }
     }
