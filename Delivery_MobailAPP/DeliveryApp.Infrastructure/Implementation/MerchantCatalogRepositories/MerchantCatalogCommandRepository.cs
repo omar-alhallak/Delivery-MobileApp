@@ -1,8 +1,8 @@
-﻿using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
-using DeliveryApp.Domain.Entities.Merchants.Catalog;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
 using SystemCategoryID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.SystemCategoryTag>;
 using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;
 using MerchantCategoryID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantCategoryTag>;

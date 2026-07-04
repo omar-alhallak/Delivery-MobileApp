@@ -1,16 +1,16 @@
-using DeliveryApp.Application.Features.Addresses.AddressLifecycle;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Application.Features.Addresses.Common;
 using DeliveryApp.Application.Features.Addresses.AddressQuery;
 using DeliveryApp.Application.Features.Addresses.AddressStatus;
-using DeliveryApp.Application.Features.Addresses.Common;
 using DeliveryApp.Application.Features.Addresses.CompleteAddress;
-using DeliveryApp.Application.Features.Addresses.CreateAddressLocation;
+using DeliveryApp.Application.Features.Addresses.AddressLifecycle;
 using DeliveryApp.Application.Features.Addresses.UpdateAddressDetails;
+using DeliveryApp.Application.Features.Addresses.CreateAddressLocation;
 using DeliveryApp.Application.Features.Addresses.UpdateAddressLocation;
-using DeliveryApp.Domain.DomainExceptions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace DeliveryApp.API.Controllers
 {
@@ -23,10 +23,7 @@ namespace DeliveryApp.API.Controllers
         private readonly AddressLifecycleService _lifecycleService; // إنشاء وإكمال وتعديل العنوان
         private readonly AddressStatusService _statusService; // default و activate/deactivate
 
-        public AddressesController(
-            AddressQueryService queryService,
-            AddressLifecycleService lifecycleService,
-            AddressStatusService statusService)
+        public AddressesController(AddressQueryService queryService, AddressLifecycleService lifecycleService, AddressStatusService statusService)
         {
             _queryService = queryService;
             _lifecycleService = lifecycleService;

@@ -1,7 +1,7 @@
-﻿using DeliveryApp.Application.Features.MerchantCatalog.Common;
-using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
+﻿using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Features.MerchantCatalog.Common;
 using DeliveryApp.Application.Features.MerchantCatalog.Access;
-using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
 
 namespace DeliveryApp.Application.Features.MerchantCatalog.MerchantCategories
 {
@@ -11,8 +11,7 @@ namespace DeliveryApp.Application.Features.MerchantCatalog.MerchantCategories
         private readonly IMerchantCatalogCommandRepository _commandRepository;
         private readonly MerchantCatalogAccessService _accessService;
 
-        public MerchantCategoryService(IMerchantCatalogReadRepository readRepository, IMerchantCatalogCommandRepository commandRepository,
-            MerchantCatalogAccessService accessService)
+        public MerchantCategoryService(IMerchantCatalogReadRepository readRepository, IMerchantCatalogCommandRepository commandRepository, MerchantCatalogAccessService accessService)
         {
             _readRepository = readRepository;
             _commandRepository = commandRepository;
@@ -35,14 +34,16 @@ namespace DeliveryApp.Application.Features.MerchantCatalog.MerchantCategories
             var merchantID = MerchantID.From(merchantId);
             await _accessService.EnsureCanManageAsync(userId, merchantID, ct);
 
-            var category = new MerchantCategory(
+            var category = new MerchantCategory
+            (
                 MerchantCategoryID.New(),
                 merchantID,
                 request.CategoryName,
                 request.Description,
                 request.ImageUrl,
                 request.SortOrder,
-                DateTimeOffset.UtcNow);
+                DateTimeOffset.UtcNow
+            );
 
             await _commandRepository.AddMerchantCategoryAsync(category, ct);
             await _commandRepository.SaveChangesAsync(ct);

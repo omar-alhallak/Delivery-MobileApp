@@ -1,14 +1,9 @@
-﻿using DeliveryApp.Application.Features.Ratings.Common;
-using DeliveryApp.Application.Interfaces.RatingRepositoriesInterfaces;
+﻿using DeliveryApp.Domain.Enums.OrderEnums;
 using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Domain.Entities.Engagements;
 using DeliveryApp.Domain.Enums.EngagementEnums;
-using DeliveryApp.Domain.Enums.OrderEnums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Application.Features.Ratings.Common;
+using DeliveryApp.Application.Interfaces.RatingRepositoriesInterfaces;
 
 namespace DeliveryApp.Application.Features.Ratings
 {

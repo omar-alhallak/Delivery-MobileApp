@@ -1,5 +1,4 @@
 ﻿using DeliveryApp.Domain.Entities.Customers.Orders;
-
 using DeliveryApp.Application.Features.Orders.CreateOrder;
 
 namespace DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces

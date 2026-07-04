@@ -1,7 +1,7 @@
-﻿using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
-using DeliveryApp.Domain.Entities.Customers.Orders;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Customers.Orders;
+using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 using OrderID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.OrderTag>;
 using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
 using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;

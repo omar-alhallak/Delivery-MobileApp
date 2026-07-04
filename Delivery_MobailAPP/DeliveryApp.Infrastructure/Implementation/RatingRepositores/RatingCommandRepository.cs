@@ -1,10 +1,10 @@
-﻿using DeliveryApp.Application.Interfaces.RatingRepositoriesInterfaces;
-using DeliveryApp.Domain.Entities.Customers.Orders;
-using DeliveryApp.Domain.Entities.Engagements;
+﻿using Microsoft.EntityFrameworkCore;
 using DeliveryApp.Domain.Entities.Merchants;
-using DeliveryApp.Domain.Enums.EngagementEnums;
 using DeliveryApp.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Domain.Entities.Engagements;
+using DeliveryApp.Domain.Enums.EngagementEnums;
+using DeliveryApp.Domain.Entities.Customers.Orders;
+using DeliveryApp.Application.Interfaces.RatingRepositoriesInterfaces;
 using OrderID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.OrderTag>;
 using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;
 

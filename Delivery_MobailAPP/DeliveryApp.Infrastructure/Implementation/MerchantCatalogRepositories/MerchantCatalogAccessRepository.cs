@@ -1,7 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Infrastructure.Persistence;
 using DeliveryApp.Application.Features.MerchantCatalog.Access;
 using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
-using DeliveryApp.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
 using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;
 

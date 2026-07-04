@@ -1,6 +1,6 @@
-﻿using DeliveryApp.Application.Features.MerchantCatalog.Common;
+﻿using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Features.MerchantCatalog.Common;
 using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
-using DeliveryApp.Domain.Entities.Merchants.Catalog;
 
 namespace DeliveryApp.Application.Features.MerchantCatalog.SystemCategories
 {
@@ -25,14 +25,16 @@ namespace DeliveryApp.Application.Features.MerchantCatalog.SystemCategories
         {
             if (request is null) throw new Exception("System category request is required.");
 
-            var category = new SystemCategory(
+            var category = new SystemCategory
+            (
                 SystemCategoryID.New(),
                 request.MerchantType,
                 request.CategoryName,
                 request.Slug,
                 request.ImageUrl,
                 request.SortOrder,
-                DateTimeOffset.UtcNow);
+                DateTimeOffset.UtcNow
+            );
 
             await _commandRepository.AddSystemCategoryAsync(category, ct);
             await _commandRepository.SaveChangesAsync(ct);

@@ -1,7 +1,7 @@
-using DeliveryApp.Application.Interfaces.NotificationRepositoriesInterfaces;
-using DeliveryApp.Domain.Entities.Engagements;
-using DeliveryApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using DeliveryApp.Infrastructure.Persistence;
+using DeliveryApp.Domain.Entities.Engagements;
+using DeliveryApp.Application.Interfaces.NotificationRepositoriesInterfaces;
 using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
 
 namespace DeliveryApp.Infrastructure.Implementation.NotificationRepositores

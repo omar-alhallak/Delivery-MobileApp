@@ -1,15 +1,15 @@
-﻿using DeliveryApp.Application.Features.MerchantCatalog.Common;
-using DeliveryApp.Application.Features.MerchantCatalog.MerchantCategories;
-using DeliveryApp.Application.Features.MerchantCatalog.MerchantSystemCategories;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
+using DeliveryApp.Domain.DomainExceptions;
+using DeliveryApp.Application.Features.MerchantCatalog.Common;
+using DeliveryApp.Application.Features.MerchantCatalog.Variants;
 using DeliveryApp.Application.Features.MerchantCatalog.Products;
 using DeliveryApp.Application.Features.MerchantCatalog.PublicCatalog;
 using DeliveryApp.Application.Features.MerchantCatalog.SystemCategories;
-using DeliveryApp.Application.Features.MerchantCatalog.Variants;
-using DeliveryApp.Domain.DomainExceptions;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using DeliveryApp.Application.Features.MerchantCatalog.MerchantCategories;
+using DeliveryApp.Application.Features.MerchantCatalog.MerchantSystemCategories;
 
 namespace DeliveryApp.API.Controllers
 {
@@ -25,13 +25,8 @@ namespace DeliveryApp.API.Controllers
         private readonly VariantService _variantService; // خيارات المنتجات
         private readonly PublicCatalogService _publicCatalogService; // عرض الكتالوج للزبون
 
-        public MerchantCatalogController(
-            SystemCategoryService systemCategoryService,
-            MerchantSystemCategoryService merchantSystemCategoryService,
-            MerchantCategoryService merchantCategoryService,
-            ProductService productService,
-            VariantService variantService,
-            PublicCatalogService publicCatalogService)
+        public MerchantCatalogController(SystemCategoryService systemCategoryService, MerchantSystemCategoryService merchantSystemCategoryService,
+            MerchantCategoryService merchantCategoryService, ProductService productService, VariantService variantService, PublicCatalogService publicCatalogService)
         {
             _systemCategoryService = systemCategoryService;
             _merchantSystemCategoryService = merchantSystemCategoryService;

@@ -1,8 +1,8 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using DeliveryApp.Application.Features.MerchantCatalog.Access;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
+using DeliveryApp.Application.Features.MerchantCatalog.Access;
 
 namespace DeliveryApp.API.Controllers
 {

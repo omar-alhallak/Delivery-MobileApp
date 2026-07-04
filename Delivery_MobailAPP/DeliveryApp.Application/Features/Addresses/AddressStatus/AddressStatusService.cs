@@ -1,6 +1,6 @@
+using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Application.Features.Addresses.Common;
 using DeliveryApp.Application.Interfaces.AddressRepositoriesInterfaces;
-using DeliveryApp.Domain.DomainExceptions;
 
 namespace DeliveryApp.Application.Features.Addresses.AddressStatus
 {

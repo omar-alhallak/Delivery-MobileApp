@@ -1,11 +1,6 @@
-﻿using DeliveryApp.Domain.Entities.Customers.Orders;
+﻿using DeliveryApp.Domain.Entities.Merchants;
 using DeliveryApp.Domain.Entities.Engagements;
-using DeliveryApp.Domain.Entities.Merchants;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DeliveryApp.Domain.Entities.Customers.Orders;
 
 namespace DeliveryApp.Application.Interfaces.RatingRepositoriesInterfaces
 {
