@@ -20,6 +20,7 @@ using DeliveryApp.Application.Features.Orders.OrderWorkflow;
 using DeliveryApp.Application.Features.Identity.RefreshToken;
 using DeliveryApp.Application.Features.MerchantCatalog.Access;
 using DeliveryApp.Application.Features.Addresses.AddressQuery;
+using DeliveryApp.Application.Features.Merchants.GetMerchants;
 using DeliveryApp.Application.Features.Identity.RegisterLocal;
 using DeliveryApp.Application.Features.Orders.MerchantDecision;
 using DeliveryApp.Application.Features.Addresses.AddressStatus;
@@ -28,13 +29,17 @@ using DeliveryApp.Application.Features.MerchantCatalog.Products;
 using DeliveryApp.Application.Features.MerchantCatalog.Variants;
 using DeliveryApp.Application.Features.Merchants.CreateMerchant;
 using DeliveryApp.Application.Features.Merchants.UpdateMerchant;
+using DeliveryApp.Application.Features.Merchants.SetWorkingHours;
 using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
 using DeliveryApp.Infrastructure.Implementation.RatingRepositores;
 using DeliveryApp.Application.Features.Addresses.AddressLifecycle;
+using DeliveryApp.Application.Features.Merchants.ActivateMerchant;
+using DeliveryApp.Application.Features.Merchants.AddMerchantStaff;
 using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
 using DeliveryApp.Infrastructure.Implementation.AddressRepositories;
 using DeliveryApp.Application.Features.MerchantCatalog.PublicCatalog;
+using DeliveryApp.Application.Features.Merchants.RemoveMerchantStaff;
 using DeliveryApp.Application.Interfaces.RatingRepositoriesInterfaces;
 using DeliveryApp.Infrastructure.Implementation.Merchants.Repositores;
 using DeliveryApp.Application.Interfaces.AddressRepositoriesInterfaces;
@@ -111,7 +116,17 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<ICreateMerchantRepository, CreateMerchantRepository>();
 
             services.AddScoped<IUpdateMerchantRepository, UpdateMerchantRepository>();
-          
+
+            services.AddScoped<ISetMerchantWorkingHoursRepository, SetMerchantWorkingHoursRepository>();
+
+            services.AddScoped<IActivateMerchantRepository, ActivateMerchantRepository>();
+
+            services.AddScoped<IGetMerchantsRepository, GetMerchantsRepository>();
+
+            services.AddScoped<IAddMerchantStaffRepository, AddMerchantStaffRepository>();
+
+            services.AddScoped<IRemoveMerchantStaffRepository, RemoveMerchantStaffRepository>();
+
             //---------- Catagories Repositories ----------
 
             services.AddScoped<IMerchantCatalogReadRepository, MerchantCatalogReadRepository>();
@@ -176,6 +191,16 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<CreateMerchantService>();
 
             services.AddScoped<UpdateMerchantService>();
+
+            services.AddScoped<SetMerchantWorkingHoursService>();
+
+            services.AddScoped<ActivateMerchantService>();
+
+            services.AddScoped<GetMerchantsService>();
+
+            services.AddScoped<AddMerchantStaffService>();
+
+            services.AddScoped<RemoveMerchantStaffService>();
 
             // ---------- Catagories Features ----------
 
