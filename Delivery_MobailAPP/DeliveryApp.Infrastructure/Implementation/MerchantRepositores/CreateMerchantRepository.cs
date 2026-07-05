@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using DeliveryApp.Domain.Entities.Merchants;
 using DeliveryApp.Domain.ValueObjects;
+using DeliveryApp.Domain.Entities.Merchants;
 using DeliveryApp.Infrastructure.Persistence;
 using DeliveryApp.Application.Interfaces.MerchantRepositoresInterfaces;
 
