@@ -17,6 +17,9 @@ namespace DeliveryApp.API
             builder.Services.AddInfrastructure(builder.Configuration);  
             builder.Services.AddJwtAuthentication(builder.Configuration);
 
+            // Localhost For "Frontend" to Connections
+            builder.Services.AddFrontendCors();
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
 
@@ -33,6 +36,8 @@ namespace DeliveryApp.API
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("Frontend");
 
             app.UseAuthentication();
 
