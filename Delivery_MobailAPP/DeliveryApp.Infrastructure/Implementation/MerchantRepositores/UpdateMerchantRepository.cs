@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DeliveryApp.Application.Interfaces.MerchantRepositoresInterfaces;
 using DeliveryApp.Domain.Entities.Merchants;
+using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Infrastructure.Persistence;
-using DeliveryApp.Application.Interfaces.MerchantRepositoresInterfaces;
-using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
+using Microsoft.EntityFrameworkCore;
 using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;
+using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
 
 
 namespace DeliveryApp.Infrastructure.Implementation.Merchants.Repositores
@@ -29,7 +30,7 @@ namespace DeliveryApp.Infrastructure.Implementation.Merchants.Repositores
 
         public async Task<bool> SlugExistsAsync(string slug, MerchantID merchantId, CancellationToken ct = default)
         {
-            return await _context.Merchants.AnyAsync(x => x.Slug.Value == slug && x.ID != merchantId, ct);
+            return await _context.Merchants.AnyAsync(x => x.Slug == Slug.Create(slug) && x.ID != merchantId, ct);
         }
 
         public async Task SaveChangesAsync(CancellationToken ct = default)
