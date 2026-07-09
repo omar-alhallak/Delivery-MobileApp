@@ -1,7 +1,7 @@
 ﻿namespace DeliveryApp.Application.Features.MerchantCatalog.MerchantSystemCategories
 {
-    public sealed class AssignMerchantSystemCategoryRequest // DTO ربط مطعم مع تصنيف نظام
+    public sealed class AssignMerchantSystemCategoryRequest // DTO ربط مطعم مع عدة تصنيفات نظام
     {
-        public Guid SystemCategoryId { get; init; } // تصنيف النظام المطلوب ربطه بالمطعم
+        public List<Guid> SystemCategoryIds { get; init; } = []; // تصنيفات النظام المطلوب ربطها بالمطعم
     }
 }

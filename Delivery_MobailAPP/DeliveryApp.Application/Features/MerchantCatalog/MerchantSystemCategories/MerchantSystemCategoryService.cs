@@ -15,28 +15,43 @@ namespace DeliveryApp.Application.Features.MerchantCatalog.MerchantSystemCategor
             _accessService = accessService;
         }
 
-        public async Task<bool> AssignAsync(Guid userId, Guid merchantId, AssignMerchantSystemCategoryRequest request, CancellationToken ct = default) // ربط مطعم مع تصنيف نظام
+        public async Task<bool> AssignAsync(Guid userId, Guid merchantId, AssignMerchantSystemCategoryRequest request, CancellationToken ct = default) // ربط مطعم مع عدة تصنيفات نظام
         {
             if (request is null) throw new Exception("Merchant system category request is required.");
 
+            if (request.SystemCategoryIds.Count == 0)
+                throw new Exception("At least one system category is required.");
+
+            if (request.SystemCategoryIds.Count > 30)
+                throw new Exception("Merchant can be linked to maximum 30 system categories.");
+
+            if (request.SystemCategoryIds.Distinct().Count() != request.SystemCategoryIds.Count)
+                throw new Exception("System categories cannot be duplicated.");
+
             var merchantStrongId = MerchantID.From(merchantId);
-            var systemCategoryId = SystemCategoryID.From(request.SystemCategoryId);
 
             await _accessService.EnsureCanManageAsync(userId, merchantStrongId, ct);
 
-            var systemCategory = await _repository.GetSystemCategoryAsync(systemCategoryId, ct);
-            if (systemCategory is null) return false;
+            foreach (var id in request.SystemCategoryIds)
+            {
+                var systemCategoryId = SystemCategoryID.From(id);
 
-            var existingLink = await _repository.GetMerchantSystemCategoryAsync(merchantStrongId, systemCategoryId, ct);
-            if (existingLink is not null) return true;
+                var systemCategory = await _repository.GetSystemCategoryAsync(systemCategoryId, ct);
+                if (systemCategory is null) return false;
 
-            var link = new MerchantSystemCategory(merchantStrongId, systemCategoryId, DateTimeOffset.UtcNow);
+                var existingLink = await _repository.GetMerchantSystemCategoryAsync(merchantStrongId, systemCategoryId, ct);
+                if (existingLink is not null) continue;
 
-            await _repository.AddMerchantSystemCategoryAsync(link, ct);
+                var link = new MerchantSystemCategory(merchantStrongId, systemCategoryId, DateTimeOffset.UtcNow);
+
+                await _repository.AddMerchantSystemCategoryAsync(link, ct);
+            }
+
             await _repository.SaveChangesAsync(ct);
 
             return true;
         }
+       
 
         public async Task<bool> RemoveAsync(Guid userId, Guid merchantId, Guid systemCategoryId, CancellationToken ct = default) // فك ربط مطعم من تصنيف نظام
         {
