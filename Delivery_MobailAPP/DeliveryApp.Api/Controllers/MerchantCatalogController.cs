@@ -45,6 +45,10 @@ namespace DeliveryApp.API.Controllers
         public Task<IActionResult> AssignMerchantSystemCategory(Guid merchantId, [FromBody] AssignMerchantSystemCategoryRequest request, CancellationToken ct) // ربط مطعم مع تصنيف نظام
             => RunChange(() => _merchantSystemCategoryService.AssignAsync(GetCurrentUserId(), merchantId, request, ct));
 
+        [HttpGet("merchants/{merchantId:guid}/system-categories")]
+        public Task<IActionResult> GetMerchantSystemCategories(Guid merchantId, CancellationToken ct) // جلب تصنيفات النظام المربوطة بالمطعم
+            => RunRead(() => _merchantSystemCategoryService.GetByMerchantAsync(GetCurrentUserId(), merchantId, ct));
+
         [HttpDelete("merchants/{merchantId:guid}/system-categories/{systemCategoryId:guid}")]
         public Task<IActionResult> RemoveMerchantSystemCategory(Guid merchantId, Guid systemCategoryId, CancellationToken ct) // فك ربط مطعم من تصنيف نظام
             => RunChange(() => _merchantSystemCategoryService.RemoveAsync(GetCurrentUserId(), merchantId, systemCategoryId, ct));
