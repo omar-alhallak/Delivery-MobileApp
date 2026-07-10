@@ -11,6 +11,8 @@ using DeliveryApp.Application.Features.Orders.Access;
 using DeliveryApp.Application.Features.Orders.Payment;
 using DeliveryApp.Application.Features.Identity.Logout;
 using DeliveryApp.Application.Features.Orders.GetOrders;
+using DeliveryApp.Application.Interfaces.MediaInterfaces;
+using DeliveryApp.Application.Features.Media.UploadMedia;
 using DeliveryApp.Infrastructure.Implementation.Services;
 using DeliveryApp.Application.Features.Orders.CancelOrder;
 using DeliveryApp.Application.Features.Orders.CreateOrder;
@@ -29,12 +31,15 @@ using DeliveryApp.Application.Features.MerchantCatalog.Products;
 using DeliveryApp.Application.Features.MerchantCatalog.Variants;
 using DeliveryApp.Application.Features.Merchants.CreateMerchant;
 using DeliveryApp.Application.Features.Merchants.UpdateMerchant;
+using DeliveryApp.Application.Features.Merchants.GetWorkingHours;
 using DeliveryApp.Application.Features.Merchants.SetWorkingHours;
 using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
+using DeliveryApp.Application.Features.Merchants.GetMerchantStaff;
 using DeliveryApp.Infrastructure.Implementation.RatingRepositores;
 using DeliveryApp.Application.Features.Addresses.AddressLifecycle;
 using DeliveryApp.Application.Features.Merchants.ActivateMerchant;
 using DeliveryApp.Application.Features.Merchants.AddMerchantStaff;
+using DeliveryApp.Infrastructure.Repositories.MerchantRepositories;
 using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 using DeliveryApp.Infrastructure.Implementation.IdentityRepositores;
 using DeliveryApp.Infrastructure.Implementation.AddressRepositories;
@@ -85,6 +90,10 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
             services.AddScoped<ITokenService, TokenService>();
 
+            // ---------- Media Services ----------
+
+            services.AddScoped<UploadMediaService>();
+
             // -------------------------
             //       REPOSITORIES
             // -------------------------
@@ -127,6 +136,10 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
 
             services.AddScoped<IRemoveMerchantStaffRepository, RemoveMerchantStaffRepository>();
 
+            services.AddScoped<IGetMerchantWorkingHoursRepository, GetMerchantWorkingHoursRepository>();
+
+            services.AddScoped<IGetMerchantStaffRepository, GetMerchantStaffRepository>();
+
             //---------- Catagories Repositories ----------
 
             services.AddScoped<IMerchantCatalogReadRepository, MerchantCatalogReadRepository>();
@@ -148,9 +161,14 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<INotificationCommandRepository, NotificationCommandRepository>();
 
             //---------- Address Repositories ----------
+
             services.AddScoped<IAddressReadRepository, AddressReadRepository>();
 
             services.AddScoped<IAddressCommandRepository, AddressCommandRepository>();
+
+            //---------- Media Repositories ----------
+
+            services.AddScoped<IMediaStorage, LocalMediaStorage>();
 
             // -------------------------
             //         FEATURES
@@ -201,6 +219,10 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<AddMerchantStaffService>();
 
             services.AddScoped<RemoveMerchantStaffService>();
+
+            services.AddScoped<GetMerchantWorkingHoursService>();
+
+            services.AddScoped<GetMerchantStaffService>();
 
             // ---------- Catagories Features ----------
 
