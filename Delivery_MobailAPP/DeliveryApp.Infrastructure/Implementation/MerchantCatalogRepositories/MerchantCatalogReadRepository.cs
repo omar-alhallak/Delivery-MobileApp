@@ -27,6 +27,21 @@ namespace DeliveryApp.Infrastructure.Implementation.MerchantCatalogRepositories
                 .ToListAsync(ct);
         }
 
+        public async Task<IReadOnlyList<SystemCategory>> GetSystemCategoriesByMerchantAsync(MerchantID merchantId, CancellationToken ct = default)
+        {
+            return await _context.MerchantSystemCategories
+                .AsNoTracking()
+                .Where(x => x.MerchantID == merchantId)
+                .Join(
+                    _context.SystemCategories.AsNoTracking(),
+                    link => link.SystemCategoryID,
+                    category => category.ID,
+                    (link, category) => category)
+                .OrderBy(x => x.MerchantType)
+                .ThenBy(x => x.SortOrder)
+                .ToListAsync(ct);
+        }
+
         public async Task<IReadOnlyList<MerchantCategory>> GetMerchantCategoriesAsync(MerchantID merchantId, bool activeOnly, CancellationToken ct = default)
         {
             var query = _context.MerchantCategories
