@@ -6,10 +6,11 @@ using DeliveryApp.Application.Features.Merchants.GetMerchants;
 using DeliveryApp.Application.Features.Merchants.CreateMerchant;
 using DeliveryApp.Application.Features.Merchants.UpdateMerchant;
 using DeliveryApp.Application.Features.Merchants.SetWorkingHours;
+using DeliveryApp.Application.Features.Merchants.GetWorkingHours;
 using DeliveryApp.Application.Features.Merchants.ActivateMerchant;
 using DeliveryApp.Application.Features.Merchants.AddMerchantStaff;
+using DeliveryApp.Application.Features.Merchants.GetMerchantStaff;
 using DeliveryApp.Application.Features.Merchants.RemoveMerchantStaff;
-
 
 namespace DeliveryApp.API.Controllers
 {
@@ -24,17 +25,31 @@ namespace DeliveryApp.API.Controllers
         private readonly GetMerchantsService _getMerchantsService;
         private readonly AddMerchantStaffService _addMerchantStaffService;
         private readonly RemoveMerchantStaffService _removeMerchantStaffService;
+        private readonly GetMerchantStaffService _getMerchantStaffService;
+        private readonly GetMerchantWorkingHoursService _getMerchantWorkingHoursService;
 
-        public MerchantController(CreateMerchantService createMerchantService, UpdateMerchantService updateMerchantService, SetMerchantWorkingHoursService setMerchantWorkingHoursService,
-            ActivateMerchantService activateMerchantService, GetMerchantsService getMerchantsService, AddMerchantStaffService addMerchantStaffService, RemoveMerchantStaffService removeMerchantStaffService)
+        public MerchantController(
+            CreateMerchantService createMerchantService, UpdateMerchantService updateMerchantService, SetMerchantWorkingHoursService setMerchantWorkingHoursService,
+            ActivateMerchantService activateMerchantService, GetMerchantsService getMerchantsService, AddMerchantStaffService addMerchantStaffService,
+            RemoveMerchantStaffService removeMerchantStaffService, GetMerchantStaffService getMerchantStaffService, GetMerchantWorkingHoursService getMerchantWorkingHoursService)
         {
             _createMerchantService = createMerchantService ?? throw new ArgumentNullException(nameof(createMerchantService));
+
             _updateMerchantService = updateMerchantService ?? throw new ArgumentNullException(nameof(updateMerchantService));
+
             _setMerchantWorkingHoursService = setMerchantWorkingHoursService ?? throw new ArgumentNullException(nameof(setMerchantWorkingHoursService));
+
             _activateMerchantService = activateMerchantService ?? throw new ArgumentNullException(nameof(activateMerchantService));
+
             _getMerchantsService = getMerchantsService ?? throw new ArgumentNullException(nameof(getMerchantsService));
+
             _addMerchantStaffService = addMerchantStaffService ?? throw new ArgumentNullException(nameof(addMerchantStaffService));
+
             _removeMerchantStaffService = removeMerchantStaffService ?? throw new ArgumentNullException(nameof(removeMerchantStaffService));
+
+            _getMerchantStaffService = getMerchantStaffService ?? throw new ArgumentNullException(nameof(getMerchantStaffService));
+
+            _getMerchantWorkingHoursService = getMerchantWorkingHoursService ?? throw new ArgumentNullException(nameof(getMerchantWorkingHoursService));
         }
 
         [Authorize]
@@ -112,6 +127,28 @@ namespace DeliveryApp.API.Controllers
             return Ok(response);
         }
 
+        [Authorize]
+        [HttpGet("staff")]
+        public async Task<ActionResult<GetMerchantStaffResponse>> GetStaff([FromQuery] GetMerchantStaffRequest request, CancellationToken ct)
+        {
+            var userId = GetCurrentUserId();
+
+            var response = await _getMerchantStaffService.ExecuteAsync(userId, request, ct);
+
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpGet("working-hours")]
+        public async Task<ActionResult<GetMerchantWorkingHoursResponse>> GetWorkingHours([FromQuery] GetMerchantWorkingHoursRequest request, CancellationToken ct)
+        {
+            var userId = GetCurrentUserId();
+
+            var response = await _getMerchantWorkingHoursService.ExecuteAsync(userId, request, ct);
+
+            return Ok(response);
+        }
+
         private Guid GetCurrentUserId()
         {
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -122,4 +159,4 @@ namespace DeliveryApp.API.Controllers
             return parsedUserId;
         }
     }
-}           
+}

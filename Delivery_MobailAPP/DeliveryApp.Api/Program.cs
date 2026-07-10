@@ -37,6 +37,8 @@ namespace DeliveryApp.API
 
             app.UseHttpsRedirection();
 
+            app.UseStaticFiles();
+
             app.UseCors("Frontend");
 
             app.UseAuthentication();
