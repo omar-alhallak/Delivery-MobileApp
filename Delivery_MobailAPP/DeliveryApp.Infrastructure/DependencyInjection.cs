@@ -140,6 +140,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
 
             services.AddScoped<IGetMerchantStaffRepository, GetMerchantStaffRepository>();
 
+            services.AddScoped<IGetMerchantDetailsRepository, GetMerchantDetailsRepository>();
+
             //---------- Catagories Repositories ----------
 
             services.AddScoped<IMerchantCatalogReadRepository, MerchantCatalogReadRepository>();
@@ -223,6 +225,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<GetMerchantWorkingHoursService>();
 
             services.AddScoped<GetMerchantStaffService>();
+
+            services.AddScoped<GetMerchantsService>();
 
             // ---------- Catagories Features ----------
 
