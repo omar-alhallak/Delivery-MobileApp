@@ -40,6 +40,7 @@ namespace DeliveryApp.Infrastructure.Repositories.MerchantRepositories
 
                 where merchantUser.MerchantID == merchantId
                       && merchantUser.Role == MerchantUserRole.Staff
+                      && merchantUser.IsActive == true
 
                 orderby merchantUser.IsActive descending,
                         merchantUser.CreatedAt descending
