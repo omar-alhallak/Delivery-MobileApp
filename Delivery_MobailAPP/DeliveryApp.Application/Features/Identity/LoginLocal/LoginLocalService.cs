@@ -109,6 +109,23 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
 
                 await _repository.AddSessionAsync(session, ct);
             }
+            else if (session.IsRevoked)
+            {
+                _repository.RemoveSession(session);
+
+                session = UserSession.Create
+                (
+                    id: UserSessionID.New(),
+                    userId: user.ID,
+                    clientType: input.ClientType,
+                    deviceId: input.DeviceID,
+                    refreshTokenHash: refreshTokenHash,
+                    utcNow: now,
+                    lifetime: sessionLifetime
+                );
+
+                await _repository.AddSessionAsync(session, ct);
+            }
             else
             {
                 session.Refresh
@@ -119,8 +136,6 @@ namespace DeliveryApp.Application.Features.Identity.LoginLocal
                     lifetime: sessionLifetime
                 );
             }
-
-            user.SetLastLogin(now);
 
             // -------------------------
             //            Save

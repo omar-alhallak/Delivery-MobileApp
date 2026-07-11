@@ -13,6 +13,8 @@ namespace DeliveryApp.Application.Interfaces.IdentityRepositoresInterfaces
 
         Task AddSessionAsync(UserSession session, CancellationToken ct = default);
 
+        void RemoveSession(UserSession session);
+
         Task SaveChangesAsync(CancellationToken ct = default);
 
         Task<bool> HasMerchantAccessAsync(UserID userId, CancellationToken ct = default);
