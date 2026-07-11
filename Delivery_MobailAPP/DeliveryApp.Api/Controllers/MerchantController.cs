@@ -11,6 +11,7 @@ using DeliveryApp.Application.Features.Merchants.ActivateMerchant;
 using DeliveryApp.Application.Features.Merchants.AddMerchantStaff;
 using DeliveryApp.Application.Features.Merchants.GetMerchantStaff;
 using DeliveryApp.Application.Features.Merchants.RemoveMerchantStaff;
+using DeliveryApp.Application.Features.Merchants.GetMerchantDetails;
 
 namespace DeliveryApp.API.Controllers
 {
@@ -27,11 +28,12 @@ namespace DeliveryApp.API.Controllers
         private readonly RemoveMerchantStaffService _removeMerchantStaffService;
         private readonly GetMerchantStaffService _getMerchantStaffService;
         private readonly GetMerchantWorkingHoursService _getMerchantWorkingHoursService;
+        private readonly GetMerchantDetailsService _getMerchantDetailsService;
 
         public MerchantController(
             CreateMerchantService createMerchantService, UpdateMerchantService updateMerchantService, SetMerchantWorkingHoursService setMerchantWorkingHoursService,
             ActivateMerchantService activateMerchantService, GetMerchantsService getMerchantsService, AddMerchantStaffService addMerchantStaffService,
-            RemoveMerchantStaffService removeMerchantStaffService, GetMerchantStaffService getMerchantStaffService, GetMerchantWorkingHoursService getMerchantWorkingHoursService)
+            RemoveMerchantStaffService removeMerchantStaffService, GetMerchantStaffService getMerchantStaffService, GetMerchantWorkingHoursService getMerchantWorkingHoursService, GetMerchantDetailsService getMerchantDetailsService)
         {
             _createMerchantService = createMerchantService ?? throw new ArgumentNullException(nameof(createMerchantService));
 
@@ -50,6 +52,8 @@ namespace DeliveryApp.API.Controllers
             _getMerchantStaffService = getMerchantStaffService ?? throw new ArgumentNullException(nameof(getMerchantStaffService));
 
             _getMerchantWorkingHoursService = getMerchantWorkingHoursService ?? throw new ArgumentNullException(nameof(getMerchantWorkingHoursService));
+
+            _getMerchantDetailsService = getMerchantDetailsService ?? throw new ArgumentNullException(nameof(getMerchantDetailsService));
         }
 
         [Authorize]
@@ -101,6 +105,17 @@ namespace DeliveryApp.API.Controllers
         public async Task<ActionResult<IReadOnlyList<GetMerchantsResponse>>> GetMerchants([FromQuery] GetMerchantsRequest request, CancellationToken ct)
         {
             var response = await _getMerchantsService.ExecuteAsync(request, ct);
+
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpGet("details")]
+        public async Task<ActionResult<GetMerchantDetailsResponse>> GetMerchantDetails([FromQuery] GetMerchantDetailsRequest request, CancellationToken ct)
+        {
+            var userId = GetCurrentUserId();
+
+            var response = await _getMerchantDetailsService.ExecuteAsync(userId, request, ct);
 
             return Ok(response);
         }
