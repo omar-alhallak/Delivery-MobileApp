@@ -42,6 +42,12 @@ namespace DeliveryApp.Infrastructure.Implementation.IdentityRepositores
             await _context.UserSessions.AddAsync(session, ct);
         }
 
+        // حذف جلسة المستخدم
+        public void RemoveSession(UserSession session)
+        {
+            _context.UserSessions.Remove(session);
+        }
+
         // حفظ جميع التغييرات داخل قاعدة البيانات
         public async Task SaveChangesAsync(CancellationToken ct = default)
         {
