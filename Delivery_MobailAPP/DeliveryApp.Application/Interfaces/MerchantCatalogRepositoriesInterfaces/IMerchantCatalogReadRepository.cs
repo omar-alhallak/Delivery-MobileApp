@@ -1,4 +1,5 @@
-﻿using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Features.MerchantCatalog.Search;
 
 namespace DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces
 {
@@ -6,6 +7,8 @@ namespace DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfac
     {
         Task<IReadOnlyList<SystemCategory>> GetSystemCategoriesAsync(CancellationToken ct = default);
         Task<IReadOnlyList<SystemCategory>> GetSystemCategoriesByMerchantAsync(MerchantID merchantId, CancellationToken ct = default);
+        Task<IReadOnlyList<MerchantCatalogSearchMerchantDto>> SearchActiveMerchantsAsync(string query, int limit, CancellationToken ct = default);
+        Task<IReadOnlyList<SystemCategory>> SearchActiveSystemCategoriesAsync(string query, int limit, CancellationToken ct = default);
         Task<IReadOnlyList<MerchantCategory>> GetMerchantCategoriesAsync(MerchantID merchantId, bool activeOnly, CancellationToken ct = default);
         Task<IReadOnlyList<Product>> GetProductsByCategoryAsync(MerchantCategoryID categoryId, bool activeOnly, CancellationToken ct = default);
         Task<IReadOnlyList<Variant>> GetVariantsByProductAsync(ProductID productId, bool activeOnly, CancellationToken ct = default);

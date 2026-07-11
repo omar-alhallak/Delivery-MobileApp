@@ -6,6 +6,7 @@ using DeliveryApp.Domain.DomainExceptions;
 using DeliveryApp.Application.Features.MerchantCatalog.Common;
 using DeliveryApp.Application.Features.MerchantCatalog.Variants;
 using DeliveryApp.Application.Features.MerchantCatalog.Products;
+using DeliveryApp.Application.Features.MerchantCatalog.Search;
 using DeliveryApp.Application.Features.MerchantCatalog.PublicCatalog;
 using DeliveryApp.Application.Features.MerchantCatalog.SystemCategories;
 using DeliveryApp.Application.Features.MerchantCatalog.MerchantCategories;
@@ -24,9 +25,11 @@ namespace DeliveryApp.API.Controllers
         private readonly ProductService _productService; // المنتجات
         private readonly VariantService _variantService; // خيارات المنتجات
         private readonly PublicCatalogService _publicCatalogService; // عرض الكتالوج للزبون
+        private readonly MerchantCatalogSearchService _searchService; // البحث في المطاعم وتصنيفات النظام
 
         public MerchantCatalogController(SystemCategoryService systemCategoryService, MerchantSystemCategoryService merchantSystemCategoryService,
-            MerchantCategoryService merchantCategoryService, ProductService productService, VariantService variantService, PublicCatalogService publicCatalogService)
+            MerchantCategoryService merchantCategoryService, ProductService productService, VariantService variantService,
+            PublicCatalogService publicCatalogService, MerchantCatalogSearchService searchService)
         {
             _systemCategoryService = systemCategoryService;
             _merchantSystemCategoryService = merchantSystemCategoryService;
@@ -34,12 +37,18 @@ namespace DeliveryApp.API.Controllers
             _productService = productService;
             _variantService = variantService;
             _publicCatalogService = publicCatalogService;
+            _searchService = searchService;
         }
 
         [AllowAnonymous]
         [HttpGet("system-categories")]
         public async Task<ActionResult<IReadOnlyList<SystemCategoryDto>>> GetSystemCategories(CancellationToken ct) // جلب تصنيفات النظام
             => Ok(await _systemCategoryService.GetAllAsync(ct));
+
+        [AllowAnonymous]
+        [HttpGet("search")]
+        public async Task<ActionResult<MerchantCatalogSearchResponse>> Search([FromQuery] string? query, CancellationToken ct) // البحث في المطاعم وتصنيفات النظام
+            => Ok(await _searchService.SearchAsync(query, ct));
 
         [HttpPost("merchants/{merchantId:guid}/system-categories")]
         public Task<IActionResult> AssignMerchantSystemCategory(Guid merchantId, [FromBody] AssignMerchantSystemCategoryRequest request, CancellationToken ct) // ربط مطعم مع تصنيف نظام

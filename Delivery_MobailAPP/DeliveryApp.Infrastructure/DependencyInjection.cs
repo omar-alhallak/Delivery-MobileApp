@@ -14,6 +14,15 @@ using DeliveryApp.Application.Features.MerchantCatalog.Products;
 using DeliveryApp.Application.Features.MerchantCatalog.PublicCatalog;
 using DeliveryApp.Application.Features.MerchantCatalog.SystemCategories;
 using DeliveryApp.Application.Features.MerchantCatalog.Variants;
+using DeliveryApp.Application.Features.MerchantCatalog.Search;
+using DeliveryApp.Application.Features.Merchants.CreateMerchant;
+using DeliveryApp.Application.Features.Merchants.UpdateMerchant;
+using DeliveryApp.Application.Features.Merchants.GetWorkingHours;
+using DeliveryApp.Application.Features.Merchants.SetWorkingHours;
+using DeliveryApp.Infrastructure.Implementation.OrderRepositores;
+using DeliveryApp.Application.Features.Merchants.GetMerchantStaff;
+using DeliveryApp.Infrastructure.Implementation.RatingRepositores;
+using DeliveryApp.Application.Features.Addresses.AddressLifecycle;
 using DeliveryApp.Application.Features.Merchants.ActivateMerchant;
 using DeliveryApp.Application.Features.Merchants.AddMerchantStaff;
 using DeliveryApp.Application.Features.Merchants.CreateMerchant;
@@ -244,6 +253,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<PublicCatalogService>();
 
             services.AddScoped<MerchantCatalogAccessService>();
+
+            services.AddScoped<MerchantCatalogSearchService>();
 
             // ---------- Rating Features ----------
 
