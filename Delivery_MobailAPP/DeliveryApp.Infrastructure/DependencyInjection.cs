@@ -29,6 +29,7 @@ using DeliveryApp.Application.Features.Addresses.AddressStatus;
 using DeliveryApp.Application.Features.Identity.UpdateMyProfile;
 using DeliveryApp.Application.Features.MerchantCatalog.Products;
 using DeliveryApp.Application.Features.MerchantCatalog.Variants;
+using DeliveryApp.Application.Features.MerchantCatalog.Search;
 using DeliveryApp.Application.Features.Merchants.CreateMerchant;
 using DeliveryApp.Application.Features.Merchants.UpdateMerchant;
 using DeliveryApp.Application.Features.Merchants.GetWorkingHours;
@@ -239,6 +240,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<PublicCatalogService>();
 
             services.AddScoped<MerchantCatalogAccessService>();
+
+            services.AddScoped<MerchantCatalogSearchService>();
 
             // ---------- Rating Features ----------
 

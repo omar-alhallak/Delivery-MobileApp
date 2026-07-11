@@ -2,6 +2,7 @@
 using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Infrastructure.Persistence;
 using DeliveryApp.Domain.Entities.Merchants.Catalog;
+using DeliveryApp.Application.Features.MerchantCatalog.Search;
 using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
 using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;
 using MerchantCategoryID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantCategoryTag>;
@@ -39,6 +40,51 @@ namespace DeliveryApp.Infrastructure.Implementation.MerchantCatalogRepositories
                     (link, category) => category)
                 .OrderBy(x => x.MerchantType)
                 .ThenBy(x => x.SortOrder)
+                .ToListAsync(ct);
+        }
+
+        public async Task<IReadOnlyList<MerchantCatalogSearchMerchantDto>> SearchActiveMerchantsAsync(string query, int limit, CancellationToken ct = default)
+        {
+            var pattern = $"%{query}%";
+
+            var merchants = await _context.Merchants
+                .FromSqlInterpolated($@"
+                    SELECT TOP({limit}) *
+                    FROM merchants.Merchant
+                    WHERE IsActive = CAST(1 AS bit)
+                      AND (MerchantName LIKE {pattern} OR Slug LIKE {pattern})
+                    ORDER BY AverageRating DESC, MerchantName")
+                .AsNoTracking()
+                .ToListAsync(ct);
+
+            return merchants
+                .Select(x => new MerchantCatalogSearchMerchantDto
+                {
+                    MerchantId = x.ID.Value,
+                    PublicId = x.PublicID!.Value.Value,
+                    MerchantName = x.MerchantName.Value,
+                    Slug = x.Slug.Value,
+                    LogoUrl = x.LogoUrl,
+                    CoverImageUrl = x.CoverImageUrl,
+                    AverageRating = x.AverageRating,
+                    RatingsCount = x.RatingsCount,
+                    DefaultPreparationMinutes = (int)x.DefaultPreparationTime.TotalMinutes
+                })
+                .ToList();
+        }
+
+        public async Task<IReadOnlyList<SystemCategory>> SearchActiveSystemCategoriesAsync(string query, int limit, CancellationToken ct = default)
+        {
+            var pattern = $"%{query}%";
+
+            return await _context.SystemCategories
+                .FromSqlInterpolated($@"
+                    SELECT TOP({limit}) *
+                    FROM merchants.SystemCategory
+                    WHERE IsActive = CAST(1 AS bit)
+                      AND (CategoryName LIKE {pattern} OR Slug LIKE {pattern})
+                    ORDER BY MerchantType, SortOrder")
+                .AsNoTracking()
                 .ToListAsync(ct);
         }
 
