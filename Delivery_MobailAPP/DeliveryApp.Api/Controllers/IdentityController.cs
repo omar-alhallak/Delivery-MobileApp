@@ -7,6 +7,7 @@ using DeliveryApp.Application.Features.Identity.LoginLocal;
 using DeliveryApp.Application.Features.Identity.RefreshToken;
 using DeliveryApp.Application.Features.Identity.RegisterLocal;
 using DeliveryApp.Application.Features.Identity.UpdateMyProfile;
+using DeliveryApp.Application.Features.Identity.GetMyProfile;
 
 namespace DeliveryApp.API.Controllers
 {
@@ -19,14 +20,16 @@ namespace DeliveryApp.API.Controllers
         private readonly UpdateMyProfileService _updateMyProfileService;
         private readonly RefreshTokenService _refreshTokenService;
         private readonly LogoutService _logoutService;
+        private readonly GetMyProfileService _getMyProfileService;
 
-        public IdentityController(RegisterLocalService registerLocalService, LoginLocalService loginLocalService, UpdateMyProfileService updateMyProfileService, RefreshTokenService refreshTokenService, LogoutService logoutService)
+        public IdentityController(RegisterLocalService registerLocalService, LoginLocalService loginLocalService, UpdateMyProfileService updateMyProfileService, RefreshTokenService refreshTokenService, LogoutService logoutService, GetMyProfileService getMyProfileService)
         {
             _registerLocalService = registerLocalService ?? throw new ArgumentNullException(nameof(registerLocalService));
             _loginLocalService = loginLocalService;
             _updateMyProfileService = updateMyProfileService;
             _refreshTokenService = refreshTokenService;
             _logoutService = logoutService;
+            _getMyProfileService = getMyProfileService;
         }
 
         // -------------------------
@@ -51,15 +54,15 @@ namespace DeliveryApp.API.Controllers
             return Ok(response);
         }
 
-        // Endpoint Get my-profile
-        // اختبار التوكن + معرفة المستخدم  الحالي
         [Authorize]
         [HttpGet("my-profile")]
-        public IActionResult Me()
+        public async Task<ActionResult<GetMyProfileResponse>> Me(CancellationToken ct)
         {
             var userId = GetCurrentUserId();
 
-            return Ok(new { UserId = userId });
+            var response = await _getMyProfileService.ExecuteAsync(userId, ct);
+
+            return Ok(response);
         }
 
         // Endpoint Put my-profile
