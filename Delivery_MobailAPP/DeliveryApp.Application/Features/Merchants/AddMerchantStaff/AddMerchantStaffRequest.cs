@@ -4,6 +4,8 @@
     {
         public Guid MerchantId { get; init; }
 
+        public String PublicCode { get; init; } = null!;
+
         public string Phone { get; init; } = null!;
     }
 }
