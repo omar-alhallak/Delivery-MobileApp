@@ -31,6 +31,13 @@ namespace DeliveryApp.Infrastructure.Implementation.MerchantCatalogRepositories
 
         public async Task<Product?> GetProductAsync(ProductID id, CancellationToken ct = default)
             => await _context.Products.FindAsync([id], ct);
+        public async Task<Product?> GetProductByNameAsync(MerchantCategoryID categoryId, string productName, CancellationToken ct = default)
+        {
+            var name = DisplayName.Create(productName, 150, nameof(Product.ProductName));
+
+            return await _context.Products
+                .FirstOrDefaultAsync(x => x.MerchantCategoryID == categoryId && x.ProductName == name, ct);
+        }
 
         public async Task<Variant?> GetVariantAsync(VariantID id, CancellationToken ct = default)
             => await _context.Variants.FindAsync([id], ct);

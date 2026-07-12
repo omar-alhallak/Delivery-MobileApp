@@ -45,6 +45,29 @@ namespace DeliveryApp.Application.Features.MerchantCatalog.Products
 
             await _accessService.EnsureCanManageAsync(userId, category.MerchantID, ct);
 
+            var existingProduct = await _commandRepository.GetProductByNameAsync(categoryId, request.ProductName, ct);
+
+            if (existingProduct is not null)
+            {
+                if (existingProduct.IsActive)
+                    throw new Exception("Product name already exists.");
+
+                existingProduct.Rename(request.ProductName);
+                existingProduct.ChangeDescription(request.Description);
+                existingProduct.ChangeImage(request.ImageUrl);
+                existingProduct.ChangeBasePrice(request.BasePrice);
+                existingProduct.ChangeSortOrder(request.SortOrder);
+
+                if (string.IsNullOrWhiteSpace(existingProduct.ImageUrl))
+                    throw new Exception("Product image is required before activation.");
+
+                existingProduct.Activate();
+
+                await _commandRepository.SaveChangesAsync(ct);
+
+                return CatalogMapper.ToDto(existingProduct);
+            }
+
             var product = new Product(
                 ProductID.New(),
                 categoryId,
