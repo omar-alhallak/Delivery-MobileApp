@@ -59,6 +59,7 @@ using DeliveryApp.Infrastructure.Implementation.MerchantCatalogRepositories;
 using DeliveryApp.Application.Interfaces.NotificationRepositoriesInterfaces;
 using DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfaces;
 using DeliveryApp.Application.Features.MerchantCatalog.MerchantSystemCategories;
+using DeliveryApp.Application.Features.Identity.GetMyProfile;
 
 namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة Infrastructure
 {                                    // داخل الكلاس واحد لربطه مع Program.cs 
@@ -111,6 +112,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             services.AddScoped<ILogoutRepository, LogoutRepository>();
+
+            services.AddScoped<IGetMyProfileRepository, GetMyProfileRepository>();
 
             // ---------- Order Repositories ----------
 
@@ -189,6 +192,8 @@ namespace DeliveryApp.Infrastructure // تسجيل جميع ميزات طبقة 
             services.AddScoped<RefreshTokenService>();
 
             services.AddScoped<LogoutService>();
+
+            services.AddScoped<GetMyProfileService>();
 
             // ---------- Order Features ----------
 
