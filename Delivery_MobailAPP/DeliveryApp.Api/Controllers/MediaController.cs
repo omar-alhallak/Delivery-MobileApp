@@ -17,7 +17,7 @@ namespace DeliveryApp.API.Controllers
             _uploadMediaService = uploadMediaService ?? throw new ArgumentNullException(nameof(uploadMediaService));
         }
 
-        [Authorize]
+       
         [HttpPost("upload")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<UploadMediaResponse>> Upload([FromForm] UploadMediaApiRequest request, CancellationToken ct)

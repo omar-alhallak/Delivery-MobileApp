@@ -110,7 +110,13 @@ namespace DeliveryApp.Application.Features.MerchantCatalog.Products
 
             await EnsureCanManageProductAsync(userId, product, ct);
 
-            if (activate) product.Activate();
+            if (activate)
+            {
+                if (string.IsNullOrWhiteSpace(product.ImageUrl))
+                    throw new Exception("Product image is required before activation.");
+
+                product.Activate();
+            }
             else product.Deactivate();
 
             await _commandRepository.SaveChangesAsync(ct);
