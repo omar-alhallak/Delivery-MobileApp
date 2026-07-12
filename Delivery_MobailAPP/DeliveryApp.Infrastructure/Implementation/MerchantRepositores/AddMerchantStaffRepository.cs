@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DeliveryApp.Application.Interfaces.MerchantRepositoresInterfaces;
 using DeliveryApp.Domain.Entities.Identity;
 using DeliveryApp.Domain.Entities.Merchants;
+using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Infrastructure.Persistence;
-using DeliveryApp.Application.Interfaces.MerchantRepositoresInterfaces;
-using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
+using Microsoft.EntityFrameworkCore;
 using MerchantID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.MerchantTag>;
+using UserID = DeliveryApp.Domain.ValueObjects.StrongID<DeliveryApp.Domain.ValueObjects.UserTag>;
 
 namespace DeliveryApp.Infrastructure.Implementation.Merchants.Repositores
 {
@@ -27,9 +28,9 @@ namespace DeliveryApp.Infrastructure.Implementation.Merchants.Repositores
             return await _context.MerchantUsers.FirstOrDefaultAsync(x => x.MerchantID == merchantId && x.UserID == userId, ct);
         }
 
-        public async Task<User?> GetUserByPhoneAsync(string phone, CancellationToken ct = default)
+        public async Task<User?> GetUserByPublicCodeAsync(PublicCode publicCode, CancellationToken ct = default)
         {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Phone == phone, ct);
+            return await _context.Users.FirstOrDefaultAsync(x => x.PublicID == publicCode, ct);
         }
 
         public async Task AddMerchantUserAsync(MerchantUser merchantUser, CancellationToken ct = default)

@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using DeliveryApp.Domain.ValueObjects;
 using DeliveryApp.Domain.Entities.Merchants;
 using DeliveryApp.Domain.Enums.MerchantEnums;
 using DeliveryApp.Domain.Enums.IdentityEnums;
@@ -34,10 +35,13 @@ namespace DeliveryApp.Application.Features.Merchants.AddMerchantStaff
             if (currentRelation.Role != MerchantUserRole.Owner)
                 throw new Exception("Only owner can add staff.");
 
-            var staffUser = await _repository.GetUserByPhoneAsync(input.Phone, ct);
+            var staffUser = await _repository.GetUserByPublicCodeAsync(input.PublicCode, ct);
 
             if (staffUser is null)
                 throw new Exception("User not found.");
+
+            if (staffUser.Phone != input.Phone)
+                throw new Exception("Phone does not match public code");
 
             if (staffUser.AccountStatus == AccountStatus.Banned)
                 throw new Exception("User is banned.");
@@ -88,7 +92,12 @@ namespace DeliveryApp.Application.Features.Merchants.AddMerchantStaff
 
             var phone = ValidatePhone(request.Phone);
 
-            return new AddMerchantStaffValidatedInput(MerchantID.From(request.MerchantId), phone);
+            var publicCode = PublicCode.From(request.PublicCode);
+
+            if (!publicCode.Value.StartsWith("U-"))
+                throw new Exception("Invalid user public code.");
+
+            return new AddMerchantStaffValidatedInput(MerchantID.From(request.MerchantId), publicCode, phone);
         }
 
         private static string ValidatePhone(string value)
@@ -110,6 +119,6 @@ namespace DeliveryApp.Application.Features.Merchants.AddMerchantStaff
         [GeneratedRegex(@"\s+")]
         private static partial Regex SpaceRegex();
 
-        private sealed record AddMerchantStaffValidatedInput(MerchantID MerchantID,string Phone);
+        private sealed record AddMerchantStaffValidatedInput(MerchantID MerchantID,PublicCode PublicCode,string Phone);
     }
 }
