@@ -8,6 +8,7 @@ namespace DeliveryApp.Application.Interfaces.MerchantCatalogRepositoriesInterfac
         Task<MerchantSystemCategory?> GetMerchantSystemCategoryAsync(MerchantID merchantId, SystemCategoryID systemCategoryId, CancellationToken ct = default);
         Task<MerchantCategory?> GetMerchantCategoryAsync(MerchantCategoryID id, CancellationToken ct = default);
         Task<Product?> GetProductAsync(ProductID id, CancellationToken ct = default);
+        Task<Product?> GetProductByNameAsync(MerchantCategoryID categoryId, string productName, CancellationToken ct = default);
         Task<Variant?> GetVariantAsync(VariantID id, CancellationToken ct = default);
         Task<IReadOnlyList<Product>> GetProductsByCategoryAsync(MerchantCategoryID categoryId, CancellationToken ct = default);
         Task<IReadOnlyList<Variant>> GetVariantsByProductAsync(ProductID productId, CancellationToken ct = default);
