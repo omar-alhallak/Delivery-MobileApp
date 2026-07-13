@@ -15,6 +15,6 @@
         Delivered = 9,                  // تم التسليم
 
         Cancelled = 10,                  // ملغي
-        DeliveryFailed = 11             // الغي لسبب من قبل المشرف
+        DeliveryFailed = 11             // الغي لسبب من قبل المشرف          
     }
 }

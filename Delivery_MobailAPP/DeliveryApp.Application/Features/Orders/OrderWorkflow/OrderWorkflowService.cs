@@ -85,7 +85,12 @@ namespace DeliveryApp.Application.Features.Orders.OrderWorkflow
             var order = await _repository.GetByIdAsync(OrderID.From(id), ct);
             if (order is null) return false;
 
-            await _accessService.EnsureMerchantCanManageAsync(currentUserId, order, ct);
+            //await _accessService.EnsureMerchantCanManageAsync(currentUserId, order, ct);
+            if (order.CustomerID.Value != currentUserId)
+            {
+                throw new UnauthorizedAccessException(
+                    "Only the order customer can confirm delivery.");
+            }
 
             order.MarkDelivered(DateTimeOffset.UtcNow);
             order.MarkAsPaid();
