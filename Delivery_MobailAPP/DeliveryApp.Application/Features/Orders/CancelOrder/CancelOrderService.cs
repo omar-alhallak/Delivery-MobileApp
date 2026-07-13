@@ -1,6 +1,8 @@
 ﻿using DeliveryApp.Application.Interfaces.OrderRepositoresInterfaces;
 
 using DeliveryApp.Application.Features.Orders.Access;
+using DeliveryApp.Application.Features.Notifications;
+using DeliveryApp.Domain.Enums.OrderEnums;
 
 namespace DeliveryApp.Application.Features.Orders.CancelOrder
 {
@@ -8,11 +10,13 @@ namespace DeliveryApp.Application.Features.Orders.CancelOrder
     {
         private readonly IOrderCommandRepository _repository; // Repository لتعديل الطلب
         private readonly OrderAccessService _accessService;
+        private readonly NotificationService _notificationService;
 
-        public CancelOrderService(IOrderCommandRepository repository, OrderAccessService accessService)
+        public CancelOrderService(IOrderCommandRepository repository, OrderAccessService accessService, NotificationService notificationService)
         {
             _repository = repository;
             _accessService = accessService;
+            _notificationService = notificationService;
         }
 
         public async Task<bool> ExecuteAsync(Guid currentUserId, Guid id, CancelOrderRequest request, CancellationToken ct = default) // يحفظ حالة الإلغاء وسببه
@@ -32,6 +36,10 @@ namespace DeliveryApp.Application.Features.Orders.CancelOrder
                 input.IssueReason,
                 input.IssueNote,
                 DateTimeOffset.UtcNow);
+            if (cancelledByType == CancelledByType.Merchant)
+            {
+                await _notificationService.AddOrderCancelledAsync(order, ct);
+            }
 
             await _repository.SaveChangesAsync(ct);
             return true;

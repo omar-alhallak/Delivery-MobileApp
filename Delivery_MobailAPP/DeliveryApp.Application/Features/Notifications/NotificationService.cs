@@ -2,6 +2,7 @@ using DeliveryApp.Domain.Entities.Engagements;
 using DeliveryApp.Domain.Enums.EngagementEnums;
 using DeliveryApp.Domain.Entities.Customers.Orders;
 using DeliveryApp.Application.Features.Notifications.Common;
+using DeliveryApp.Domain.Enums.OrderEnums;
 using DeliveryApp.Application.Interfaces.NotificationRepositoriesInterfaces;
 
 namespace DeliveryApp.Application.Features.Notifications
@@ -52,10 +53,60 @@ namespace DeliveryApp.Application.Features.Notifications
             await AddOrderNotificationAsync(order, "تم قبول طلبك", "تم قبول طلبك وهو قيد التجهيز.", ct);
         }
 
-        public async Task AddOrderRejectedAsync(Order order, CancellationToken ct = default) // إشعار رفض الطلب
+      
+        public async Task AddOrderRejectedAsync( Order order, CancellationToken ct = default)
         {
-            await AddOrderNotificationAsync(order, "تم رفض طلبك", "تم رفض الطلب من المطعم.", ct);
+            var body = order.IssueReason switch
+            {
+                OrderIssueReason.VendorBusy =>
+                    "تم رفض طلبك لأن المطعم مزدحم حالياً.",
+
+                OrderIssueReason.VendorClosed =>
+                    "تم رفض طلبك لأن المطعم مغلق حالياً.",
+
+                OrderIssueReason.OutOfStock =>
+                    "تم رفض طلبك بسبب عدم توفر بعض الأصناف.",
+
+                OrderIssueReason.VendorRejectedOther =>
+                    $"تم رفض طلبك من المطعم. السبب: {order.IssueNote}",
+
+                _ =>
+                    "تم رفض طلبك من المطعم."
+            };
+
+            await AddOrderNotificationAsync(
+                order,
+                "تم رفض طلبك",
+                body,
+                ct);
         }
+        public async Task AddOrderCancelledAsync( Order order,CancellationToken ct = default)
+        {
+            var body = order.IssueReason switch
+            {
+                OrderIssueReason.VendorBusy =>
+                    "تم إلغاء طلبك لأن المطعم مزدحم حالياً.",
+
+                OrderIssueReason.VendorClosed =>
+                    "تم إلغاء طلبك لأن المطعم مغلق حالياً.",
+
+                OrderIssueReason.OutOfStock =>
+                    "تم إلغاء طلبك بسبب عدم توفر بعض الأصناف.",
+
+                OrderIssueReason.VendorRejectedOther =>
+                    $"تم إلغاء طلبك من المطعم. السبب: {order.IssueNote}",
+
+                _ =>
+                    "تم إلغاء طلبك من المطعم."
+            };
+
+            await AddOrderNotificationAsync(
+                order,
+                "تم إلغاء طلبك",
+                body,
+                ct);
+        }
+
 
         public async Task AddOrderReadyAsync(Order order, CancellationToken ct = default) // إشعار جاهزية الطلب
         {

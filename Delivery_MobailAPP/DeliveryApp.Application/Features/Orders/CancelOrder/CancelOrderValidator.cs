@@ -1,4 +1,7 @@
-﻿namespace DeliveryApp.Application.Features.Orders.CancelOrder
+﻿using DeliveryApp.Domain.Enums.OrderEnums;
+using DeliveryApp.Domain.DomainExceptions;
+
+namespace DeliveryApp.Application.Features.Orders.CancelOrder
 {
     public static class CancelOrderValidator // Validation الخاص بإلغاء الطلب
     {
@@ -16,8 +19,8 @@
             var isDefined = Enum.IsDefined(request.IssueReason);
             var isAllowed = actor switch
             {
-                DeliveryApp.Domain.Enums.OrderEnums.CancelledByType.Customer => reasonValue is >= 20 and <= 29,
-                DeliveryApp.Domain.Enums.OrderEnums.CancelledByType.Merchant => reasonValue is >= 1 and <= 9,
+                CancelledByType.Customer => reasonValue is >= 20 and <= 29,
+                CancelledByType.Merchant => reasonValue is >= 1 and <= 9,
                 _ => false
             };
 
@@ -26,6 +29,16 @@
                     "Order.Invalid_Cancellation_Reason",
                     "Cancellation reason is not valid for the current user.",
                     nameof(request.IssueReason));
+
+            if (actor == CancelledByType.Merchant &&
+                      request.IssueReason == OrderIssueReason.VendorRejectedOther &&
+                      string.IsNullOrWhiteSpace(request.IssueNote))
+            {
+                throw new DomainValidationException(
+                    "Order.Cancellation_Note_Required",
+                    "Cancellation note is required when the reason is Other.",
+                    nameof(request.IssueNote));
+            }
         }
     }
 }
