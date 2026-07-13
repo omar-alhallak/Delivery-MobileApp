@@ -10,7 +10,10 @@
                 {
                     policy.WithOrigins
                     (
-                        "http://localhost:5173"
+                        "http://localhost:5173",
+                        "http://localhost:8081",
+                        "http://localhost:7273"
+
 
                     ).AllowAnyHeader()
                      .AllowAnyMethod();
