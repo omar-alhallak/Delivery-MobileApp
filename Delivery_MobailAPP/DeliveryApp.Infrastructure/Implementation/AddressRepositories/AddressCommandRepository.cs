@@ -26,11 +26,28 @@ namespace DeliveryApp.Infrastructure.Implementation.AddressRepositories
             return await _context.Addresses.FirstOrDefaultAsync(x => x.ID == addressId && x.UserID == userId, ct);
         }
 
-        public async Task<IReadOnlyList<Address>> GetUserAddressesAsync(UserID userId, CancellationToken ct = default)
+        public async Task SwitchDefaultAsync(Address address, CancellationToken ct = default)
         {
-            return await _context.Addresses
-                .Where(x => x.UserID == userId)
+            if (address.IsDefault) return;
+
+            await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+
+            var currentDefaultAddresses = await _context.Addresses
+                .Where(x => x.UserID == address.UserID && x.ID != address.ID && x.IsDefault)
                 .ToListAsync(ct);
+
+            foreach (var currentDefaultAddress in currentDefaultAddresses)
+            {
+                currentDefaultAddress.RemoveDefault();
+            }
+
+            // نحفظ إلغاء الافتراضي القديم أولاً حتى لا يتعارض مع الـ unique index.
+            await _context.SaveChangesAsync(ct);
+
+            address.SetAsDefault();
+            await _context.SaveChangesAsync(ct);
+
+            await transaction.CommitAsync(ct);
         }
 
         public async Task AddAsync(Address address, CancellationToken ct = default)
